@@ -34,10 +34,14 @@
         private static SDLWindow? mainWindow;
         private static readonly SDLObjectTracker<SDLFont> fontTracker = new("Font");
 
-        public static void Run(SDLWindow window)
+        public static void Run(IScreen screen, SDLLog.LogPriority logPriority = SDLLog.LogPriority.Info)
+        {
+            Run(new SDLWindow(screen), logPriority);
+        }
+        public static void Run(SDLWindow window, SDLLog.LogPriority logPriority = SDLLog.LogPriority.Info)
         {
             mainWindow = window;
-            Initialize();
+            Initialize(logPriority);
             windows.Add(window);
             if (window.Visible) { window.Show(); }
             MainLoop();
@@ -173,14 +177,14 @@
                     if (updateFrameLag == 0)
                     {
                         isRunningSlowly = false;
-                        SDLLog.Verbose($"Stopped Running Slowly");
+                        SDLLog.Debug($"Stopped Running Slowly");
 
                     }
                 }
                 else if (updateFrameLag >= 5)
                 {
                     isRunningSlowly = true;
-                    SDLLog.Verbose($"Started Running Slowly");
+                    SDLLog.Debug($"Started Running Slowly");
                 }
                 if (stepCount == 1 && updateFrameLag > 0) { updateFrameLag--; }
                 elapsedTime = targetTime * stepCount;
@@ -236,11 +240,11 @@
                 }
             }
         }
-        private static void Initialize()
+        private static void Initialize(SDLLog.LogPriority logPriority)
         {
             string dllDir = Path.Combine(Environment.CurrentDirectory, IntPtr.Size == 4 ? "x86" : "x64");
             Environment.SetEnvironmentVariable("PATH", Environment.GetEnvironmentVariable("PATH") + ";" + dllDir);
-            SDLLog.InitializeLog(SDLLog.LogPriority.Debug);
+            SDLLog.InitializeLog(logPriority);
             SDLLog.Info($"SDL Initialization Starting...");
             SDL_SetMainReady();
             _ = SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1");

@@ -29,7 +29,7 @@
 
         public static void Initialize()
         {
-            _ = Mix_Init(MIX_InitFlags.MIX_INIT_MP3 | MIX_InitFlags.MIX_INIT_OGG);
+            _ = Mix_Init(MIX_InitFlags.MIX_INIT_MP3 | MIX_InitFlags.MIX_INIT_OGG | MIX_InitFlags.MIX_INIT_MID);
             if (Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 1024) != 0)
             {
                 SDLLog.Error($"Couldn't open Audio");
@@ -62,12 +62,12 @@
             if (handle == IntPtr.Zero) return;
             if (Mix_PlayMusic(handle, loops) != 0)
             {
-                SDLLog.Error($"Could not play SDLMusic {music.Name} of type {music.MusicType}: {SDLApplication.GetError()}");
+                SDLLog.Error($"Could not play Music {music.Name} of type {music.MusicType}: {SDLApplication.GetError()}");
             }
             else
             {
                 _ = Mix_VolumeMusic(musicVolume);
-                SDLLog.Info($"SDLMusic {music.Name} started");
+                SDLLog.Info($"Music {music.Name} started");
                 currentMusic = music;
             }
         }
@@ -113,7 +113,7 @@
                 if (handle != IntPtr.Zero)
                 {
                     music = new SDLMusic(handle, name);
-                    SDLLog.Info($"SDLMusic loaded from file '{name}'");
+                    SDLLog.Info($"Music loaded from file '{name}'");
                 }
             }
             return music;
@@ -141,12 +141,12 @@
                     if (handle != IntPtr.Zero)
                     {
                         music = new SDLMusic(handle, name, fileName);
-                        SDLLog.Info($"SDLMusic loaded from resource '{name}' (via temporary file '{fileName}')");
+                        SDLLog.Info($"Music loaded from resource '{name}' (via temporary file '{fileName}')");
                     }
                 }
                 catch (Exception ex)
                 {
-                    SDLLog.Error($"Could not load SDLMusic from resource '{name}' (via temporary file '{fileName}'): {ex.Message}");
+                    SDLLog.Error($"Could not load Music from resource '{name}' (via temporary file '{fileName}'): {ex.Message}");
                 }
             }
             else
@@ -156,7 +156,7 @@
                 if (handle != IntPtr.Zero)
                 {
                     music = new SDLMusic(handle, name);
-                    SDLLog.Info($"SDLMusic loaded from resource '{name}'");
+                    SDLLog.Info($"Music loaded from resource '{name}'");
                 }
             }
             return music;

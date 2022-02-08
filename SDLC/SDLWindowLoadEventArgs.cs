@@ -8,12 +8,12 @@
 
     public class SDLWindowLoadEventArgs : EventArgs
     {
-        private readonly SDLRenderer renderer;
-        public SDLWindowLoadEventArgs(SDLRenderer renderer)
+        private readonly IRenderer renderer;
+        public SDLWindowLoadEventArgs(IRenderer renderer)
         {
             this.renderer = renderer;
         }
-        public SDLRenderer Renderer => renderer;
+        public IRenderer Renderer => renderer;
     }
 
     public delegate void SDLWindowLoadEventHandler(object sender, SDLWindowLoadEventArgs e);

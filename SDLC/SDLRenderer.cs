@@ -8,7 +8,7 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    public sealed class SDLRenderer : IDisposable
+    internal sealed class SDLRenderer : IRenderer, IDisposable
     {
         private readonly SDLWindow window;
         private readonly uint format;
@@ -32,6 +32,9 @@
         private readonly List<string> textCacheKeys = new();
         private int textCacheLimit = 100;
         private readonly SDLObjectTracker<SDLTexture> textureTracker = new("Texture");
+        // Indices for 4 rectangle vertices: bottomleft-topleft-topright, topright,bottomright,bottomleft
+        private readonly int[] rectIndices = new int[] { 2, 0, 1, 1, 3, 2 };
+        private const int NUM_RECT_INDICES = 6;
 
         internal SDLRenderer(SDLWindow window)
         {
@@ -217,94 +220,167 @@
             SDL_RenderPresent(handle);
         }
 
-        public void DrawRect(int x, int y, int w, int h)
-        {
-            Rectangle rect = new(x, y, w, h);
-            _ = SDL_RenderDrawRect(handle, ref rect);
-        }
-        public void DrawRect(int x, int y, int w, int h, Color color)
-        {
-            SetColor(color);
-            Rectangle rect = new(x, y, w, h);
-            _ = SDL_RenderDrawRect(handle, ref rect);
-        }
         public void DrawRect(Rectangle rect)
         {
             _ = SDL_RenderDrawRect(handle, ref rect);
-        }
-        public void DrawRect(Rectangle rect, Color color)
-        {
-            SetColor(color);
-            _ = SDL_RenderDrawRect(handle, ref rect);
-        }
-        public void DrawRect(float x, float y, float w, float h)
-        {
-            RectangleF rect = new(x, y, w, h);
-            _ = SDL_RenderDrawRectF(handle, ref rect);
-        }
-        public void DrawRect(float x, float y, float w, float h, Color color)
-        {
-            SetColor(color);
-            RectangleF rect = new(x, y, w, h);
-            _ = SDL_RenderDrawRectF(handle, ref rect);
         }
         public void DrawRect(RectangleF rect)
         {
             _ = SDL_RenderDrawRectF(handle, ref rect);
         }
-        public void DrawRect(RectangleF rect, Color color)
+        public void DrawRects(IEnumerable<Rectangle> rects)
         {
-            SetColor(color);
-            _ = SDL_RenderDrawRectF(handle, ref rect);
+            Rectangle[] rcts = rects.AsArray();
+            if (rcts.Length > 0)
+            {
+                _ = SDL_RenderDrawRects(handle, rcts, rcts.Length);
+            }
+        }
+        public void DrawRects(IEnumerable<RectangleF> rects)
+        {
+            RectangleF[] rcts = rects.AsArray();
+            if (rcts.Length > 0)
+            {
+                _ = SDL_RenderDrawRectsF(handle, rcts, rcts.Length);
+            }
         }
 
+        public void FillRect(Rectangle rect)
+        {
+            _ = SDL_RenderFillRect(Handle, ref rect);
+        }
+        public void FillRect(RectangleF rect)
+        {
+            _ = SDL_RenderFillRectF(Handle, ref rect);
+        }
+
+
+        public void DrawLine(int x1, int y1, int x2, int y2)
+        {
+            _ = SDL_RenderDrawLine(handle, x1, y1, x2, y2);
+        }
+
+        public void DrawLine(float x1, float y1, float x2, float y2)
+        {
+            _ = SDL_RenderDrawLineF(handle, x1, y1, x2, y2);
+        }
+
+        public void DrawLines(IEnumerable<Point> points)
+        {
+            Point[] pts = points.AsArray();
+            if (pts.Length > 0)
+            {
+                _ = SDL_RenderDrawLines(handle, pts, pts.Length);
+            }
+        }
+        public void DrawLines(IEnumerable<PointF> points)
+        {
+            PointF[] pts = points.AsArray();
+            if (pts.Length > 0)
+            {
+                _ = SDL_RenderDrawLinesF(handle, pts, pts.Length);
+            }
+        }
+
+        public void DrawPoint(int x, int y)
+        {
+            _ = SDL_RenderDrawPoint(handle, x, y);
+        }
+        public void DrawPoint(float x, float y)
+        {
+            _ = SDL_RenderDrawPointF(handle, x, y);
+        }
+
+        public void FillColorRect(Rectangle rect, Color colorTopLeft, Color colorTopRight, Color colorBottomLeft, Color colorBottomRight)
+        {
+            SDL_Vertex[] vertices = new SDL_Vertex[4];
+            vertices[0].color = colorTopLeft.ToArgb();
+            vertices[0].position = new Point(rect.Left, rect.Top);
+            vertices[1].color = colorTopRight.ToArgb();
+            vertices[1].position = new Point(rect.Right, rect.Top);
+            vertices[2].color = colorBottomLeft.ToArgb();
+            vertices[2].position = new Point(rect.Left, rect.Bottom);
+            vertices[3].color = colorBottomRight.ToArgb();
+            vertices[3].position = new Point(rect.Right, rect.Bottom);
+            _ = SDL_RenderGeometry(handle, IntPtr.Zero, vertices, 4, rectIndices, NUM_RECT_INDICES);
+        }
+
+        public void FillColorRect(RectangleF rect, Color colorTopLeft, Color colorTopRight, Color colorBottomLeft, Color colorBottomRight)
+        {
+            SDL_Vertex[] vertices = new SDL_Vertex[4];
+            vertices[0].color = colorTopLeft.ToArgb();
+            vertices[0].position = new PointF(rect.Left, rect.Top);
+            vertices[1].color = colorTopRight.ToArgb();
+            vertices[1].position = new PointF(rect.Right, rect.Top);
+            vertices[2].color = colorBottomLeft.ToArgb();
+            vertices[2].position = new PointF(rect.Left, rect.Bottom);
+            vertices[3].color = colorBottomRight.ToArgb();
+            vertices[3].position = new PointF(rect.Right, rect.Bottom);
+            _ = SDL_RenderGeometry(handle, IntPtr.Zero, vertices, 4, rectIndices, NUM_RECT_INDICES);
+        }
+
+        public void DrawTexture(SDLTexture? texture, Rectangle src, Rectangle dst)
+        {
+            if (texture.GetTextureHandle(out IntPtr th))
+            {
+                _ = SDL_RenderCopy(handle, th, ref src, ref dst);
+            }
+        }
+        public void DrawTexture(SDLTexture? texture, Rectangle dst)
+        {
+            if (texture.GetTextureHandle(out IntPtr th))
+            {
+                _ = SDL_RenderCopy(handle, th, IntPtr.Zero, ref dst);
+            }
+        }
         public void DrawTexture(SDLTexture? texture)
         {
-            if (texture != null)
+            if (texture.GetTextureHandle(out IntPtr th))
             {
-                IntPtr texHandle = texture.Handle;
-                if (texHandle != IntPtr.Zero)
-                {
-                    SDL_RenderCopy(handle, texHandle, IntPtr.Zero, IntPtr.Zero);
-                }
+                _ = SDL_RenderCopy(handle, th, IntPtr.Zero, IntPtr.Zero);
+            }
+        }
+        public void DrawTexture(SDLTexture? texture, Rectangle src, RectangleF dst)
+        {
+            if (texture.GetTextureHandle(out IntPtr th))
+            {
+                _ = SDL_RenderCopyF(handle, th, ref src, ref dst);
+            }
+        }
+        public void DrawTexture(SDLTexture? texture, RectangleF dst)
+        {
+            if (texture.GetTextureHandle(out IntPtr th))
+            {
+                _ = SDL_RenderCopyF(handle, th, IntPtr.Zero, ref dst);
             }
         }
 
-        public void DrawTexture(SDLTexture? texture, int cx, int cy, double angle)
+        public void DrawTexture(SDLTexture? texture, Rectangle src, Rectangle dst, double angle, Point center, RendererFlip flip = RendererFlip.None)
         {
-            if (texture != null)
+            if (texture.GetTextureHandle(out IntPtr th))
             {
-                IntPtr texHandle = texture.Handle;
-                if (texHandle != IntPtr.Zero)
-                {
-                    Point center = new Point(cx, cy);
-                    SDL_RenderCopyEx(handle, texHandle, IntPtr.Zero, IntPtr.Zero, angle, ref center, RendererFlip.None);
-                }
+                _ = SDL_RenderCopyEx(handle, th, ref src, ref dst, angle, ref center, flip);
             }
         }
-        public void DrawTexture(SDLTexture? texture, int x, int y, int width, int height, int cx, int cy, double angle)
+        public void DrawTexture(SDLTexture? texture, Rectangle src, Rectangle dst, double angle, RendererFlip flip = RendererFlip.None)
         {
-            if (texture != null)
+            if (texture.GetTextureHandle(out IntPtr th))
             {
-                IntPtr texHandle = texture.Handle;
-                if (texHandle != IntPtr.Zero)
-                {
-                    Point center = new Point(cx, cy);
-                    Rectangle dst = new Rectangle(x, y, width, height);
-                    SDL_RenderCopyEx(handle, texHandle, IntPtr.Zero, ref dst, angle, ref center, RendererFlip.None);
-                }
+                _ = SDL_RenderCopyEx(handle, th, ref src, ref dst, angle, IntPtr.Zero, flip);
             }
         }
-        public void DrawTexture(SDLTexture? texture, int x, int y, int width, int height, double angle)
+        public void DrawTexture(SDLTexture? texture, Rectangle dst, double angle, Point center, RendererFlip flip = RendererFlip.None)
         {
-            if (texture != null)
+            if (texture.GetTextureHandle(out IntPtr th))
             {
-                IntPtr texHandle = texture.Handle;
-                if (texHandle != IntPtr.Zero)
-                {
-                    Rectangle dst = new Rectangle(x, y, width, height);
-                    SDL_RenderCopyEx(handle, texHandle, IntPtr.Zero, ref dst, angle, IntPtr.Zero, RendererFlip.None);
-                }
+                _ = SDL_RenderCopyEx(handle, th, IntPtr.Zero, ref dst, angle, ref center, flip);
+            }
+        }
+        public void DrawTexture(SDLTexture? texture, Rectangle dst, double angle, RendererFlip flip = RendererFlip.None)
+        {
+            if (texture.GetTextureHandle(out IntPtr th))
+            {
+                _ = SDL_RenderCopyEx(handle, th, IntPtr.Zero, ref dst, angle, IntPtr.Zero, flip);
             }
         }
 
@@ -314,15 +390,6 @@
             if (font == null) { font = SDLApplication.DefaultFont; }
             if (font == null) return;
             DrawTextCache(GetTextCache(font, text, color), x, y, width, height, horizontalAlignment, verticalAlignment);
-        }
-
-        public void DrawText(SDLFont? font, string? text, float x, float y, Color color)
-        {
-            DrawText(font, text, x, y, 0, 0, color, HorizontalAlignment.Left, VerticalAlignment.Top);
-        }
-        public void DrawText(SDLFont? font, string? text, float x, float y)
-        {
-            DrawText(font, text, x, y, Color);
         }
 
         public Size MeasureText(SDLFont? font, string? text)
@@ -348,7 +415,7 @@
                 if (tex != IntPtr.Zero)
                 {
                     texture = new SDLTexture(this, tex, fileName);
-                    SDLLog.Info($"SDLTexture loaded from file '{fileName}'");
+                    SDLLog.Info($"Texture loaded from file '{fileName}'");
                 }
             }
             return texture;
@@ -367,12 +434,13 @@
                     if (tex != IntPtr.Zero)
                     {
                         texture = new SDLTexture(this, tex, name);
-                        SDLLog.Info($"SDLTexture loaded from resource '{name}'");
+                        SDLLog.Info($"Texture loaded from resource '{name}'");
                     }
                 }
             }
             return texture;
         }
+
 
         internal void Track(SDLTexture texture)
         {
@@ -999,8 +1067,6 @@
         [StructLayout(LayoutKind.Sequential)]
         internal struct SDL_RendererInfo
         {
-            //public IntPtr name; // const char*
-            //[MarshalAs(UnmanagedType.LPUTF8Str)]
             public IntPtr name;
             public SDL_RendererFlags flags;
             public uint num_texture_formats;
@@ -1010,6 +1076,13 @@
             public int max_texture_height;
         }
 
+        [StructLayout(LayoutKind.Sequential)]
+        private struct SDL_Vertex
+        {
+            public PointF position;
+            public int color;
+            public PointF tex_coord;
+        }
 
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
@@ -1039,7 +1112,11 @@
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         private static extern int SDL_RenderDrawRect(IntPtr renderer, [In()] ref Rectangle rect);
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int SDL_RenderDrawRects(IntPtr renderer, [In] Rectangle[] rects, int count);
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         private static extern int SDL_RenderDrawRectF(IntPtr renderer, [In()] ref RectangleF rect);
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int SDL_RenderDrawRectsF(IntPtr renderer, [In] RectangleF[] rects, int count);
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         private static extern int SDL_RenderFillRect(IntPtr renderer, [In()] ref Rectangle rect);
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
@@ -1126,6 +1203,10 @@
         internal static extern int SDL_GetRenderDriverInfo(int index, out SDL_RendererInfo info);
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         private static extern int SDL_GetRendererInfo(IntPtr renderer, out SDL_RendererInfo info);
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int SDL_RenderGeometry(IntPtr renderer, IntPtr texture, [In] SDL_Vertex[] vertices, int num_vertices, [In] int[] indices, int num_indices);
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int SDL_RenderGeometry(IntPtr renderer, IntPtr texture, [In] SDL_Vertex[] vertices, int num_vertices, IntPtr indices, int num_indices);
 
 
     }

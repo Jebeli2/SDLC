@@ -5,7 +5,7 @@
     using System.Numerics;
     using System.Runtime.InteropServices;
 
-    public class SDLWindow : IDisposable
+    public class SDLWindow : IWindow, IDisposable
     {
 
         public const int SDL_WINDOWPOS_UNDEFINED_MASK = 0x1FFF0000;
@@ -38,12 +38,16 @@
         private float fpsPosX;
         private float fpsPosY;
         private string driver;
+        private bool mouseGrab;
+        private bool keyboardGrab;
         private WindowCloseOperation closeOperation;
         private FullScreenMode fullScreenMode;
         private int oldX;
         private int oldY;
         private int oldWidth;
         private int oldHeight;
+        private readonly List<SDLApplet> applets = new();
+        private IScreen screen;
 
         private readonly EventHandlerList eventHandlerList = new();
         private static readonly object windowLoadEventKey = new();
@@ -87,26 +91,49 @@
         private static readonly object windowUpdateEventKey = new();
 
         public SDLWindow(string? title = null)
+            : this(new NoScreen(), title)
         {
+
+        }
+        public SDLWindow(IScreen screen, string? title = null)
+        {
+            this.screen = screen;
             this.title = title;
             driver = "direct3d11";
             visible = true;
-            resizeable = true;
-            alwaysOnTop = false;
-            borderless = false;
-            fullScreen = false;
             x = SDL_WINDOWPOS_UNDEFINED;
             y = SDL_WINDOWPOS_UNDEFINED;
-            width = 640;
-            height = 512;
-            backBufferWidth = 640;
-            backBufferHeight = 512;
+            SetConfiguration(this.screen.GetConfiguration());
+            backBufferWidth = width;
+            backBufferHeight = height;
             windowId = -1;
             renderer = new SDLRenderer(this);
         }
         ~SDLWindow()
         {
             Dispose(disposing: false);
+        }
+
+        private void SetConfiguration(Configuration config)
+        {
+            driver = config.Driver;
+            title = config.WindowTitle;
+            width = config.WindowWidth;
+            height = config.WindowHeight;
+            resizeable = config.Resizeable;
+            alwaysOnTop = config.AlwaysOnTop;
+            borderless = config.Borderless;
+            skipTaskbar = config.SkipTaskbar;
+            fullScreen = config.FullScreen;
+            showFPS = config.ShowFPS;
+            fpsPosX = config.FPSPosX;
+            fpsPosY = config.FPSPosY;
+            SDLApplication.MaxFramesPerSecond = config.MaxFramesPerSecond;
+        }
+
+        private void ApplyConfiguration(Configuration config)
+        {
+
         }
 
         public event EventHandler WindowShown
@@ -250,6 +277,20 @@
 
         public int WindowId => windowId;
         public IntPtr Handle => handle;
+        public IRenderer Renderer => renderer;
+        public IScreen Screen
+        {
+            get => screen;
+            set
+            {
+                if (screen != value)
+                {
+                    screen.Hide(this);
+                    screen = value;
+                    screen.Show(this);
+                }
+            }
+        }
 
         public WindowCloseOperation CloseOperation
         {
@@ -306,6 +347,38 @@
                 if (fpsPosY != value)
                 {
                     fpsPosY = value;
+                }
+            }
+        }
+
+        public bool MouseGrab
+        {
+            get => mouseGrab;
+            set
+            {
+                if (mouseGrab != value)
+                {
+                    mouseGrab = value;
+                    if (HandleCreated)
+                    {
+                        SDL_SetWindowMouseGrab(handle, mouseGrab);
+                    }
+                }
+            }
+        }
+
+        public bool KeyboardGrab
+        {
+            get => keyboardGrab;
+            set
+            {
+                if (keyboardGrab != value)
+                {
+                    keyboardGrab = value;
+                    if (HandleCreated)
+                    {
+                        SDL_SetWindowKeyboardGrab(handle, keyboardGrab);
+                    }
                 }
             }
         }
@@ -553,6 +626,7 @@
             {
                 CreateHandle();
             }
+            screen.Show(this);
         }
 
         public void Hide()
@@ -562,10 +636,12 @@
             {
                 SDL_HideWindow(handle);
             }
+            screen.Hide(this);
         }
 
         public void Close()
         {
+            screen.Shutdown(this);
             Dispose();
         }
 
@@ -596,6 +672,42 @@
             renderer.SetBackBufferSize(backBufferWidth, backBufferHeight);
         }
 
+        public void AddApplet(SDLApplet applet)
+        {
+            if (!applets.Contains(applet))
+            {
+                applets.Add(applet);
+                InitApplet(applet);
+                applet.Installed = true;
+            }
+        }
+
+        public void RemoveApplet(SDLApplet applet)
+        {
+            applets.Remove(applet);
+            applet.Installed = false;
+        }
+
+        private void InitApplet(SDLApplet applet)
+        {
+            if (!applet.Initialized)
+            {
+                applet.InternalOnLoad(new SDLWindowLoadEventArgs(renderer));
+                applet.Initialized = true;
+                applet.InternalOnShown(EventArgs.Empty);
+            }
+        }
+        private void ForEachEnabledApplet(Action<SDLApplet> action)
+        {
+            foreach (SDLApplet applet in applets)
+            {
+                if (applet.Enabled)
+                {
+                    action(applet);
+                }
+            }
+        }
+
         private void GoFullScreen()
         {
             switch (fullScreenMode)
@@ -616,7 +728,8 @@
         {
             if (fullScreenMode == FullScreenMode.Desktop)
             {
-                SDL_SetWindowFullscreen(Handle, 0);
+                _ = SDL_SetWindowFullscreen(Handle, 0);
+                SDLLog.Info($"Entered Windowed Mode");
             }
             else
             {
@@ -626,6 +739,7 @@
                 SDL_SetWindowResizable(handle, resizeable);
                 if (title != null) { SDL_SetWindowTitle(handle, title); }
                 SDL_SetWindowAlwaysOnTop(handle, alwaysOnTop);
+                SDLLog.Info($"Entered Windowed Mode");
             }
         }
 
@@ -641,14 +755,14 @@
             SDL_SetWindowAlwaysOnTop(handle, true);
             SDL_SetWindowSize(handle, bounds.Width, bounds.Height);
             SDL_SetWindowPosition(handle, bounds.X, bounds.Y);
-
+            SDLLog.Info($"Entered Full Size Full Screen Mode");
         }
 
         private void GoMultiMonitorFullScreen()
         {
             SDL_GetWindowPosition(handle, out oldX, out oldY);
             SDL_GetWindowSize(handle, out oldWidth, out oldHeight);
-            SDL_GetDisplayBounds(0, out Rectangle bounds);
+            _ = SDL_GetDisplayBounds(0, out Rectangle bounds);
             int numDisplays = SDL_GetNumVideoDisplays();
             for (int index = 1; index < numDisplays; index++)
             {
@@ -669,14 +783,26 @@
             SDL_SetWindowAlwaysOnTop(handle, true);
             SDL_SetWindowSize(handle, bounds.Width, bounds.Height);
             SDL_SetWindowPosition(handle, bounds.X, bounds.Y);
-
+            SDLLog.Info($"Entered Multi Monitor Full Screen Mode");
         }
 
         private void GoDesktopFullScreen()
         {
             SDL_GetWindowPosition(handle, out oldX, out oldY);
             SDL_GetWindowSize(handle, out oldWidth, out oldHeight);
-            SDL_SetWindowFullscreen(Handle, (uint)SDL_WindowFlags.FULLSCREEN_DESKTOP);
+            _ = SDL_SetWindowFullscreen(Handle, (uint)SDL_WindowFlags.FULLSCREEN_DESKTOP);
+            SDLLog.Info($"Entered Desktop Full Screen Mode");
+        }
+
+        private void ScaleMouse(ref int x, ref int y)
+        {
+            if (sizeMode == RendererSizeMode.Window) return;
+            double scaleX = width;
+            scaleX /= backBufferWidth;
+            x = (int)(x / scaleX);
+            double scaleY = height;
+            scaleY /= backBufferHeight;
+            y = (int)(y / scaleY);
         }
 
         public void Dispose()
@@ -704,8 +830,16 @@
             }
         }
 
-        protected virtual void OnWindowShown(EventArgs e) { ((EventHandler?)eventHandlerList[windowShownEventKey])?.Invoke(this, e); }
-        protected virtual void OnWindowHidden(EventArgs e) { ((EventHandler?)eventHandlerList[windowHiddenEventKey])?.Invoke(this, e); }
+        protected virtual void OnWindowShown(EventArgs e)
+        {
+            ForEachEnabledApplet(a => a.InternalOnShown(e));
+            ((EventHandler?)eventHandlerList[windowShownEventKey])?.Invoke(this, e);
+        }
+        protected virtual void OnWindowHidden(EventArgs e)
+        {
+            ForEachEnabledApplet(a => a.InternalOnHidden(e));
+            ((EventHandler?)eventHandlerList[windowHiddenEventKey])?.Invoke(this, e);
+        }
         protected virtual void OnWindowExposed(EventArgs e) { ((EventHandler?)eventHandlerList[windowExposedEventKey])?.Invoke(this, e); }
         protected virtual void OnWindowMinimized(EventArgs e) { ((EventHandler?)eventHandlerList[windowMinimizedEventKey])?.Invoke(this, e); }
         protected virtual void OnWindowMaximized(EventArgs e) { ((EventHandler?)eventHandlerList[windowMaximizedEventKey])?.Invoke(this, e); }
@@ -714,21 +848,73 @@
         protected virtual void OnWindowLeave(EventArgs e) { ((EventHandler?)eventHandlerList[windowLeaveEventKey])?.Invoke(this, e); }
         protected virtual void OnWindowFocusGained(EventArgs e) { ((EventHandler?)eventHandlerList[windowFocusGainedEventKey])?.Invoke(this, e); }
         protected virtual void OnWindowFocusLost(EventArgs e) { ((EventHandler?)eventHandlerList[windowFocusLostEventKey])?.Invoke(this, e); }
-        protected virtual void OnWindowClose(EventArgs e) { ((EventHandler?)eventHandlerList[windowCloseEventKey])?.Invoke(this, e); }
+        protected virtual void OnWindowClose(EventArgs e)
+        {
+            ForEachEnabledApplet(a => a.InternalOnClose(e));
+            ((EventHandler?)eventHandlerList[windowCloseEventKey])?.Invoke(this, e);
+        }
         protected virtual void OnWindowTakeFocus(EventArgs e) { ((EventHandler?)eventHandlerList[windowTakeFocusEventKey])?.Invoke(this, e); }
         protected virtual void OnWindowMoved(SDLWindowPositionEventArgs e) { ((SDLWindowPositionEventHandler?)eventHandlerList[windowMovedEventKey])?.Invoke(this, e); }
-        protected virtual void OnWindowResized(SDLWindowSizeEventArgs e) { ((SDLWindowSizeEventHandler?)eventHandlerList[windowResizedEventKey])?.Invoke(this, e); }
-        protected virtual void OnWindowSizeChanged(SDLWindowSizeEventArgs e) { ((SDLWindowSizeEventHandler?)eventHandlerList[windowSizeChangedEventKey])?.Invoke(this, e); }
-        protected virtual void OnWindowUpdate(SDLWindowUpdateEventArgs e) { ((SDLWindowUpdateEventHandler?)eventHandlerList[windowUpdateEventKey])?.Invoke(this, e); }
-        protected virtual void OnWindowPaint(SDLWindowPaintEventArgs e) { ((SDLWindowPaintEventHandler?)eventHandlerList[windowPaintEventKey])?.Invoke(this, e); }
-        protected virtual void OnWindowLoad(SDLWindowLoadEventArgs e) { ((SDLWindowLoadEventHandler?)eventHandlerList[windowLoadEventKey])?.Invoke(this, e); }
-        protected virtual void OnMouseButtonDown(SDLMouseEventArgs e) { ((SDLMouseEventHandler?)eventHandlerList[mouseButtonDownEventKey])?.Invoke(this, e); }
-        protected virtual void OnMouseButtonUp(SDLMouseEventArgs e) { ((SDLMouseEventHandler?)eventHandlerList[mouseButtonUpEventKey])?.Invoke(this, e); }
-        protected virtual void OnMouseMove(SDLMouseEventArgs e) { ((SDLMouseEventHandler?)eventHandlerList[mouseMoveEventKey])?.Invoke(this, e); }
-        protected virtual void OnMouseWheel(SDLMouseWheelEventArgs e) { ((SDLMouseWheelEventHandler?)eventHandlerList[mouseWheelEventKey])?.Invoke(this, e); }
-        protected virtual void OnKeyDown(SDLKeyEventArgs e) { ((SDLKeyEventHandler?)eventHandlerList[keyDownEventKey])?.Invoke(this, e); }
-        protected virtual void OnKeyUp(SDLKeyEventArgs e) { ((SDLKeyEventHandler?)eventHandlerList[keyUpEventKey])?.Invoke(this, e); }
-        protected virtual void OnTextInput(SDLTextInputEventArgs e) { ((SDLTextInputEventHandler?)eventHandlerList[textInputEventKey])?.Invoke(this, e); }
+        protected virtual void OnWindowResized(SDLWindowSizeEventArgs e)
+        {
+            ForEachEnabledApplet(a => a.InternalOnSizeChanged(e));
+            ((SDLWindowSizeEventHandler?)eventHandlerList[windowResizedEventKey])?.Invoke(this, e);
+        }
+        protected virtual void OnWindowSizeChanged(SDLWindowSizeEventArgs e)
+        {
+            ForEachEnabledApplet(a => a.InternalOnSizeChanged(e));
+            ((SDLWindowSizeEventHandler?)eventHandlerList[windowSizeChangedEventKey])?.Invoke(this, e);
+        }
+        protected virtual void OnWindowUpdate(SDLWindowUpdateEventArgs e)
+        {
+            ForEachEnabledApplet(a => a.InternalOnUpdate(e));
+            ((SDLWindowUpdateEventHandler?)eventHandlerList[windowUpdateEventKey])?.Invoke(this, e);
+        }
+        protected virtual void OnWindowPaint(SDLWindowPaintEventArgs e)
+        {
+            ForEachEnabledApplet(a => a.InternalOnPaint(e));
+            ((SDLWindowPaintEventHandler?)eventHandlerList[windowPaintEventKey])?.Invoke(this, e);
+        }
+        protected virtual void OnWindowLoad(SDLWindowLoadEventArgs e)
+        {
+            ForEachEnabledApplet(a => a.InternalOnLoad(e));
+            ((SDLWindowLoadEventHandler?)eventHandlerList[windowLoadEventKey])?.Invoke(this, e);
+        }
+        protected virtual void OnMouseButtonDown(SDLMouseEventArgs e)
+        {
+            ForEachEnabledApplet(a => a.InternalOnMouseButtonDown(e));
+            ((SDLMouseEventHandler?)eventHandlerList[mouseButtonDownEventKey])?.Invoke(this, e);
+        }
+        protected virtual void OnMouseButtonUp(SDLMouseEventArgs e)
+        {
+            ForEachEnabledApplet(a => a.InternalOnMouseButtonUp(e));
+            ((SDLMouseEventHandler?)eventHandlerList[mouseButtonUpEventKey])?.Invoke(this, e);
+        }
+        protected virtual void OnMouseMove(SDLMouseEventArgs e)
+        {
+            ForEachEnabledApplet(a => a.InternalOnMouseMove(e));
+            ((SDLMouseEventHandler?)eventHandlerList[mouseMoveEventKey])?.Invoke(this, e);
+        }
+        protected virtual void OnMouseWheel(SDLMouseWheelEventArgs e)
+        {
+            ForEachEnabledApplet(a => a.InternalOnMouseWheel(e));
+            ((SDLMouseWheelEventHandler?)eventHandlerList[mouseWheelEventKey])?.Invoke(this, e);
+        }
+        protected virtual void OnKeyDown(SDLKeyEventArgs e)
+        {
+            ForEachEnabledApplet(a => a.InternalOnKeyDown(e));
+            ((SDLKeyEventHandler?)eventHandlerList[keyDownEventKey])?.Invoke(this, e);
+        }
+        protected virtual void OnKeyUp(SDLKeyEventArgs e)
+        {
+            ForEachEnabledApplet(a => a.InternalOnKeyUp(e));
+            ((SDLKeyEventHandler?)eventHandlerList[keyUpEventKey])?.Invoke(this, e);
+        }
+        protected virtual void OnTextInput(SDLTextInputEventArgs e)
+        {
+            ForEachEnabledApplet(a => a.InternalOnTextInput(e));
+            ((SDLTextInputEventHandler?)eventHandlerList[textInputEventKey])?.Invoke(this, e);
+        }
         protected virtual void OnControllerButtonDown(SDLControllerButtonEventArgs e) { ((SDLControllerButtonEventHandler?)eventHandlerList[controllerButtonDownEventKey])?.Invoke(this, e); }
         protected virtual void OnControllerButtonUp(SDLControllerButtonEventArgs e) { ((SDLControllerButtonEventHandler?)eventHandlerList[controllerButtonUpEventKey])?.Invoke(this, e); }
         protected virtual void OnControllerAxis(SDLControllerAxisEventArgs e) { ((SDLControllerAxisEventHandler?)eventHandlerList[controllerAxisEventKey])?.Invoke(this, e); }
@@ -820,6 +1006,7 @@
             this.width = width;
             this.height = height;
             renderer.WindowResized(width, height);
+            screen.Resized(this, width, height);
             OnWindowResized(new SDLWindowSizeEventArgs(width, height));
         }
         internal void RaiseWindowSizeChanged(int width, int height)
@@ -828,6 +1015,7 @@
             this.width = width;
             this.height = height;
             renderer.WindowResized(width, height);
+            screen.Resized(this, width, height);
             OnWindowSizeChanged(new SDLWindowSizeEventArgs(width, height));
         }
 
@@ -840,6 +1028,7 @@
         internal void RaiseWindowUpdate(double totalTime, double elapsedTime)
         {
             //SDLLog.Info($"Window {windowId} Update {totalTime} {elapsedTime}");
+            screen.Update(renderer, totalTime, elapsedTime);
             OnWindowUpdate(new SDLWindowUpdateEventArgs(totalTime, elapsedTime));
         }
 
@@ -847,32 +1036,37 @@
         {
             //SDLLog.Info($"Window {windowId} Paint {totalTime} {elapsedTime}");
             renderer.BeginPaint();
+            screen.Render(renderer, totalTime, elapsedTime);
             OnWindowPaint(new SDLWindowPaintEventArgs(renderer, renderer.Width, renderer.Height, totalTime, elapsedTime));
+
             if (showFPS)
             {
-                renderer.DrawText(null, SDLApplication.FPSText, fpsPosX, fpsPosY);
+                renderer.DrawText(null, SDLApplication.FPSText, fpsPosX, fpsPosY, Color.White);
             }
             renderer.EndPaint();
         }
 
         internal void RaiseMouseButtonDown(int which, int x, int y, MouseButton button, int click, KeyButtonState state)
         {
+            ScaleMouse(ref x, ref y);
             SDLLog.Verbose($"Window {windowId} Mouse {which} {button} {state} {x} {y}");
             lastButton = button;
             lastState = state;
-            OnMouseButtonDown(new SDLMouseEventArgs(which, X, Y, button, click, state, 0, 0));
+            OnMouseButtonDown(new SDLMouseEventArgs(which, x, y, button, click, state, 0, 0));
         }
         internal void RaiseMouseButtonUp(int which, int x, int y, MouseButton button, int click, KeyButtonState state)
         {
+            ScaleMouse(ref x, ref y);
             SDLLog.Verbose($"Window {windowId} Mouse {which} {button} {state} {x} {y}");
             lastButton = button;
             lastState = state;
-            OnMouseButtonUp(new SDLMouseEventArgs(which, X, Y, button, click, state, 0, 0));
+            OnMouseButtonUp(new SDLMouseEventArgs(which, x, y, button, click, state, 0, 0));
         }
         internal void RaiseMouseMove(int which, int x, int y, int relX, int relY)
         {
+            ScaleMouse(ref x, ref y);
             SDLLog.Verbose($"Window {windowId} Mouse {which} Moved {x} {y} {relX} {relY}");
-            OnMouseButtonUp(new SDLMouseEventArgs(which, x, y, lastButton, 0, lastState, relX, relY));
+            OnMouseMove(new SDLMouseEventArgs(which, x, y, lastButton, 0, lastState, relX, relY));
         }
 
         internal void RaiseMouseWheel(int which, int x, int y, float preciseX, float preciseY, MouseWheelDirection direction)
@@ -936,6 +1130,8 @@
             if (alwaysOnTop) { flags |= SDL_WindowFlags.ALWAYS_ON_TOP; }
             if (borderless) { flags |= SDL_WindowFlags.BORDERLESS; }
             if (skipTaskbar) { flags |= SDL_WindowFlags.SKIP_TASKBAR; }
+            if (mouseGrab) { flags |= SDL_WindowFlags.MOUSE_GRABBED; }
+            if (keyboardGrab) { flags |= SDL_WindowFlags.KEYBOARD_GRABBED; }
             if (title != null)
             {
                 handle = SDL_CreateWindow(title, x, y, width, height, flags);
@@ -954,6 +1150,7 @@
                 {
                     if (fullScreen) { GoFullScreen(); }
                     RaiseWindowLoad();
+                    screen.Initialize(this);
                 }
             }
             else
@@ -964,13 +1161,7 @@
 
 
         private const string LibName = "SDL2";
-        [StructLayout(LayoutKind.Sequential)]
-        private struct SDL_version
-        {
-            public byte major;
-            public byte minor;
-            public byte patch;
-        }
+
         [Flags]
         private enum SDL_WindowFlags : uint
         {
@@ -1040,6 +1231,22 @@
         private static extern int SDL_GetNumVideoDisplays();
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         public static extern int SDL_SetWindowFullscreen(IntPtr window, uint flags);
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool SDL_GetWindowGrab(IntPtr window);
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool SDL_GetWindowKeyboardGrab(IntPtr window);
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool SDL_GetWindowMouseGrab(IntPtr window);
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        private static extern void SDL_SetWindowGrab(IntPtr window, [MarshalAs(UnmanagedType.Bool)] bool grabbed);
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        private static extern void SDL_SetWindowKeyboardGrab(IntPtr window, [MarshalAs(UnmanagedType.Bool)] bool grabbed);
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        private static extern void SDL_SetWindowMouseGrab(IntPtr window, [MarshalAs(UnmanagedType.Bool)] bool grabbed);
+
 
     }
 }

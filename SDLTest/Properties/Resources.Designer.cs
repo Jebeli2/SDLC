@@ -83,6 +83,26 @@ namespace SDLTest.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] box {
+            get {
+                object obj = ResourceManager.GetObject("box", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] find_your_way {
+            get {
+                object obj = ResourceManager.GetObject("find-your-way", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] fire_temple {
             get {
                 object obj = ResourceManager.GetObject("fire_temple", resourceCulture);
@@ -96,6 +116,76 @@ namespace SDLTest.Properties {
         internal static byte[] ice_palace {
             get {
                 object obj = ResourceManager.GetObject("ice_palace", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] jesters_of_the_moon {
+            get {
+                object obj = ResourceManager.GetObject("jesters-of-the-moon", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] jesu_joy {
+            get {
+                object obj = ResourceManager.GetObject("jesu-joy", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] loss_of_me {
+            get {
+                object obj = ResourceManager.GetObject("loss-of-me", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] loss_of_me_2_ {
+            get {
+                object obj = ResourceManager.GetObject("loss-of-me-2-", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] loss_of_me_3_ {
+            get {
+                object obj = ResourceManager.GetObject("loss-of-me-3-", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] loss_of_me_metallic_pad_ {
+            get {
+                object obj = ResourceManager.GetObject("loss-of-me-metallic-pad-", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] loss_of_me_minstral_remix_ {
+            get {
+                object obj = ResourceManager.GetObject("loss-of-me-minstral-remix-", resourceCulture);
                 return ((byte[])(obj));
             }
         }

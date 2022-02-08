@@ -10,10 +10,10 @@
     {
         private readonly double totalTime;
         private readonly double elapsedTime;
-        private readonly SDLRenderer renderer;
+        private readonly IRenderer renderer;
         private readonly int width;
         private readonly int height;
-        public SDLWindowPaintEventArgs(SDLRenderer renderer, int width, int height, double totalTime, double elapsedTime)
+        public SDLWindowPaintEventArgs(IRenderer renderer, int width, int height, double totalTime, double elapsedTime)
         {
             this.renderer = renderer;
             this.width = width;
@@ -21,7 +21,7 @@
             this.totalTime = totalTime;
             this.elapsedTime = elapsedTime;
         }
-        public SDLRenderer Renderer => renderer;
+        public IRenderer Renderer => renderer;
         public int Width => width;
         public int Height => height;
         public double TotalTime => totalTime;
