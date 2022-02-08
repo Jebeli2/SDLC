@@ -32,12 +32,12 @@
 
         public virtual void Hide(IWindow window)
         {
-            SDLLog.Info($"Hide Screen {name}");
+            SDLLog.Info(LogCategory.APPLICATION, $"Hide Screen {name}");
         }
 
         public virtual void Initialize(IWindow window)
         {
-            SDLLog.Info($"Initialize Screen {name}");
+            SDLLog.Info(LogCategory.APPLICATION, $"Initialize Screen {name}");
             this.window = window;
             renderer = window.Renderer;
             width = window.Width;
@@ -46,7 +46,7 @@
 
         public virtual void Pause(IWindow window)
         {
-            SDLLog.Info($"Pause Screen {name}");
+            SDLLog.Info(LogCategory.APPLICATION, $"Pause Screen {name}");
         }
 
         public virtual void Render(IRenderer renderer, double totalTime, double elapsedTime)
@@ -55,24 +55,24 @@
 
         public virtual void Resized(IWindow window, int width, int height)
         {
-            SDLLog.Info($"Resized Screen {name} ({width}x{height})");
+            SDLLog.Info(LogCategory.APPLICATION, $"Resized Screen {name} ({width}x{height})");
             this.width = width;
             this.height = height;
         }
 
         public virtual void Resume(IWindow window)
         {
-            SDLLog.Info($"Resume Screen {name}");
+            SDLLog.Info(LogCategory.APPLICATION, $"Resume Screen {name}");
         }
 
         public virtual void Show(IWindow window)
         {
-            SDLLog.Info($"Show Screen {name}");
+            SDLLog.Info(LogCategory.APPLICATION, $"Show Screen {name}");
         }
 
         public virtual void Shutdown(IWindow window)
         {
-            SDLLog.Info($"Shutdown Screen {name}");
+            SDLLog.Info(LogCategory.APPLICATION, $"Shutdown Screen {name}");
         }
 
         public virtual void Update(IRenderer renderer, double totalTime, double elapsedTime)

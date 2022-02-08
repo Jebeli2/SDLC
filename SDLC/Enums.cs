@@ -161,4 +161,40 @@
         Opus = 10
     }
 
+    public enum LogPriority
+    {
+        Verbose = 1,
+        Debug,
+        Info,
+        Warn,
+        Error,
+        Critical
+    }
+
+    public enum LogCategory
+    {
+        APPLICATION,
+        ERROR,
+        ASSERT,
+        SYSTEM,
+        AUDIO,
+        VIDEO,
+        RENDER,
+        INPUT,
+        TEST,
+        RESERVED1,
+        RESERVED2,
+        RESERVED3,
+        RESERVED4,
+        RESERVED5,
+        RESERVED6,
+        RESERVED7,
+        RESERVED8,
+        RESERVED9,
+        RESERVED10,
+        CUSTOM,
+        FONT,
+        SDLC,
+    }
+
 }

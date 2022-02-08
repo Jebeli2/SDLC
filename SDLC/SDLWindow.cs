@@ -487,7 +487,7 @@
                     skipTaskbar = value;
                     if (HandleCreated)
                     {
-                        SDLLog.Warn($"SkipTaskbar can only be set before the window handle is created");
+                        SDLLog.Warn(LogCategory.VIDEO, $"SkipTaskbar can only be set before the window handle is created");
                     }
                 }
             }
@@ -729,7 +729,7 @@
             if (fullScreenMode == FullScreenMode.Desktop)
             {
                 _ = SDL_SetWindowFullscreen(Handle, 0);
-                SDLLog.Info($"Entered Windowed Mode");
+                SDLLog.Info(LogCategory.VIDEO, $"Entered Windowed Mode");
             }
             else
             {
@@ -739,7 +739,7 @@
                 SDL_SetWindowResizable(handle, resizeable);
                 if (title != null) { SDL_SetWindowTitle(handle, title); }
                 SDL_SetWindowAlwaysOnTop(handle, alwaysOnTop);
-                SDLLog.Info($"Entered Windowed Mode");
+                SDLLog.Info(LogCategory.VIDEO, $"Entered Windowed Mode");
             }
         }
 
@@ -755,7 +755,7 @@
             SDL_SetWindowAlwaysOnTop(handle, true);
             SDL_SetWindowSize(handle, bounds.Width, bounds.Height);
             SDL_SetWindowPosition(handle, bounds.X, bounds.Y);
-            SDLLog.Info($"Entered Full Size Full Screen Mode");
+            SDLLog.Info(LogCategory.VIDEO, $"Entered Full Size Full Screen Mode");
         }
 
         private void GoMultiMonitorFullScreen()
@@ -783,7 +783,7 @@
             SDL_SetWindowAlwaysOnTop(handle, true);
             SDL_SetWindowSize(handle, bounds.Width, bounds.Height);
             SDL_SetWindowPosition(handle, bounds.X, bounds.Y);
-            SDLLog.Info($"Entered Multi Monitor Full Screen Mode");
+            SDLLog.Info(LogCategory.VIDEO, $"Entered Multi Monitor Full Screen Mode");
         }
 
         private void GoDesktopFullScreen()
@@ -791,7 +791,7 @@
             SDL_GetWindowPosition(handle, out oldX, out oldY);
             SDL_GetWindowSize(handle, out oldWidth, out oldHeight);
             _ = SDL_SetWindowFullscreen(Handle, (uint)SDL_WindowFlags.FULLSCREEN_DESKTOP);
-            SDLLog.Info($"Entered Desktop Full Screen Mode");
+            SDLLog.Info(LogCategory.VIDEO, $"Entered Desktop Full Screen Mode");
         }
 
         private void ScaleMouse(ref int x, ref int y)
@@ -824,7 +824,7 @@
                 {
                     SDL_DestroyWindow(handle);
                     handle = IntPtr.Zero;
-                    SDLLog.Info($"SDLWindow {windowId} destroyed");
+                    SDLLog.Info(LogCategory.VIDEO, $"SDLWindow {windowId} destroyed");
                 }
                 disposedValue = true;
             }
@@ -923,57 +923,57 @@
         protected virtual void OnControllerTouchpadMove(SDLControllerTouchpadEventArgs e) { ((SDLControllerTouchpadEventHandler?)eventHandlerList[controllerTouchpadMotionEventKey])?.Invoke(this, e); }
         internal void RaiseWindowShown()
         {
-            SDLLog.Debug($"Window {windowId} Shown");
+            SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Shown");
             OnWindowShown(EventArgs.Empty);
         }
         internal void RaiseWindowHidden()
         {
-            SDLLog.Debug($"Window {windowId} Hidden");
+            SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Hidden");
             OnWindowHidden(EventArgs.Empty);
         }
         internal void RaiseWindowExposed()
         {
-            SDLLog.Debug($"Window {windowId} Exposed");
+            SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Exposed");
             OnWindowExposed(EventArgs.Empty);
         }
         internal void RaiseWindowMinimized()
         {
-            SDLLog.Debug($"Window {windowId} Minimized");
+            SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Minimized");
             OnWindowMinimized(EventArgs.Empty);
         }
         internal void RaiseWindowMaximized()
         {
-            SDLLog.Debug($"Window {windowId} Maximized");
+            SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Maximized");
             OnWindowMaximized(EventArgs.Empty);
         }
         internal void RaiseWindowRestored()
         {
-            SDLLog.Debug($"Window {windowId} Restored");
+            SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Restored");
             OnWindowRestored(EventArgs.Empty);
         }
         internal void RaiseWindowEnter()
         {
-            SDLLog.Debug($"Window {windowId} Enter");
+            SDLLog.Debug(LogCategory.INPUT, $"Window {windowId} Enter");
             OnWindowEnter(EventArgs.Empty);
         }
         internal void RaiseWindowLeave()
         {
-            SDLLog.Debug($"Window {windowId} Leave");
+            SDLLog.Debug(LogCategory.INPUT, $"Window {windowId} Leave");
             OnWindowLeave(EventArgs.Empty);
         }
         internal void RaiseWindowFocusGained()
         {
-            SDLLog.Debug($"Window {windowId} Focus Gained");
+            SDLLog.Debug(LogCategory.INPUT, $"Window {windowId} Focus Gained");
             OnWindowFocusGained(EventArgs.Empty);
         }
         internal void RaiseWindowFocusLost()
         {
-            SDLLog.Debug($"Window {windowId} Focus Lost");
+            SDLLog.Debug(LogCategory.INPUT, $"Window {windowId} Focus Lost");
             OnWindowFocusLost(EventArgs.Empty);
         }
         internal void RaiseWindowClose()
         {
-            SDLLog.Debug($"Window {windowId} Close");
+            SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Close");
             OnWindowClose(EventArgs.Empty);
             switch (closeOperation)
             {
@@ -989,12 +989,12 @@
         }
         internal void RaiseWindowTakeFocus()
         {
-            SDLLog.Debug($"Window {windowId} Take Focus");
+            SDLLog.Debug(LogCategory.INPUT, $"Window {windowId} Take Focus");
             OnWindowTakeFocus(EventArgs.Empty);
         }
         internal void RaiseWindowMoved(int x, int y)
         {
-            SDLLog.Debug($"Window {windowId} Moved {x} {y}");
+            SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Moved {x} {y}");
             this.x = x;
             this.y = y;
             OnWindowMoved(new SDLWindowPositionEventArgs(x, y));
@@ -1002,7 +1002,7 @@
 
         internal void RaiseWindowResized(int width, int height)
         {
-            SDLLog.Debug($"Window {windowId} Resized {width} {height}");
+            SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Resized {width} {height}");
             this.width = width;
             this.height = height;
             renderer.WindowResized(width, height);
@@ -1011,7 +1011,7 @@
         }
         internal void RaiseWindowSizeChanged(int width, int height)
         {
-            SDLLog.Debug($"Window {windowId} Size Changed {width} {height}");
+            SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Size Changed {width} {height}");
             this.width = width;
             this.height = height;
             renderer.WindowResized(width, height);
@@ -1021,7 +1021,7 @@
 
         internal void RaiseWindowLoad()
         {
-            SDLLog.Debug($"Window {windowId} Load");
+            SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Load");
             OnWindowLoad(new SDLWindowLoadEventArgs(renderer));
         }
 
@@ -1049,7 +1049,7 @@
         internal void RaiseMouseButtonDown(int which, int x, int y, MouseButton button, int click, KeyButtonState state)
         {
             ScaleMouse(ref x, ref y);
-            SDLLog.Verbose($"Window {windowId} Mouse {which} {button} {state} {x} {y}");
+            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} Mouse {which} {button} {state} {x} {y}");
             lastButton = button;
             lastState = state;
             OnMouseButtonDown(new SDLMouseEventArgs(which, x, y, button, click, state, 0, 0));
@@ -1057,7 +1057,7 @@
         internal void RaiseMouseButtonUp(int which, int x, int y, MouseButton button, int click, KeyButtonState state)
         {
             ScaleMouse(ref x, ref y);
-            SDLLog.Verbose($"Window {windowId} Mouse {which} {button} {state} {x} {y}");
+            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} Mouse {which} {button} {state} {x} {y}");
             lastButton = button;
             lastState = state;
             OnMouseButtonUp(new SDLMouseEventArgs(which, x, y, button, click, state, 0, 0));
@@ -1065,61 +1065,61 @@
         internal void RaiseMouseMove(int which, int x, int y, int relX, int relY)
         {
             ScaleMouse(ref x, ref y);
-            SDLLog.Verbose($"Window {windowId} Mouse {which} Moved {x} {y} {relX} {relY}");
+            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} Mouse {which} Moved {x} {y} {relX} {relY}");
             OnMouseMove(new SDLMouseEventArgs(which, x, y, lastButton, 0, lastState, relX, relY));
         }
 
         internal void RaiseMouseWheel(int which, int x, int y, float preciseX, float preciseY, MouseWheelDirection direction)
         {
-            SDLLog.Verbose($"Window {windowId} Mouse {which} Wheel {x} {y} {preciseX} {preciseY} {direction}");
+            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} Mouse {which} Wheel {x} {y} {preciseX} {preciseY} {direction}");
             OnMouseWheel(new SDLMouseWheelEventArgs(which, x, y, preciseX, preciseY, direction));
         }
 
         internal void RaiseKeyDown(ScanCode scanCode, KeyCode keyCode, KeyMod keyMod, KeyButtonState state, bool repeat)
         {
-            SDLLog.Verbose($"Window {windowId} {scanCode} {keyCode} {keyMod} {state}");
+            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} {scanCode} {keyCode} {keyMod} {state}");
             OnKeyDown(new SDLKeyEventArgs(scanCode, keyCode, keyMod, state, repeat));
         }
         internal void RaiseKeyUp(ScanCode scanCode, KeyCode keyCode, KeyMod keyMod, KeyButtonState state, bool repeat)
         {
-            SDLLog.Verbose($"Window {windowId} {scanCode} {keyCode} {keyMod} {state}");
+            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} {scanCode} {keyCode} {keyMod} {state}");
             OnKeyUp(new SDLKeyEventArgs(scanCode, keyCode, keyMod, state, repeat));
         }
 
         internal void RaiseTextInput(string text)
         {
-            SDLLog.Verbose($"Window {windowId} Text Input '{text}'");
+            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} Text Input '{text}'");
             OnTextInput(new SDLTextInputEventArgs(text));
         }
 
         internal void RaiseControllerButtonDown(SDLController controller, ControllerButton button, KeyButtonState state)
         {
-            SDLLog.Verbose($"Window {windowId} Controller {controller.Which} {button} {state}");
+            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} Controller {controller.Which} {button} {state}");
             OnControllerButtonDown(new SDLControllerButtonEventArgs(controller, button, state));
         }
         internal void RaiseControllerButtonUp(SDLController controller, ControllerButton button, KeyButtonState state)
         {
-            SDLLog.Verbose($"Window {windowId} Controller {controller.Which} {button} {state}");
+            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} Controller {controller.Which} {button} {state}");
             OnControllerButtonUp(new SDLControllerButtonEventArgs(controller, button, state));
         }
         internal void RaiseControllerAxisEvent(SDLController controller, ControllerAxis axis, int axisValue, Vector2 direction)
         {
-            SDLLog.Verbose($"Window {windowId} Controller {controller.Which} {axis} {axisValue} {direction}");
+            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} Controller {controller.Which} {axis} {axisValue} {direction}");
             OnControllerAxis(new SDLControllerAxisEventArgs(controller, axis, axisValue, direction));
         }
         internal void RaiseControllerTouchpadDownEvent(SDLController controller, int touchpad, int finger, float x, float y, float pressure)
         {
-            SDLLog.Verbose($"Window {windowId} Controller {controller.Which} {touchpad} down {finger} {x} {y} {pressure}");
+            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} Controller {controller.Which} {touchpad} down {finger} {x} {y} {pressure}");
             OnControllerTouchpadDown(new SDLControllerTouchpadEventArgs(controller, touchpad, finger, x, y, pressure));
         }
         internal void RaiseControllerTouchpadUpEvent(SDLController controller, int touchpad, int finger, float x, float y, float pressure)
         {
-            SDLLog.Verbose($"Window {windowId} Controller {controller.Which} {touchpad} up {finger} {x} {y} {pressure}");
+            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} Controller {controller.Which} {touchpad} up {finger} {x} {y} {pressure}");
             OnControllerTouchpadUp(new SDLControllerTouchpadEventArgs(controller, touchpad, finger, x, y, pressure));
         }
         internal void RaiseControllerTouchpadMotionEvent(SDLController controller, int touchpad, int finger, float x, float y, float pressure)
         {
-            SDLLog.Verbose($"Window {windowId} Controller {controller.Which} {touchpad} move {finger} {x} {y} {pressure}");
+            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} Controller {controller.Which} {touchpad} move {finger} {x} {y} {pressure}");
             OnControllerTouchpadMove(new SDLControllerTouchpadEventArgs(controller, touchpad, finger, x, y, pressure));
         }
         private void CreateHandle()
@@ -1143,7 +1143,7 @@
             if (handle != IntPtr.Zero)
             {
                 windowId = SDL_GetWindowID(handle);
-                SDLLog.Info($"SDLWindow {windowId} created");
+                SDLLog.Info(LogCategory.VIDEO, $"SDLWindow {windowId} created");
                 renderer.SetBackBufferSize(backBufferWidth, backBufferHeight);
                 renderer.CreateHandle();
                 if (renderer.HandleCreated)
@@ -1155,7 +1155,7 @@
             }
             else
             {
-                SDLLog.Error($"Could not create SDLWindow: {SDLApplication.GetError()}");
+                SDLLog.Critical(LogCategory.VIDEO, $"Could not create SDLWindow: {SDLApplication.GetError()}");
             }
         }
 

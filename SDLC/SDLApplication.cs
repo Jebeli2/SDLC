@@ -32,13 +32,13 @@
         private static SDLFont? iconFont;
         private static string? fpsText;
         private static SDLWindow? mainWindow;
-        private static readonly SDLObjectTracker<SDLFont> fontTracker = new("Font");
+        private static readonly SDLObjectTracker<SDLFont> fontTracker = new(LogCategory.FONT, "Font");
 
-        public static void Run(IScreen screen, SDLLog.LogPriority logPriority = SDLLog.LogPriority.Info)
+        public static void Run(IScreen screen, LogPriority logPriority = LogPriority.Info)
         {
             Run(new SDLWindow(screen), logPriority);
         }
-        public static void Run(SDLWindow window, SDLLog.LogPriority logPriority = SDLLog.LogPriority.Info)
+        public static void Run(SDLWindow window, LogPriority logPriority = LogPriority.Info)
         {
             mainWindow = window;
             Initialize(logPriority);
@@ -177,14 +177,14 @@
                     if (updateFrameLag == 0)
                     {
                         isRunningSlowly = false;
-                        SDLLog.Debug($"Stopped Running Slowly");
+                        SDLLog.Debug(LogCategory.APPLICATION, $"Stopped Running Slowly");
 
                     }
                 }
                 else if (updateFrameLag >= 5)
                 {
                     isRunningSlowly = true;
-                    SDLLog.Debug($"Started Running Slowly");
+                    SDLLog.Debug(LogCategory.APPLICATION, $"Started Running Slowly");
                 }
                 if (stepCount == 1 && updateFrameLag > 0) { updateFrameLag--; }
                 elapsedTime = targetTime * stepCount;
@@ -240,12 +240,12 @@
                 }
             }
         }
-        private static void Initialize(SDLLog.LogPriority logPriority)
+        private static void Initialize(LogPriority logPriority)
         {
             string dllDir = Path.Combine(Environment.CurrentDirectory, IntPtr.Size == 4 ? "x86" : "x64");
             Environment.SetEnvironmentVariable("PATH", Environment.GetEnvironmentVariable("PATH") + ";" + dllDir);
             SDLLog.InitializeLog(logPriority);
-            SDLLog.Info($"SDL Initialization Starting...");
+            SDLLog.Info(LogCategory.APPLICATION, $"SDL Initialization Starting...");
             SDL_SetMainReady();
             _ = SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1");
             _ = SDL_Init(InitFlags.Everything);
@@ -267,12 +267,12 @@
             _ = SDLFont.TTF_Init();
             defaultFont = SDLFont.LoadFont(Properties.Resources.Roboto_Regular, nameof(Properties.Resources.Roboto_Regular), 16);
             iconFont = SDLFont.LoadFont(Properties.Resources.entypo, nameof(Properties.Resources.entypo), 16);
-            SDLLog.Info($"SDL Initialization Done...");
+            SDLLog.Info(LogCategory.APPLICATION, $"SDL Initialization Done...");
         }
 
         private static void Shutdown()
         {
-            SDLLog.Info($"SDL Shutdown Starting...");
+            SDLLog.Info(LogCategory.APPLICATION, $"SDL Shutdown Starting...");
             defaultFont?.Dispose();
             defaultFont = null;
             iconFont?.Dispose();
@@ -282,7 +282,7 @@
             SDLAudio.Shutdown();
             SDLInput.Shutdown();
             SDLTexture.IMG_Quit();
-            SDLLog.Info($"SDL Shutdown Done...");
+            SDLLog.Info(LogCategory.APPLICATION, $"SDL Shutdown Done...");
             SDLLog.ShutdownLog();
             SDL_Quit();
         }

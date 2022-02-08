@@ -85,7 +85,7 @@
                 if (fnt != IntPtr.Zero)
                 {
                     font = new SDLFont(fnt, ptSize);
-                    SDLLog.Info($"Font {font.Name} loaded from file '{fileName}'");
+                    SDLLog.Info(LogCategory.FONT, $"Font {font.Name} loaded from file '{fileName}'");
                 }
             }
             return font;
@@ -104,7 +104,7 @@
                 if (handle != IntPtr.Zero)
                 {
                     font = new SDLFont(handle, ptSize, mem);
-                    SDLLog.Info($"Font {font.Name} loaded from resource '{name}'");
+                    SDLLog.Info(LogCategory.FONT, $"Font {font.Name} loaded from resource '{name}'");
                 }
             }
             return font;

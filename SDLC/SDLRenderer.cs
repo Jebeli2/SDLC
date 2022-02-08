@@ -31,7 +31,7 @@
         private readonly Dictionary<string, TextCache> textCache = new();
         private readonly List<string> textCacheKeys = new();
         private int textCacheLimit = 100;
-        private readonly SDLObjectTracker<SDLTexture> textureTracker = new("Texture");
+        private readonly SDLObjectTracker<SDLTexture> textureTracker = new(LogCategory.RENDER, "Texture");
         // Indices for 4 rectangle vertices: bottomleft-topleft-topright, topright,bottomright,bottomleft
         private readonly int[] rectIndices = new int[] { 2, 0, 1, 1, 3, 2 };
         private const int NUM_RECT_INDICES = 6;
@@ -114,7 +114,7 @@
             if (handle != IntPtr.Zero)
             {
                 _ = SDL_GetRendererInfo(handle, out SDL_RendererInfo info);
-                SDLLog.Info($"SDLRenderer {window.WindowId} created: {Marshal.PtrToStringUTF8(info.name)} ({info.max_texture_width}x{info.max_texture_height} max texture size)");
+                SDLLog.Info(LogCategory.RENDER, $"SDLRenderer {window.WindowId} created: {Marshal.PtrToStringUTF8(info.name)} ({info.max_texture_width}x{info.max_texture_height} max texture size)");
                 backBufferWidth = window.BackBufferWidth;
                 backBufferHeight = window.BackBufferHeight;
                 windowWidth = window.Width;
@@ -123,7 +123,7 @@
             }
             else
             {
-                SDLLog.Error($"Could not create SDLRenderer: {SDLApplication.GetError()}");
+                SDLLog.Critical(LogCategory.RENDER, $"Could not create SDLRenderer: {SDLApplication.GetError()}");
             }
         }
 
@@ -185,7 +185,7 @@
                 textureTracker.Dispose();
                 SDL_DestroyRenderer(handle);
                 handle = IntPtr.Zero;
-                SDLLog.Info($"SDLRenderer {window.WindowId} destroyed");
+                SDLLog.Info(LogCategory.RENDER, $"SDLRenderer {window.WindowId} destroyed");
             }
         }
         internal void BeginPaint()
@@ -415,7 +415,7 @@
                 if (tex != IntPtr.Zero)
                 {
                     texture = new SDLTexture(this, tex, fileName);
-                    SDLLog.Info($"Texture loaded from file '{fileName}'");
+                    SDLLog.Info(LogCategory.RENDER, $"Texture loaded from file '{fileName}'");
                 }
             }
             return texture;
@@ -434,7 +434,7 @@
                     if (tex != IntPtr.Zero)
                     {
                         texture = new SDLTexture(this, tex, name);
-                        SDLLog.Info($"Texture loaded from resource '{name}'");
+                        SDLLog.Info(LogCategory.RENDER, $"Texture loaded from resource '{name}'");
                     }
                 }
             }
@@ -534,7 +534,7 @@
                 int len = textCacheKeys.Count / 2;
                 var halfKeys = textCacheKeys.GetRange(0, len);
                 textCacheKeys.RemoveRange(0, len);
-                SDLLog.Verbose($"Text cache limit {textCacheLimit} reached. Cleaning up...");
+                SDLLog.Verbose(LogCategory.RENDER, $"Text cache limit {textCacheLimit} reached. Cleaning up...");
                 ClearTextCache(halfKeys);
             }
         }

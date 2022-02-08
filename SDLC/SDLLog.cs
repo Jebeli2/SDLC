@@ -11,15 +11,6 @@
     {
         private static readonly SDL_LogOutputFunction logFunc = LogOutputFunc;
         private static bool logToConsole = true;
-        public enum LogPriority
-        {
-            Verbose = 1,
-            Debug,
-            Info,
-            Warn,
-            Error,
-            Critical
-        }
 
         public static bool LogToConsole
         {
@@ -38,93 +29,50 @@
             SDL_LogSetOutputFunction(IntPtr.Zero, IntPtr.Zero);
             SDL_LogResetPriorities();
         }
+        public static void Log(LogCategory cat, LogPriority prio, string msg)
+        {
+            SDL_LogMessage((int)cat, prio, msg);
+        }
         public static void Log(LogPriority prio, string msg)
         {
-            SDL_LogMessage(LOG_CAT_SDLC, prio, msg);
+            SDL_LogMessage((int)LogCategory.SDLC, prio, msg);
         }
-        public static void Verbose(string msg)
+        public static void Verbose(LogCategory cat, string msg)
         {
-            SDL_LogVerbose(LOG_CAT_SDLC, msg);
+            SDL_LogVerbose((int)cat, msg);
         }
-        public static void Debug(string msg)
+        public static void Debug(LogCategory cat, string msg)
         {
-            SDL_LogDebug(LOG_CAT_SDLC, msg);
+            SDL_LogDebug((int)cat, msg);
         }
-        public static void Info(string msg)
+        public static void Info(LogCategory cat, string msg)
         {
-            SDL_LogInfo(LOG_CAT_SDLC, msg);
+            SDL_LogInfo((int)cat, msg);
         }
-        public static void Warn(string msg)
+        public static void Warn(LogCategory cat, string msg)
         {
-            SDL_LogWarn(LOG_CAT_SDLC, msg);
+            SDL_LogWarn((int)cat, msg);
         }
-        public static void Error(string msg)
+        public static void Error(LogCategory cat, string msg)
         {
-            SDL_LogError(LOG_CAT_SDLC, msg);
+            SDL_LogError((int)cat, msg);
         }
-        public static void Critical(string msg)
+        public static void Critical(LogCategory cat, string msg)
         {
-            SDL_LogCritical(LOG_CAT_SDLC, msg);
+            SDL_LogCritical((int)cat, msg);
         }
-
         private static void LogOutputFunc(IntPtr userData, int category, LogPriority priority, IntPtr message)
         {
             if (logToConsole)
             {
                 Console.Write(DateTime.Now);
-                Console.Write(" ");
-                Console.Write(Cat2String(category));
-                Console.Write(" ");
-                Console.Write(priority);
-                Console.Write(": ");
+                Console.Write(" {0,11}", (LogCategory)category);
+                Console.Write(" {0,8} ", priority.ToString().ToUpperInvariant());
                 Console.WriteLine(Marshal.PtrToStringUTF8(message));
             }
         }
 
-        private static string Cat2String(int category)
-        {
-            if (category == LOG_CAT_SDLC) return "SDLC";
-            switch (category)
-            {
-                case (int)SDL_LogCategory.SDL_LOG_CATEGORY_APPLICATION: return "APPLICATION";
-                case (int)SDL_LogCategory.SDL_LOG_CATEGORY_ERROR: return "ERROR";
-                case (int)SDL_LogCategory.SDL_LOG_CATEGORY_ASSERT: return "ASSERT";
-                case (int)SDL_LogCategory.SDL_LOG_CATEGORY_SYSTEM: return "SYSTEM";
-                case (int)SDL_LogCategory.SDL_LOG_CATEGORY_AUDIO: return "AUDIO";
-                case (int)SDL_LogCategory.SDL_LOG_CATEGORY_RENDER: return "RENDER";
-                case (int)SDL_LogCategory.SDL_LOG_CATEGORY_INPUT: return "INPUT";
-                case (int)SDL_LogCategory.SDL_LOG_CATEGORY_TEST: return "TEST";
-            }
-            return "CAT" + category;
-        }
-
         private const string LibName = "SDL2";
-
-        private const int LOG_CAT_SDLC = (int)SDL_LogCategory.SDL_LOG_CATEGORY_CUSTOM + 1;
-
-        private enum SDL_LogCategory
-        {
-            SDL_LOG_CATEGORY_APPLICATION,
-            SDL_LOG_CATEGORY_ERROR,
-            SDL_LOG_CATEGORY_ASSERT,
-            SDL_LOG_CATEGORY_SYSTEM,
-            SDL_LOG_CATEGORY_AUDIO,
-            SDL_LOG_CATEGORY_VIDEO,
-            SDL_LOG_CATEGORY_RENDER,
-            SDL_LOG_CATEGORY_INPUT,
-            SDL_LOG_CATEGORY_TEST,
-            SDL_LOG_CATEGORY_RESERVED1,
-            SDL_LOG_CATEGORY_RESERVED2,
-            SDL_LOG_CATEGORY_RESERVED3,
-            SDL_LOG_CATEGORY_RESERVED4,
-            SDL_LOG_CATEGORY_RESERVED5,
-            SDL_LOG_CATEGORY_RESERVED6,
-            SDL_LOG_CATEGORY_RESERVED7,
-            SDL_LOG_CATEGORY_RESERVED8,
-            SDL_LOG_CATEGORY_RESERVED9,
-            SDL_LOG_CATEGORY_RESERVED10,
-            SDL_LOG_CATEGORY_CUSTOM
-        }
 
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]

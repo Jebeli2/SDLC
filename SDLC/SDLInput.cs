@@ -221,7 +221,7 @@
                     controller.Window = SDLApplication.MainWindow;
                     controller.Name = Marshal.PtrToStringUTF8(SDL_GameControllerName(handle));
                     controllers.Add(controller);
-                    SDLLog.Info($"SDLController {which} ({controller.Name}) added");
+                    SDLLog.Info(LogCategory.INPUT, $"SDLController {which} ({controller.Name}) added");
                 }
             }
         }
@@ -235,11 +235,11 @@
                 if (controller.Handle != IntPtr.Zero)
                 {
                     SDL_GameControllerClose(controller.Handle);
-                    SDLLog.Info($"SDLController {which} removed");
+                    SDLLog.Info(LogCategory.INPUT, $"SDLController {which} removed");
                     return;
                 }
             }
-            SDLLog.Warn($"Previously unknown SDLController {which} removed");
+            SDLLog.Warn(LogCategory.INPUT, $"Previously unknown SDLController {which} removed");
         }
 
         private static SDLController? GetController(int which)
