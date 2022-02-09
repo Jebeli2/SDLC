@@ -1,5 +1,6 @@
 ﻿namespace SDLC.GUI
 {
+    using SDLC;
     using System;
     using System.Collections.Generic;
     using System.Drawing;
@@ -7,26 +8,32 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    internal class Gadget : GUIObject, IGUIGadget
+    public class Gadget : GUIObject
     {
         private readonly Window window;
         private GadgetFlags flags;
         private GadgetActivation activation;
+        private GadgetType gadgetType;
         private Rectangle? bounds;
         private bool transparentBackground;
         private Icons icon;
-        public Gadget(IGUISystem gui, Window window)
+        private PropInfo? propInfo;
+        internal Gadget(IGUISystem gui, Window window)
             : base(gui)
         {
             this.window = window;
             SetBorders(1, 1, 1, 1);
+            gadgetType = GadgetType.BoolGadget;
             activation = GadgetActivation.RelVerify | GadgetActivation.Immediate;
             window.AddGadget(this);
         }
 
-        public IGUIWindow Window => window;
-        public int GadgetId { get; set; }
+        public event EventHandler<EventArgs>? GadgetDown;
 
+        public event EventHandler<EventArgs>? GadgetUp;
+
+        public Window Window => window;
+        public int GadgetId { get; set; }
         public Icons Icon
         {
             get => icon;
@@ -38,9 +45,25 @@
                     Invalidate();
                 }
             }
-
         }
 
+        internal PropInfo? PropInfo => propInfo;
+
+        public bool Selected
+        {
+            get => (flags & GadgetFlags.Selected) == GadgetFlags.Selected;
+            set
+            {
+                if (value)
+                {
+                    Flags |= GadgetFlags.Selected;
+                }
+                else
+                {
+                    Flags &= ~GadgetFlags.Selected;
+                }
+            }
+        }
         public bool Active
         {
             get => (activation & GadgetActivation.ActiveGadget) == GadgetActivation.ActiveGadget;
@@ -54,6 +77,22 @@
                 else
                 {
                     Activation &= ~GadgetActivation.ActiveGadget;
+                }
+            }
+        }
+        public bool ToggleSelect
+        {
+            get => (activation & GadgetActivation.ToggleSelect) == GadgetActivation.ToggleSelect;
+            set
+            {
+
+                if (value)
+                {
+                    Activation |= GadgetActivation.ToggleSelect;
+                }
+                else
+                {
+                    Activation &= ~GadgetActivation.ToggleSelect;
                 }
             }
         }
@@ -115,6 +154,42 @@
                 }
             }
         }
+        public GadgetType GadgetType
+        {
+            get => gadgetType;
+            set
+            {
+                if (gadgetType != value)
+                {
+                    gadgetType = value;
+                    if (GType == GadgetType.PropGadget)
+                    {
+                        propInfo = new PropInfo();
+                        SetBorders(2, 2, 2, 2);
+                    }
+                }
+            }
+        }
+
+        public GadgetType GType => gadgetType & GadgetType.GTypeMask;
+        public bool IsPropGadget
+        {
+            get => GType == GadgetType.PropGadget && propInfo != null;
+        }
+
+        public bool IsBoolGadget
+        {
+            get => GType == GadgetType.BoolGadget;
+        }
+        public bool IsSysGadget
+        {
+            get => (gadgetType & GadgetType.SysGadget) != 0;
+        }
+
+        public GadgetType SysGadgetType
+        {
+            get => gadgetType & GadgetType.SysTypeMask;
+        }
         public bool RelVeriy
         {
             get => (activation & GadgetActivation.RelVerify) == GadgetActivation.RelVerify;
@@ -134,16 +209,68 @@
             get => transparentBackground;
             set => transparentBackground = value;
         }
-
-        public void Invalidate()
+        internal void RaiseGadgetDown()
         {
-            window.Invalidate();
+            EventHelper.Raise(this, GadgetDown, EventArgs.Empty);
+        }
+
+        internal void RaiseGadgetUp()
+        {
+            EventHelper.Raise(this, GadgetUp, EventArgs.Empty);
+        }
+
+        internal void HandleDeselection()
+        {
+            if (propInfo?.HandleDeselection() ?? false)
+            {
+                window.InvalidateFromGadget();
+            }
+        }
+        internal void HandlePropMouseDown(int x, int y)
+        {
+            if (propInfo?.HandlePropMouseDown(GetBounds(), x, y) ?? false)
+            {
+                window.InvalidateFromGadget();
+            }
+        }
+        internal void HanldePropMouseMove(int x, int y)
+        {
+            if (propInfo?.HanldePropMouseMove(GetBounds(), x, y) ?? false)
+            {
+                window.InvalidateFromGadget();
+            }
+        }
+        internal void HandlePropMouseUp(int x, int y)
+        {
+            if (propInfo?.HandlePropMouseUp(GetBounds(), x, y) ?? false)
+            {
+                window.InvalidateFromGadget();
+            }
+        }
+        internal void ModifyProp(PropFlags flags, int horizPot, int vertPot, int horizBody, int vertBody)
+        {
+            if (IsPropGadget && propInfo != null)
+            {
+                propInfo.Flags = flags;
+                propInfo.HorizPot = horizPot;
+                propInfo.VertPot = vertPot;
+                propInfo.HorizBody = horizBody;
+                propInfo.VertBody = vertBody;
+                window.InvalidateFromGadget();
+            }
+        }
+
+        protected override void Invalidate()
+        {
+            propInfo?.Invalidate();
+            window.InvalidateFromGadget();
         }
 
         internal void InvalidateBounds()
         {
             bounds = null;
-            window.Invalidate();
+            propInfo?.Invalidate();
+            window.InvalidateFromGadget();
         }
 
         public override Rectangle GetBounds()
@@ -222,11 +349,16 @@
             return (flags & flag) == flag ? value : 0;
         }
 
+        public void Render(IRenderer gfx, IGUIRenderer ren)
+        {
+            ren.RenderGadget(gfx, this);
+        }
+
         public override string ToString()
         {
+            if (IsSysGadget) { return $"SysGadget '{SysGadgetType}'"; }
             if (Text != null) { return $"Gadget '{Text}'"; }
             return $"Gadget '{GadgetId}'";
         }
-
     }
 }

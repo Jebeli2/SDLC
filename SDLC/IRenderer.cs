@@ -40,10 +40,15 @@
         void DrawTexture(SDLTexture? texture, Rectangle dst, double angle, Point center, RendererFlip flip = RendererFlip.None);
         void DrawTexture(SDLTexture? texture, Rectangle dst, double angle, RendererFlip flip = RendererFlip.None);
 
-        void DrawIcon(Icons icon, float x, float y, float width, float height, Color color, HorizontalAlignment hAlign = HorizontalAlignment.Center, VerticalAlignment vAlign = VerticalAlignment.Center);
-        void DrawText(SDLFont? font, string? text, float x, float y, float width, float height, Color color, HorizontalAlignment horizontalAlignment = HorizontalAlignment.Center, VerticalAlignment verticalAlignment = VerticalAlignment.Center);
+        void DrawIcon(Icons icon, float x, float y, float width, float height, Color color, HorizontalAlignment hAlign = HorizontalAlignment.Center, VerticalAlignment vAlign = VerticalAlignment.Center, float offsetX= 0, float offsetY = 0);
+        void DrawText(SDLFont? font, string? text, float x, float y, float width, float height, Color color, HorizontalAlignment horizontalAlignment = HorizontalAlignment.Center, VerticalAlignment verticalAlignment = VerticalAlignment.Center, float offsetX=0, float offsetY=0);
         Size MeasureText(SDLFont? font, string? text);
         SDLTexture? LoadTexture(string fileName);
         SDLTexture? LoadTexture(string name, byte[]? data);
+        SDLTexture? CreateTexture(string name, int width, int height);
+
+        void PushTarget(SDLTexture? texture);
+        void PopTarget();
+        void ClearScreen();
     }
 }

@@ -7,7 +7,7 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    internal class GUIObject : IBox
+    public class GUIObject : IBox
     {
         protected readonly IGUISystem gui;
         private int leftEdge;
@@ -20,6 +20,8 @@
         private int borderBottom;
         private int minWidth;
         private int minHeight;
+        private int maxWidth;
+        private int maxHeight;
         private string? text;
 
         protected GUIObject(IGUISystem gui)
@@ -34,7 +36,7 @@
                 if (!string.Equals(text, value))
                 {
                     SetText(value);
-                    //Invalidate();
+                    Invalidate();
                 }
             }
         }
@@ -67,7 +69,6 @@
                 }
             }
         }
-
         public int Width
         {
             get => width;
@@ -161,6 +162,34 @@
             }
         }
 
+        public int MaxWidth
+        {
+            get => maxWidth;
+            set
+            {
+                if (maxWidth != value)
+                {
+                    SetMaxSize(value, maxHeight);
+                }
+            }
+        }
+
+        public int MaxHeight
+        {
+            get => maxHeight;
+            set
+            {
+                if (maxHeight != value)
+                {
+                    maxHeight = value;
+                }
+            }
+        }
+
+        protected virtual void Invalidate()
+        {
+
+        }
         public virtual Rectangle GetBounds()
         {
             return new Rectangle(leftEdge, topEdge, width, height);
@@ -174,6 +203,11 @@
             rect.Width -= (borderLeft + borderRight);
             rect.Height -= (borderTop + borderBottom);
             return rect;
+        }
+
+        public void SetDimensions(Rectangle rect)
+        {
+            SetDimensions(rect.X, rect.Y, rect.Width, rect.Height);
         }
 
         public virtual void SetDimensions(int x, int y, int w, int h)
@@ -198,10 +232,15 @@
             this.minHeight = minHeight;
         }
 
-        public virtual bool Contains(int x, int y)
+        public virtual void SetMaxSize(int maxWidth, int maxHeight)
         {
-            return GetBounds().Contains(x, y);
-            //return x >= leftEdge && y >= topEdge && x < leftEdge + width && y < topEdge + height;
+            this.maxWidth = maxWidth;
+            this.maxHeight = maxHeight;
+        }
+
+        public bool Contains(int x, int y)
+        {
+            return GetBounds().Contains(x, y);            
         }
 
     }

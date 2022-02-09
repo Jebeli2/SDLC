@@ -15,7 +15,9 @@
         IScreen Screen { get; set; }
         int Width { get; }
         int Height { get; }
+        bool FullScreen { get; set; }
 
+        T GetApplet<T>() where T : SDLApplet, new();
         void AddApplet(SDLApplet applet);
         void RemoveApplet(SDLApplet applet);
     }

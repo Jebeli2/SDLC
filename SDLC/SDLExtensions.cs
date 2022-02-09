@@ -8,6 +8,7 @@
 
     public static class SDLExtensions
     {
+
         public static bool GetTextureHandle(this SDLTexture? texture, out IntPtr handle)
         {
             if (texture != null)

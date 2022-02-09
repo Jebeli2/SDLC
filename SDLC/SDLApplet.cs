@@ -6,7 +6,7 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    public class SDLApplet
+    public class SDLApplet : IDisposable
     {
         private readonly string name;
         private bool installed;
@@ -18,6 +18,7 @@
         private int inputPrio;
         protected bool noInput;
         protected bool noRender;
+        private bool disposedValue;
 
         public SDLApplet(string name)
         {
@@ -96,6 +97,7 @@
         internal protected virtual void OnControllerTouchpadDown(SDLControllerTouchpadEventArgs e) { }
         internal protected virtual void OnControllerTouchpadUp(SDLControllerTouchpadEventArgs e) { }
         internal protected virtual void OnControllerTouchpadMove(SDLControllerTouchpadEventArgs e) { }
+        protected virtual void OnDispose() { }
 
         internal void InternalOnUpdate(SDLWindowUpdateEventArgs e)
         {
@@ -119,5 +121,28 @@
             }
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    OnDispose();
+                }
+
+                disposedValue = true;
+            }
+        }
+
+        ~SDLApplet()
+        {
+            Dispose(disposing: false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
     }
 }

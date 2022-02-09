@@ -9,7 +9,11 @@
 
     public static class SDLGfx
     {
-
+        public static void ClearScreen(this IRenderer renderer, Color color)
+        {
+            renderer.Color = color;
+            renderer.ClearScreen();
+        }
         public static void DrawRect(this IRenderer renderer, int x, int y, int width, int height)
         {
             renderer.DrawRect(new Rectangle(x, y, width, height));

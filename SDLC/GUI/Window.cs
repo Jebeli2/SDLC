@@ -7,22 +7,57 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    internal class Window : GUIObject, IGUIWindow
+    public class Window : GUIObject
     {
         private readonly Screen screen;
         private readonly List<Gadget> gadgets = new();
         private WindowFlags windowFlags;
-
-        public Window(IGUISystem gui, Screen screen)
+        private int zoomX = -1;
+        private int zoomY = -1;
+        private int zoomW = -1;
+        private int zoomH = -1;
+        private int unzoomX = -1;
+        private int unzoomY = -1;
+        private int unzoomW = -1;
+        private int unzoomH = -1;
+        private SDLTexture? bitmap;
+        private bool valid;
+        private bool superbitmap;
+        internal Window(IGUISystem gui, Screen screen)
             : base(gui)
         {
             this.screen = screen;
+            superbitmap = true;
             windowFlags = WindowFlags.SizeGadget | WindowFlags.DragBar | WindowFlags.DepthGadget | WindowFlags.HasZoom | WindowFlags.CloseGadget | WindowFlags.SizeBBottom | WindowFlags.Activate;
             SetBorders(4, 28, 4, 4);
             screen.AddWindow(this);
         }
         public string? Title { get => Text; set => Text = value; }
-        public IGUIScreen Screen => screen;
+        public Screen Screen => screen;
+
+        public int WindowId { get; internal set; }
+
+        public event EventHandler<EventArgs>? WindowClose;
+        public bool Superbitmap
+        {
+            get => superbitmap;
+            set
+            {
+                if (superbitmap != value)
+                {
+                    superbitmap = value;
+                    if (superbitmap)
+                    {
+                        valid = false;
+                    }
+                    else
+                    {
+                        bitmap?.Dispose();
+                        bitmap = null;
+                    }
+                }
+            }
+        }
         public WindowFlags WindowFlags
         {
             get => windowFlags;
@@ -80,44 +115,173 @@
                 }
             }
         }
-
-        public IEnumerable<IGUIGadget> Gadgets
+        public bool Zoomed
         {
-            get
-            {
-                foreach (Gadget gadget in gadgets)
-                {
-                    yield return gadget;
-                }
-            }
+            get => (windowFlags & WindowFlags.Zoomed) == WindowFlags.Zoomed;
         }
 
-        public void AddGadget(Gadget gadget)
+        public IEnumerable<Gadget> Gadgets => gadgets;
+
+        internal void AddGadget(Gadget gadget)
         {
             gadgets.Add(gadget);
         }
 
-        public void MoveWindow(int dX, int dY)
+        internal bool IsFrontWindow
         {
-            int newX = LeftEdge + dX;
-            int newY = TopEdge + dY;
-            if (newX < 0) { newX = 0; }
-            if (newY < 0) { newY = 0; }
-            SetDimensions(newX, newY, Width, Height);
+            get
+            {
+                return screen.IsFrontWindow(this);
+            }
+        }
+
+        internal void Close()
+        {
+            bitmap?.Dispose();
+            bitmap = null;
+            valid = false;
+        }
+
+        internal void ToFront()
+        {
+            screen.WindowToFront(this);
+        }
+
+        internal void ToBack()
+        {
+            screen.WindowToBack(this);
+        }
+
+        internal void Zip()
+        {
+            if (Zoomed)
+            {
+                windowFlags &= ~WindowFlags.Zoomed;
+                RememberZoom();
+                SanitizeUnZoomValues();
+                SetDimensions(unzoomX, unzoomY, unzoomW, unzoomH);
+                InvalidateBounds();
+            }
+            else
+            {
+                windowFlags |= WindowFlags.Zoomed;
+                RememberUnZoom();
+                SanitizeZoomValues();
+                SetDimensions(zoomX, zoomY, zoomW, zoomH);
+                InvalidateBounds();
+            }
+        }
+
+        internal void RaiseWindowClose()
+        {
+            EventHelper.Raise(this, WindowClose, EventArgs.Empty);
+        }
+
+        private void SanitizeZoomValues()
+        {
+            if (zoomW < 0 && zoomH < 0)
+            {
+                int sw = screen.Width;
+                int sh = screen.Height;
+                Rectangle r;
+                if (Width < sw / 2 && Height < sh / 2)
+                {
+                    r = CheckDimensions(0, 0, sw, sh);
+                }
+                else if (Width < sw / 2)
+                {
+                    r = CheckDimensions(0, 10, sw, Height);
+                }
+                else if (Height < sh / 2)
+                {
+                    r = CheckDimensions(10, 0, Width, sh);
+                }
+                else
+                {
+                    r = CheckDimensions(10, 10, sw / 2, sh / 2);
+                }
+                zoomX = r.X;
+                zoomY = r.Y;
+                zoomW = r.Width;
+                zoomH = r.Height;
+            }
+        }
+
+        private void SanitizeUnZoomValues()
+        {
+            if (unzoomW < 0 && unzoomH < 0)
+            {
+                int sw = screen.Width;
+                int sh = screen.Height;
+                Rectangle r;
+                if (Width > sw / 2 && Height > sh / 2)
+                {
+                    r = CheckDimensions(0, 0, sw / 3, sh / 3);
+                }
+                else if (Width > sw / 2)
+                {
+                    r = CheckDimensions(0, 10, sw / 3, Height);
+                }
+                else if (Height > sh / 2)
+                {
+                    r = CheckDimensions(10, 0, Width, sh / 3);
+                }
+                else
+                {
+                    r = CheckDimensions(10, 10, sw / 3, sh / 3);
+                }
+                unzoomX = r.X;
+                unzoomY = r.Y;
+                unzoomW = r.Width;
+                unzoomH = r.Height;
+            }
+        }
+        private void RememberUnZoom()
+        {
+            unzoomX = LeftEdge;
+            unzoomY = TopEdge;
+            unzoomW = Width;
+            unzoomH = Height;
+        }
+        private void RememberZoom()
+        {
+            zoomX = LeftEdge;
+            zoomY = TopEdge;
+            zoomW = Width;
+            zoomH = Height;
+        }
+
+        private Rectangle CheckDimensions(int x, int y, int w, int h)
+        {
+            int sw = screen.Width;
+            int sh = screen.Height;
+            if (MaxWidth > 0 && w > MaxWidth) { w = MaxWidth; }
+            if (MaxHeight > 0 && h > MaxHeight) { h = MaxHeight; }
+            if (w < MinWidth) { w = MinWidth; }
+            if (h < MinHeight) { h = MinHeight; }
+            if (x < 0) { x = 0; }
+            if (y < 0) { y = 0; }
+            if (x + w > sw) { x -= (x + w) - sw; }
+            if (y + h > sh) { y -= (y + h) - sh; }
+            return new Rectangle(x, y, w, h);
+        }
+
+        internal void MoveWindow(int dX, int dY)
+        {
+            Rectangle newDim = CheckDimensions(LeftEdge + dX, TopEdge + dY, Width, Height);
+            SetDimensions(newDim);
             windowFlags |= WindowFlags.MouseHover;
             InvalidateBounds();
         }
 
-        public void SizeWindow(int dX, int dY)
+        internal void SizeWindow(int dX, int dY)
         {
-            int newWidth = (Width + dX);
-            int newHeight = (Height + dY);
-            if (newWidth < MinWidth) { newWidth = MinWidth; }
-            if (newHeight < MinHeight) { newHeight = MinHeight; }
-            SetDimensions(LeftEdge, TopEdge, newWidth, newHeight);
+            Rectangle newDim = CheckDimensions(LeftEdge, TopEdge, Width + dX, Height + dY);
+            SetDimensions(newDim);
             windowFlags |= WindowFlags.MouseHover;
             InvalidateBounds();
         }
+
         public Gadget? FindGadget(int x, int y)
         {
             for (int i = gadgets.Count - 1; i >= 0; i--)
@@ -137,9 +301,14 @@
             return new Rectangle(screen.LeftEdge + LeftEdge, screen.TopEdge + TopEdge, Width, Height);
         }
 
-        public void Invalidate()
+        internal void InvalidateFromGadget()
         {
+            Invalidate();
+        }
 
+        protected override void Invalidate()
+        {
+            valid = false;
         }
 
         private void InvalidateBounds()
@@ -151,9 +320,73 @@
             }
         }
 
+        private void InitBitmap(IRenderer gfx)
+        {
+            bitmap?.Dispose();
+            bitmap = gfx.CreateTexture(GetWindowName(), Width, Height);
+            if (bitmap != null)
+            {
+                bitmap.BlendMode = BlendMode.Blend;
+            }
+        }
+
+        private void CheckBitmap(IRenderer gfx)
+        {
+            if (bitmap == null || bitmap.Width < Width || bitmap.Height < Height)
+            {
+                InitBitmap(gfx);
+            }
+        }
+        public void Render(IRenderer gfx, IGUIRenderer ren)
+        {
+            if (Superbitmap)
+            {
+                if (!valid)
+                {
+                    CheckBitmap(gfx);
+                    gfx.PushTarget(bitmap);
+                    gfx.ClearScreen(Color.FromArgb(0, 0, 0, 0));
+                    RenderWindow(gfx, ren);
+                    gfx.PopTarget();
+                    valid = true;
+                }
+                if (valid)
+                {
+                    if (bitmap != null)
+                    {
+                        Rectangle dst = GetBounds();
+                        Rectangle src = new Rectangle(0, 0, dst.Width, dst.Height);
+                        gfx.BlendMode = BlendMode.Blend;
+                        gfx.DrawTexture(bitmap, src, dst);
+                    }
+                }
+            }
+            else
+            {
+                RenderWindow(gfx, ren);
+            }
+        }
+
+        private void RenderWindow(IRenderer gfx, IGUIRenderer ren)
+        {
+            ren.RenderWindow(gfx, this);
+            foreach (var gad in gadgets)
+            {
+                gad.Render(gfx, ren);
+            }
+        }
+
+        private string GetWindowName()
+        {
+            StringBuilder sb = new();
+            sb.Append("_GUI_Window_");
+            sb.Append(WindowId);
+            sb.Append("_");
+            return sb.ToString();
+        }
         public override string ToString()
         {
-            return $"Window '{Title}'";
+            return GetWindowName();
         }
 
     }

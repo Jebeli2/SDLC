@@ -65,12 +65,42 @@
         {
             if (logToConsole)
             {
+                ClearConsoleColor();
                 Console.Write(DateTime.Now);
-                Console.Write(" {0,11}", (LogCategory)category);
-                Console.Write(" {0,8} ", priority.ToString().ToUpperInvariant());
+                SetConsoleColor(priority);
+                Console.Write("{0,8} ", priority.ToString().ToUpperInvariant());
+                Console.Write(" {0,11} ", (LogCategory)category);
+                ClearConsoleColor();
                 Console.WriteLine(Marshal.PtrToStringUTF8(message));
             }
         }
+
+        private static void ClearConsoleColor()
+        {
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+        private static void SetConsoleColor(LogPriority level)
+        {
+            switch (level)
+            {
+                case LogPriority.Error:
+                case LogPriority.Critical:
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    break;
+                case LogPriority.Warn:
+                    Console.ForegroundColor = ConsoleColor.DarkYellow;
+                    break;
+                case LogPriority.Debug:
+                case LogPriority.Verbose:
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    break;
+                case LogPriority.Info:
+                default:
+                    Console.ForegroundColor = ConsoleColor.White;
+                    break;
+            }
+        }
+
 
         private const string LibName = "SDL2";
 

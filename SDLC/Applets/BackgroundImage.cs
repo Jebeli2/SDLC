@@ -18,7 +18,14 @@
         public SDLTexture? Image
         {
             get => image;
-            set => image = value;
+            set
+            {
+                if (image != value)
+                {
+                    image?.Dispose();
+                    image = value;
+                }
+            }
         }
 
         protected override void OnWindowPaint(SDLWindowPaintEventArgs e)
@@ -26,5 +33,9 @@
             e.Renderer.DrawTexture(image);
         }
 
+        protected override void OnDispose()
+        {
+            image?.Dispose();
+        }
     }
 }

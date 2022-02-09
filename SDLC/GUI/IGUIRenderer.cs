@@ -9,8 +9,8 @@
     public interface IGUIRenderer
     {
 
-        void RenderScreen(IRenderer gfx, IGUIScreen screen);
-        void RenderWindow(IRenderer gfx, IGUIWindow window);
-        void RenderGadget(IRenderer gfx, IGUIGadget gadget);
+        void RenderScreen(IRenderer gfx, Screen screen);
+        void RenderWindow(IRenderer gfx, Window window);
+        void RenderGadget(IRenderer gfx, Gadget gadget);
     }
 }

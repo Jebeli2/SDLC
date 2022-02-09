@@ -14,6 +14,7 @@
         private readonly uint format;
         private IntPtr handle;
         private IntPtr backBuffer;
+        private Queue<IntPtr> prevTargets = new();
         private BlendMode blendMode;
         private TextureFilter textureFilter = TextureFilter.Nearest;
         private byte colorR;
@@ -386,20 +387,20 @@
                 _ = SDL_RenderCopyEx(handle, th, IntPtr.Zero, ref dst, angle, IntPtr.Zero, flip);
             }
         }
-        public void DrawIcon(Icons icon, float x, float y, float width, float height, Color color, HorizontalAlignment hAlign = HorizontalAlignment.Center, VerticalAlignment vAlign = VerticalAlignment.Center)
+        public void DrawIcon(Icons icon, float x, float y, float width, float height, Color color, HorizontalAlignment hAlign = HorizontalAlignment.Center, VerticalAlignment vAlign = VerticalAlignment.Center, float offsetX = 0, float offsetY = 0)
         {
             if (icon == Icons.NONE) return;
             SDLFont? font = SDLApplication.IconFont;
             if (font == null) return;
-            DrawIconCache(GetIconCache(font, icon, color), x, y, width, height, hAlign, vAlign);
+            DrawIconCache(GetIconCache(font, icon, color), x, y, width, height, hAlign, vAlign, offsetX, offsetY);
         }
 
-        public void DrawText(SDLFont? font, string? text, float x, float y, float width, float height, Color color, HorizontalAlignment horizontalAlignment = HorizontalAlignment.Center, VerticalAlignment verticalAlignment = VerticalAlignment.Center)
+        public void DrawText(SDLFont? font, string? text, float x, float y, float width, float height, Color color, HorizontalAlignment horizontalAlignment = HorizontalAlignment.Center, VerticalAlignment verticalAlignment = VerticalAlignment.Center, float offsetX = 0, float offsetY = 0)
         {
             if (string.IsNullOrEmpty(text)) return;
             if (font == null) { font = SDLApplication.DefaultFont; }
             if (font == null) return;
-            DrawTextCache(GetTextCache(font, text, color), x, y, width, height, horizontalAlignment, verticalAlignment);
+            DrawTextCache(GetTextCache(font, text, color), x, y, width, height, horizontalAlignment, verticalAlignment, offsetX, offsetY);
         }
 
         public Size MeasureText(SDLFont? font, string? text)
@@ -414,11 +415,10 @@
             }
             return Size.Empty;
         }
-
         public SDLTexture? LoadTexture(string fileName)
         {
-            SDLTexture? texture = null;
-            if (!string.IsNullOrEmpty(fileName))
+            SDLTexture? texture = textureTracker.Find(fileName);
+            if (texture == null && !string.IsNullOrEmpty(fileName))
             {
                 _ = SDLApplication.SDL_SetHint(SDLApplication.SDL_HINT_RENDER_SCALE_QUALITY, ((int)textureFilter).ToString());
                 IntPtr tex = SDLTexture.IMG_LoadTexture(handle, fileName);
@@ -433,8 +433,8 @@
 
         public SDLTexture? LoadTexture(string name, byte[]? data)
         {
-            SDLTexture? texture = null;
-            if (data != null)
+            SDLTexture? texture = textureTracker.Find(name);
+            if (texture == null && data != null)
             {
                 IntPtr rw = SDLApplication.SDL_RWFromMem(data, data.Length);
                 if (rw != IntPtr.Zero)
@@ -451,6 +451,43 @@
             return texture;
         }
 
+        public SDLTexture? CreateTexture(string name, int width, int height)
+        {
+            SDLTexture? texture = textureTracker.Find(name);
+            if (texture == null)
+            {
+                IntPtr tex = SDL_CreateTexture(handle, format, SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, width, height);
+                if (tex != IntPtr.Zero)
+                {
+                    texture = new SDLTexture(this, tex, name);
+                    SDLLog.Info(LogCategory.RENDER, $"Texture created from scratch '{name}'");
+                }
+            }
+            return texture;
+        }
+        public void PushTarget(SDLTexture? texture)
+        {
+            if (texture != null)
+            {
+                IntPtr oldTarget = SDL_GetRenderTarget(handle);
+                prevTargets.Enqueue(oldTarget);
+                _ = SDL_SetRenderTarget(handle, texture.Handle);
+                _ = SDL_SetRenderDrawBlendMode(handle, blendMode);
+            }
+        }
+        public void PopTarget()
+        {
+            if (prevTargets.Count > 0)
+            {
+                IntPtr oldTarget = prevTargets.Dequeue();
+                _ = SDL_SetRenderTarget(handle, oldTarget);
+            }
+        }
+
+        public void ClearScreen()
+        {
+            _ = SDL_RenderClear(handle);
+        }
 
         internal void Track(SDLTexture texture)
         {
@@ -462,7 +499,7 @@
             textureTracker.Untrack(texture);
         }
 
-        private void DrawTextCache(TextCache? textCache, float x, float y, float width, float height, HorizontalAlignment hAlign, VerticalAlignment vAlign)
+        private void DrawTextCache(TextCache? textCache, float x, float y, float width, float height, HorizontalAlignment hAlign, VerticalAlignment vAlign, float offsetX, float offsetY)
         {
             if (textCache == null) return;
             int w = textCache.Width;
@@ -491,12 +528,12 @@
                     y = y + height / 2 - h / 2;
                     break;
             }
-            RectangleF dstRect = new RectangleF(x, y, w, h);
+            RectangleF dstRect = new RectangleF(x + offsetX, y + offsetY, w, h);
             BlendMode = BlendMode.Blend;
             _ = SDL_RenderCopyF(handle, textCache.Handle, IntPtr.Zero, ref dstRect);
         }
 
-        private void DrawIconCache(IconCache? iconCache, float x, float y, float width, float height, HorizontalAlignment hAlign = HorizontalAlignment.Center, VerticalAlignment vAlign = VerticalAlignment.Center)
+        private void DrawIconCache(IconCache? iconCache, float x, float y, float width, float height, HorizontalAlignment hAlign, VerticalAlignment vAlign, float offsetX, float offsetY)
         {
             if (iconCache == null) return;
             int w = iconCache.Width;
@@ -525,7 +562,7 @@
                     y = y + height / 2 - h / 2;
                     break;
             }
-            RectangleF dstRect = new RectangleF(x, y, w, h);
+            RectangleF dstRect = new RectangleF(x + offsetX, y + offsetY, w, h);
             BlendMode = BlendMode.Blend;
             _ = SDL_RenderCopyF(handle, iconCache.Handle, IntPtr.Zero, ref dstRect);
         }

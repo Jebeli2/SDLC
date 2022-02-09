@@ -107,8 +107,8 @@
 
         public static SDLMusic? LoadMusic(string name)
         {
-            SDLMusic? music = null;
-            if (File.Exists(name))
+            SDLMusic? music = musicTracker.Find(name);
+            if (music == null && File.Exists(name))
             {
                 IntPtr handle = Mix_LoadMUS(name);
                 if (handle != IntPtr.Zero)
@@ -131,33 +131,36 @@
 
         private static SDLMusic? InternalLoadMusic(string name, byte[] data)
         {
-            SDLMusic? music = null;
-            if (UseTmpFilesForMusic)
+            SDLMusic? music = musicTracker.Find(name);
+            if (music == null)
             {
-                string fileName = FileUtils.GetTempFile(name, AttemptToDeleteOldTmpFiles);
-                try
+                if (UseTmpFilesForMusic)
                 {
-                    File.WriteAllBytes(fileName, data);
-                    IntPtr handle = Mix_LoadMUS(fileName);
-                    if (handle != IntPtr.Zero)
+                    string fileName = FileUtils.GetTempFile(name, AttemptToDeleteOldTmpFiles);
+                    try
                     {
-                        music = new SDLMusic(handle, name, fileName);
-                        SDLLog.Info(LogCategory.AUDIO, $"Music loaded from resource '{name}' (via temporary file '{fileName}')");
+                        File.WriteAllBytes(fileName, data);
+                        IntPtr handle = Mix_LoadMUS(fileName);
+                        if (handle != IntPtr.Zero)
+                        {
+                            music = new SDLMusic(handle, name, fileName);
+                            SDLLog.Info(LogCategory.AUDIO, $"Music loaded from resource '{name}' (via temporary file '{fileName}')");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        SDLLog.Error(LogCategory.AUDIO, $"Could not load Music from resource '{name}' (via temporary file '{fileName}'): {ex.Message}");
                     }
                 }
-                catch (Exception ex)
+                else
                 {
-                    SDLLog.Error(LogCategory.AUDIO, $"Could not load Music from resource '{name}' (via temporary file '{fileName}'): {ex.Message}");
-                }
-            }
-            else
-            {
-                IntPtr rw = SDLApplication.SDL_RWFromMem(data, data.Length);
-                IntPtr handle = Mix_LoadMUS_RW(rw, 1);
-                if (handle != IntPtr.Zero)
-                {
-                    music = new SDLMusic(handle, name);
-                    SDLLog.Info(LogCategory.AUDIO, $"Music loaded from resource '{name}'");
+                    IntPtr rw = SDLApplication.SDL_RWFromMem(data, data.Length);
+                    IntPtr handle = Mix_LoadMUS_RW(rw, 1);
+                    if (handle != IntPtr.Zero)
+                    {
+                        music = new SDLMusic(handle, name);
+                        SDLLog.Info(LogCategory.AUDIO, $"Music loaded from resource '{name}'");
+                    }
                 }
             }
             return music;

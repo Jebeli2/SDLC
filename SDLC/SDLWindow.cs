@@ -642,7 +642,9 @@
 
         public void Close()
         {
+            screen.Hide(this);
             screen.Shutdown(this);
+            ClearApplets();
             Dispose();
         }
 
@@ -673,6 +675,17 @@
             renderer.SetBackBufferSize(backBufferWidth, backBufferHeight);
         }
 
+        public T GetApplet<T>() where T : SDLApplet, new()
+        {
+            foreach (SDLApplet applet in applets)
+            {
+                if (applet is T t) { return t; }
+            }
+            T newT = new T();
+            AddApplet(newT);
+            return newT;
+        }
+
         public void AddApplet(SDLApplet applet)
         {
             if (!applets.Contains(applet))
@@ -696,6 +709,15 @@
                 applet.InternalOnLoad(new SDLWindowLoadEventArgs(renderer));
                 applet.Initialized = true;
             }
+        }
+
+        private void ClearApplets()
+        {
+            foreach(SDLApplet applet in applets)
+            {
+                applet.Dispose();
+            }
+            applets.Clear();
         }
 
         private IList<SDLApplet> GetEnabledApplets()

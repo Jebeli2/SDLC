@@ -33,7 +33,8 @@
 
             ShineColor = Color.FromArgb(128, 250, 250, 250);
             ShadowColor = Color.FromArgb(128, 40, 40, 40);
-
+            DarkBackColor = Color.FromArgb(230, 55, 55, 55);
+            PropKnobColor = Color.FromArgb(200, 120, 120, 120);
         }
         public Color TextColor { get; set; }
         public Color ActiveTextColor { get; set; }
@@ -55,39 +56,50 @@
         public Color ButtonInactiveHover { get; set; }
         public Color ShineColor { get; set; }
         public Color ShadowColor { get; set; }
+        public Color DarkBackColor { get; set; }
+        public Color PropKnobColor { get; set; }
 
-        public void RenderScreen(IRenderer gfx, IGUIScreen screen)
+        public void RenderScreen(IRenderer gfx, Screen screen)
         {
             DrawScreen(gfx, screen);
-            foreach (IGUIWindow window in screen.Windows)
+        }
+
+        public void RenderWindow(IRenderer gfx, Window window)
+        {
+            if (window.Superbitmap)
             {
-                RenderWindow(gfx, window);
+                DrawWindow(gfx, window, -window.LeftEdge, -window.TopEdge);
+            }
+            else
+            {
+                DrawWindow(gfx, window, 0, 0);
+            }
+        }
+        public void RenderGadget(IRenderer gfx, Gadget gadget)
+        {
+            if (gadget.Window.Superbitmap)
+            {
+                DrawGadget(gfx, gadget, -gadget.Window.LeftEdge, -gadget.Window.TopEdge);
+
+            }
+            else
+            {
+                DrawGadget(gfx, gadget, 0, 0);
             }
         }
 
-        public void RenderWindow(IRenderer gfx, IGUIWindow window)
-        {
-            DrawWindow(gfx, window);
-            foreach (IGUIGadget gadget in window.Gadgets)
-            {
-                RenderGadget(gfx, gadget);
-            }
-        }
-        public void RenderGadget(IRenderer gfx, IGUIGadget gadget)
-        {
-            DrawGadget(gfx, gadget);
-        }
-
-        private void DrawScreen(IRenderer gfx, IGUIScreen screen)
+        private void DrawScreen(IRenderer gfx, Screen screen)
         {
             Rectangle bounds = screen.GetBounds();
 
         }
 
-        private void DrawWindow(IRenderer gfx, IGUIWindow window)
+        private void DrawWindow(IRenderer gfx, Window window, int offsetX, int offsetY)
         {
             Rectangle bounds = window.GetBounds();
             Rectangle inner = window.GetInnerBounds();
+            bounds.Offset(offsetX, offsetY);
+            inner.Offset(offsetX, offsetY);
             bool active = window.Active;
             bool hover = window.MouseHover;
             Color c1;
@@ -121,12 +133,26 @@
             }
         }
 
-        private void DrawGadget(IRenderer gfx, IGUIGadget gadget)
+        private void DrawGadget(IRenderer gfx, Gadget gadget, int offsetX, int offsetY)
+        {
+            if (gadget.IsBoolGadget)
+            {
+                DrawBoolGadget(gfx, gadget, offsetX, offsetY);
+            }
+            else if (gadget.IsPropGadget && gadget.PropInfo != null)
+            {
+                DrawPropGadget(gfx, gadget, gadget.PropInfo, offsetX, offsetY);
+            }
+        }
+        private void DrawBoolGadget(IRenderer gfx, Gadget gadget, int offsetX, int offsetY)
         {
             Rectangle bounds = gadget.GetBounds();
             Rectangle inner = gadget.GetInnerBounds();
+            bounds.Offset(offsetX, offsetY);
+            inner.Offset(offsetX, offsetY);
             bool active = gadget.Active;
             bool hover = gadget.MouseHover;
+            bool selected = gadget.Selected;
             if (!gadget.TransparentBackground)
             {
                 Color c1;
@@ -151,7 +177,7 @@
             }
             else
             {
-                if (active)
+                if (selected)
                 {
                     DrawBox(gfx, bounds, ShadowColor, ShineColor);
                     DrawBox(gfx, inner, ShineColor, ShadowColor);
@@ -162,17 +188,49 @@
                     DrawBox(gfx, inner, ShadowColor, ShineColor);
                 }
             }
+            int offset = selected ? 1 : 0;
             if (gadget.Icon != Icons.NONE)
             {
-                Color tc = active ? ActiveTextColor : InactiveTextColor;
-                gfx.DrawIcon(gadget.Icon, inner.X, inner.Y, inner.Width, inner.Height, tc);
+                Color tc = (active || selected) ? ActiveTextColor : InactiveTextColor;
+                gfx.DrawIcon(gadget.Icon, inner.X, inner.Y, inner.Width, inner.Height, tc, HorizontalAlignment.Center, VerticalAlignment.Center, offset, offset);
             }
             if (!string.IsNullOrEmpty(gadget.Text))
             {
-                Color tc = active ? ActiveTextColor : InactiveTextColor;
-                gfx.DrawText(null, gadget.Text, inner.X, inner.Y, inner.Width, inner.Height, tc);
+                Color tc = (active || selected) ? ActiveTextColor : InactiveTextColor;
+                gfx.DrawText(null, gadget.Text, inner.X, inner.Y, inner.Width, inner.Height, tc, HorizontalAlignment.Center, VerticalAlignment.Center, offset, offset);
             }
 
+        }
+
+        private void DrawPropGadget(IRenderer gfx, Gadget gadget, PropInfo prop, int offsetX, int offsetY)
+        {
+            Rectangle bounds = gadget.GetBounds();
+            Rectangle inner = gadget.GetInnerBounds();
+            bool active = gadget.Active;
+            bool hover = gadget.MouseHover;
+            bool selected = gadget.Selected;
+            bool knobHit = prop.KnobHit;
+            bool knobHover = prop.KnobHover;
+            Rectangle knob = prop.GetKnob(bounds);
+            bounds.Offset(offsetX, offsetY);
+            inner.Offset(offsetX, offsetY);
+            knob.Offset(offsetX, offsetY);
+            Rectangle innerKnob = knob;
+            innerKnob.X += 1;
+            innerKnob.Y += 1;
+            innerKnob.Width -= 2;
+            innerKnob.Height -= 2;
+            gfx.FillRect(bounds, DarkBackColor);
+            if (!prop.Borderless)
+            {
+                DrawBox(gfx, bounds, ShineColor, ShadowColor);
+            }
+            gfx.FillRect(knob, PropKnobColor);
+            gfx.DrawRect(knob, ShadowColor);
+            if ((knobHover && hover) || (knobHover && selected))
+            {
+                gfx.DrawRect(innerKnob, ShineColor);
+            }
         }
 
         private static void DrawBox(IRenderer gfx, Rectangle rect, Color shinePen, Color shadowPen)

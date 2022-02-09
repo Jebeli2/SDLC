@@ -12,14 +12,22 @@
         private readonly LogCategory category;
         private readonly Dictionary<string, T> tracked = new();
         private bool disposedValue;
+        private LogPriority removalPrio;
 
         public SDLObjectTracker(LogCategory category, string name)
         {
             this.category = category;
             this.name = name;
+            removalPrio = LogPriority.Info;
         }
 
         public string Name => name;
+
+        public T? Find(string name)
+        {
+            if (tracked.TryGetValue(name, out var t)) { return t; }
+            return default;
+        }
         public void Track(T obj)
         {
             if (tracked.ContainsKey(obj.Name))
@@ -33,7 +41,7 @@
         {
             if (tracked.Remove(obj.Name))
             {
-                SDLLog.Info(category, $"{name} '{obj.Name}' removed");
+                SDLLog.Log(category, removalPrio, $"{name} '{obj.Name}' removed");
             }
             else
             {
@@ -53,12 +61,14 @@
                 {
                     SDLLog.Warn(category, $"Clearing {tracked.Count} leaked {name}s");
                 }
+                removalPrio = LogPriority.Warn;
                 List<T> objs = tracked.Values.ToList();
                 foreach (T obj in objs)
                 {
                     obj.Dispose();
                 }
                 tracked.Clear();
+                removalPrio = LogPriority.Info;
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿namespace SDLTest
 {
     using SDLC;
+    using SDLC.Applets;
     using SDLC.GUI;
     using System;
     using System.Collections.Generic;
@@ -11,7 +12,6 @@
 
     internal class TestScreen : SDLScreen
     {
-        private SDLTexture? img1;
         private SDLTexture? img2;
         private SDLMusic? mus1;
         private double angle;
@@ -23,10 +23,10 @@
         private bool rinv;
         private bool ginv;
         private bool binv;
-        private SDLC.Applets.GUISystem gui = new();
-        private SDLC.Applets.BackgroundImage bg = new();
-        private LinesApp lines = new();
-        private RainingBoxesApp boxes = new();
+        //private SDLC.Applets.GUISystem gui = new();
+        //private SDLC.Applets.BackgroundImage bg = new();
+        //private LinesApp lines = new();
+        //private RainingBoxesApp boxes = new();
 
         public TestScreen()
             : base("Test Screen")
@@ -34,16 +34,31 @@
             Configuration.WindowTitle = "Test Window";
             Configuration.MaxFramesPerSecond = 120;
             Configuration.ShowFPS = true;
-            Configuration.SkipTaskbar = true;
+            //Configuration.SkipTaskbar = true;
         }
 
-        public override void Initialize(IWindow window)
+        public override void Show(IWindow window)
         {
-            base.Initialize(window);
-            img1 = LoadTexture(nameof(Properties.Resources.ice_palace), Properties.Resources.ice_palace);
+            base.Show(window);
+            GetApplet<BackgroundImage>().Image = LoadTexture(nameof(Properties.Resources.ice_palace), Properties.Resources.ice_palace);
+            var boxes = GetApplet<RainingBoxesApp>();
+            var lines = GetApplet<LinesApp>();
+
+            boxes.RenderPrio = -500;
+            lines.RenderPrio = -750;
+
+
+            var gui = GetApplet<GUISystem>();
+
+            Screen screen1 = gui.OpenScreen();
+            Window window1 = gui.OpenWindow(screen1, leftEdge: 50, topEdge: 50, width: 300, height: 300, title: "Window 1", minWidth: 200, minHeight: 220);
+            Gadget gad1 = gui.AddGadget(window1, leftEdge: 10, topEdge: 10, width: -20, height: 40, text: "Gadget 1", clickAction: GoToGUITest);
+            Gadget gad2 = gui.AddGadget(window1, leftEdge: 10, topEdge: 60, width: -20, height: 40, text: "Gadget 2");
+            Gadget gad3 = gui.AddGadget(window1, leftEdge: 10, topEdge: 110, width: -20, height: 40, text: "Gadget 3");
+
             img2 = LoadTexture(nameof(Properties.Resources.badlands), Properties.Resources.badlands);
-            //mus1 = LoadMusic(nameof(Properties.Resources.bach), Properties.Resources.bach);
             mus1 = LoadMusic(nameof(Properties.Resources.jesu_joy), Properties.Resources.jesu_joy);
+            //mus1 = LoadMusic(nameof(Properties.Resources.bach), Properties.Resources.bach);
             //mus1 = LoadMusic(nameof(Properties.Resources.loss_of_me), Properties.Resources.loss_of_me);
             //mus1 = LoadMusic(nameof(Properties.Resources.loss_of_me_2_), Properties.Resources.loss_of_me_2_);
             //mus1 = LoadMusic(nameof(Properties.Resources.loss_of_me_3_), Properties.Resources.loss_of_me_3_);
@@ -51,36 +66,22 @@
             //mus1 = LoadMusic(nameof(Properties.Resources.loss_of_me_minstral_remix_), Properties.Resources.loss_of_me_minstral_remix_);
             //mus1 = LoadMusic(nameof(Properties.Resources.jesters_of_the_moon), Properties.Resources.jesters_of_the_moon);
             //mus1 = LoadMusic(nameof(Properties.Resources.find_your_way), Properties.Resources.find_your_way);
-
-            bg.Image = img1;
-
-            boxes.RenderPrio = -500;
-            lines.RenderPrio = -750;
-
-            AddApplet(bg);
-            AddApplet(boxes);
-            AddApplet(lines);
-            AddApplet(gui);
             SDLAudio.PlayMusic(mus1);
-
-            IGUIScreen screen1 = gui.OpenScreen();
-            IGUIWindow window1 = gui.OpenWindow(screen1, leftEdge: 50, topEdge: 50, width: 300, height: 300, title: "Window 1", minWidth: 200, minHeight: 220);
-            IGUIGadget gad1 = gui.AddGadget(window1, leftEdge: 10, topEdge: 10, width: -20, height: 40, text: "Gadget 1");
-            IGUIGadget gad2 = gui.AddGadget(window1, leftEdge: 10, topEdge: 60, width: -20, height: 40, text: "Gadget 2");
-            IGUIGadget gad3 = gui.AddGadget(window1, leftEdge: 10, topEdge: 110, width: -20, height: 40, text: "Gadget 3");
         }
 
-        public override void Shutdown(IWindow window)
+        public override void Hide(IWindow window)
         {
-            base.Shutdown(window);
-            RemoveApplet(gui);
-            RemoveApplet(bg);
-            RemoveApplet(boxes);
-            RemoveApplet(lines);
+            base.Hide(window);
             SDLAudio.StopMusic();
-            img1?.Dispose();
-            img2?.Dispose();
             mus1?.Dispose();
+            img2?.Dispose();
+
+        }
+
+
+        private void GoToGUITest()
+        {
+            ChangeScreen(new GUITest());
         }
 
         public override void Update(IRenderer renderer, double totalTime, double elapsedTime)

@@ -10,6 +10,7 @@
     {
         private readonly Configuration configuration = new();
         private string name;
+        private readonly List<SDLApplet> appletsToAdd = new();
 
 
         private int width;
@@ -33,20 +34,19 @@
         public virtual void Hide(IWindow window)
         {
             SDLLog.Info(LogCategory.APPLICATION, $"Hide Screen {name}");
+            SetWindow(window);
         }
 
         public virtual void Initialize(IWindow window)
         {
             SDLLog.Info(LogCategory.APPLICATION, $"Initialize Screen {name}");
-            this.window = window;
-            renderer = window.Renderer;
-            width = window.Width;
-            height = window.Height;
+            SetWindow(window);
         }
 
         public virtual void Pause(IWindow window)
         {
             SDLLog.Info(LogCategory.APPLICATION, $"Pause Screen {name}");
+            SetWindow(window);
         }
 
         public virtual void Render(IRenderer renderer, double totalTime, double elapsedTime)
@@ -56,32 +56,74 @@
         public virtual void Resized(IWindow window, int width, int height)
         {
             SDLLog.Info(LogCategory.APPLICATION, $"Resized Screen {name} ({width}x{height})");
-            this.width = width;
-            this.height = height;
+            SetWindow(window);
         }
 
         public virtual void Resume(IWindow window)
         {
             SDLLog.Info(LogCategory.APPLICATION, $"Resume Screen {name}");
+            SetWindow(window);
         }
 
         public virtual void Show(IWindow window)
         {
             SDLLog.Info(LogCategory.APPLICATION, $"Show Screen {name}");
+            SetWindow(window);
         }
 
         public virtual void Shutdown(IWindow window)
         {
             SDLLog.Info(LogCategory.APPLICATION, $"Shutdown Screen {name}");
+            SetWindow(window);
         }
 
         public virtual void Update(IRenderer renderer, double totalTime, double elapsedTime)
         {
         }
 
+        private void SetWindow(IWindow window)
+        {
+            this.window = window;
+            renderer = this.window.Renderer;
+            width = window.Width;
+            height = window.Height;
+            while (appletsToAdd.Count > 0)
+            {
+                SDLApplet applet = appletsToAdd[0];
+                appletsToAdd.RemoveAt(0);
+                window.AddApplet(applet);
+            }
+        }
+
         #region Convenience Methods for inheritors
         protected int Width => width;
         protected int Height => height;
+        protected bool IsFullScreen
+        {
+            get => window?.FullScreen ?? false;
+            set
+            {
+                if (window != null)
+                {
+                    window.FullScreen = value;
+                }
+            }
+        }
+        protected T GetApplet<T>() where T : SDLApplet, new()
+        {
+            if (window != null)
+            {
+                return window.GetApplet<T>();
+            }
+            return new T();
+        }
+        protected void ChangeScreen(IScreen screen)
+        {
+            if (window != null)
+            {
+                window.Screen = screen;
+            }
+        }
 
         protected SDLTexture? LoadTexture(string name)
         {

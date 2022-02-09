@@ -6,7 +6,7 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    internal class Screen : GUIObject, IGUIScreen
+    public class Screen : GUIObject
     {
         private readonly List<Window> windows = new();
         public Screen(IGUISystem gui)
@@ -15,16 +15,7 @@
         }
         public string? Title { get => Text; set => Text = value; }
 
-        public IEnumerable<IGUIWindow> Windows
-        {
-            get
-            {
-                foreach (Window window in windows)
-                {
-                    yield return window;
-                }
-            }
-        }
+        public IEnumerable<Window> Windows => windows;
 
         public Window? FindWindow(int x, int y)
         {
@@ -41,9 +32,59 @@
             return null;
         }
 
-        public void AddWindow(Window window)
+        internal void AddWindow(Window window)
         {
             windows.Add(window);
+        }
+
+        internal void RemoveWindow(Window window)
+        {
+            windows.Remove(window);
+        }
+
+        internal bool IsFrontWindow(Window window)
+        {
+            int index = windows.IndexOf(window);
+            return index == windows.Count - 1;
+        }
+
+
+        internal void WindowToFront(Window window)
+        {
+            int index = windows.IndexOf(window);
+            if (index >= 0 && index < windows.Count - 1)
+            {
+                windows.RemoveAt(index);
+                windows.Add(window);
+            }
+
+        }
+        internal void WindowToBack(Window window)
+        {
+            int index = windows.IndexOf(window);
+            if (index > 0)
+            {
+                windows.RemoveAt(index);
+                windows.Insert(0, window);
+            }
+        }
+
+        internal void Close()
+        {
+            foreach (Window window in windows)
+            {
+                window.Close();
+            }
+            windows.Clear();
+        }
+
+        public void Render(IRenderer gfx, IGUIRenderer ren)
+        {
+            ren.RenderScreen(gfx, this);
+            foreach (var win in windows)
+            {
+                win.Render(gfx, ren);
+            }
         }
         public override string ToString()
         {
