@@ -136,6 +136,17 @@
             renderer.DrawTexture(texture, new Rectangle(x, y, width, height), angle, flip);
         }
 
+        public static void DrawTexture(this IRenderer renderer, SDLTexture? texture, Rectangle src, Rectangle dst, byte alpha)
+        {
+            if (texture != null)
+            {
+                texture.AlphaMod = alpha;
+                texture.BlendMode = BlendMode.Blend;
+                renderer.BlendMode = BlendMode.Blend;
+                renderer.DrawTexture(texture, src, dst);
+            }
+        }
+
         public static void DrawText(this IRenderer renderer, SDLFont? font, string? text, float x, float y, Color color)
         {
             renderer.DrawText(font, text, x, y, 0, 0, color, HorizontalAlignment.Left, VerticalAlignment.Top);

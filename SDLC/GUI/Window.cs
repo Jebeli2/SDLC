@@ -1,5 +1,6 @@
 ﻿namespace SDLC.GUI
 {
+    using SDLC;
     using System;
     using System.Collections.Generic;
     using System.Drawing;
@@ -23,6 +24,7 @@
         private SDLTexture? bitmap;
         private bool valid;
         private bool superbitmap;
+        private byte alpha;
         internal Window(IGUISystem gui, Screen screen)
             : base(gui)
         {
@@ -34,6 +36,29 @@
         }
         public string? Title { get => Text; set => Text = value; }
         public Screen Screen => screen;
+        public byte Alpha
+        {
+            get => alpha;
+        }
+        public void SetAlpha(int v)
+        {
+            if (v > 255) { v = 255; }
+            if (v < 0) { v = 0; }
+            alpha = (byte)(v & 0xFF);
+        }
+        public void IncreaseAlpha(int v)
+        {
+            int a = alpha + v;
+            if (a > 255) { alpha = 255; }
+            else { alpha = (byte)(a & 0xFF); }
+        }
+
+        public void DecreaseAlpha(int v)
+        {
+            int a = alpha - v;
+            if (a < 0) { alpha = 0; }
+            else { alpha = (byte)(a & 0xFF); }
+        }
 
         public int WindowId { get; internal set; }
 
@@ -356,8 +381,7 @@
                     {
                         Rectangle dst = GetBounds();
                         Rectangle src = new Rectangle(0, 0, dst.Width, dst.Height);
-                        gfx.BlendMode = BlendMode.Blend;
-                        gfx.DrawTexture(bitmap, src, dst);
+                        SDLGfx.DrawTexture(gfx, bitmap, src, dst, alpha);
                     }
                 }
             }

@@ -21,6 +21,11 @@
         private int diffMouseY;
         private readonly Queue<Window> activationWindows = new();
         private readonly Queue<Gadget> activationGadgets = new();
+        private readonly List<Window> fadingInWindows = new();
+        private readonly List<Window> fadingOutWindows = new();
+        private const int fadeOutSpeed = 22;
+        private const int fadeInSpeed = 27;
+        private bool useFadeOut = true;
         private Screen? activeScreen;
         private Screen? mouseScreen;
         private Window? activeWindow;
@@ -67,6 +72,8 @@
         protected override void OnWindowUpdate(SDLWindowUpdateEventArgs e)
         {
             CheckWindowActivationQueue();
+            CheckFadingOutWindows();
+            CheckFadingInWindows();
             CheckGadgetActivationQueue();
             CheckTimer(e.TotalTime);
         }
@@ -372,6 +379,15 @@
                 window = null;
             }
         }
+
+        private static void CheckAndClear(ref Gadget? gadget, Window test)
+        {
+            if (gadget != null && gadget.Window == test)
+            {
+                gadget = null;
+            }
+        }
+
         private static void CheckAndClear(ref Gadget? gadget, Gadget test)
         {
             if (gadget != null && gadget == test)
@@ -701,23 +717,96 @@
             window.MinWidth = minWidth;
             window.MinHeight = minHeight;
             window.WindowId = nextWindowID++;
+            window.SetAlpha(0);
             AddSystemGadgets(window);
             if ((window.WindowFlags & WindowFlags.Activate) != 0)
             {
                 activationWindows.Enqueue(window);
             }
+            fadingInWindows.Add(window);
             return window;
         }
 
         public void CloseWindow(Window window)
         {
+            if (useFadeOut)
+            {
+                FadeOutWindow(window);
+            }
+            else
+            {
+                ReallyCloseWindow(window);
+            }
+        }
+
+        private void ReallyCloseWindow(Window window)
+        {
             Screen s = window.Screen;
+            Window? next = s.NextWindow(window);
             s.RemoveWindow(window);
             CheckAndClear(ref activeWindow, window);
             CheckAndClear(ref mouseWindow, window);
+            CheckAndClear(ref activeGadget, window);
+            CheckAndClear(ref mouseGadget, window);
+            CheckAndClear(ref downGadget, window);
+            CheckAndClear(ref upGadget, window);
+            CheckAndClear(ref selectedGadget, window);
             window.Close();
+            if (next != null) { ActivateWindow(next); }
         }
 
+        private void FadeOutWindow(Window window)
+        {
+            if (!fadingOutWindows.Contains(window))
+            {
+                fadingOutWindows.Add(window);
+            }
+        }
+
+        private void CheckFadingOutWindows()
+        {
+            foreach (Window window in fadingOutWindows)
+            {
+                window.DecreaseAlpha(fadeOutSpeed);
+            }
+            int i = 0;
+            while (i < fadingOutWindows.Count)
+            {
+                Window window = fadingOutWindows[i];
+                if (window.Alpha > 0)
+                {
+                    i++;
+                }
+                else
+                {
+                    //SDLLog.Debug(LogCategory.APPLICATION, $"Removing {window} from fade out list ({fadingOutWindows.Count})");
+                    fadingOutWindows.RemoveAt(i);
+                    ReallyCloseWindow(window);
+                    //SDLLog.Debug(LogCategory.APPLICATION, $"Removed {window} from fade out list ({fadingOutWindows.Count})");
+                }
+            }
+        }
+
+        private void CheckFadingInWindows()
+        {
+            foreach (Window window in fadingInWindows)
+            {
+                window.IncreaseAlpha(fadeInSpeed);
+            }
+            int i = 0;
+            while (i < fadingInWindows.Count)
+            {
+                Window window = fadingInWindows[i];
+                if (window.Alpha < 255)
+                {
+                    i++;
+                }
+                else
+                {
+                    fadingInWindows.RemoveAt(i);
+                }
+            }
+        }
         public Gadget AddGadget(Window w,
             int leftEdge = 0,
             int topEdge = 0,

@@ -86,6 +86,17 @@
                 win.Render(gfx, ren);
             }
         }
+
+        internal Window? NextWindow(Window window)
+        {
+            int index = windows.IndexOf(window);
+            index--;
+            if (index < 0) { index = windows.Count - 1; }
+            if (index < 0) { return null; }
+            Window next = windows[index];
+            if (next != window) return next;
+            return null;
+        }
         public override string ToString()
         {
             return $"Screen '{Title}'";
