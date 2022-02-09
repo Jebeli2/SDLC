@@ -143,6 +143,10 @@
             {
                 DrawPropGadget(gfx, gadget, gadget.PropInfo, offsetX, offsetY);
             }
+            else if (gadget.IsStrGadget && gadget.StrInfo != null)
+            {
+                DrawStrGadget(gfx, gadget, gadget.StrInfo, offsetX, offsetY);
+            }
         }
         private void DrawBoolGadget(IRenderer gfx, Gadget gadget, int offsetX, int offsetY)
         {
@@ -231,6 +235,47 @@
             {
                 gfx.DrawRect(innerKnob, ShineColor);
             }
+        }
+
+        private void DrawStrGadget(IRenderer gfx, Gadget gadget, StringInfo strInfo, int offsetX, int offsetY)
+        {
+            Rectangle bounds = gadget.GetBounds();
+            Rectangle inner = gadget.GetInnerBounds();
+            bounds.Offset(offsetX, offsetY);
+            inner.Offset(offsetX, offsetY);
+            gfx.FillRect(bounds, DarkBackColor);
+            DrawBox(gfx, bounds, ShadowColor, ShineColor);
+            string buffer = strInfo.Buffer;
+            int x = inner.X;
+            int y = inner.Y;
+            int last = buffer.Length;
+            gfx.SetClip(inner.X, inner.Y, inner.Width, inner.Height);
+            int dispPos = strInfo.DispPos;
+            for (int i = dispPos; i < last + 1; i++)
+            {
+                char c = ' ';
+                if (i < last) { c = buffer[i]; }
+                bool selected = (i >= strInfo.BufferSelStart && i < strInfo.BufferSelEnd);
+                Size size = gfx.MeasureText(null, "" + c);
+                if (selected)
+                {
+                    gfx.FillRect(x, y, size.Width, inner.Height, Color.LightBlue);
+                    gfx.DrawText(null, "" + c, x, y, SelectedTextColor);
+                }
+                else
+                {
+                    gfx.DrawText(null, "" + c, x, y, TextColor);
+                }
+                if (i == strInfo.BufferPos)
+                {
+                    if (gadget.Active)
+                    {
+                        gfx.DrawLine(x, y, x, y + inner.Height, TextColor);
+                    }
+                }
+                x += size.Width;
+            }
+            gfx.ClearClip();
         }
 
         private static void DrawBox(IRenderer gfx, Rectangle rect, Color shinePen, Color shadowPen)

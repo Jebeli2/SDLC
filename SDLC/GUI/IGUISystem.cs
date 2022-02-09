@@ -35,6 +35,7 @@
             bool selected = false,
             bool toggleSelect = false,
             Action? clickAction = null,
+            string? buffer = null,
             int gadgetId = -1);
 
         void RemoveGadget(Window window, Gadget gadget);

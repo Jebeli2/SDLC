@@ -489,6 +489,17 @@
             _ = SDL_RenderClear(handle);
         }
 
+        public void SetClip(int x, int y, int width, int height)
+        {
+            Rectangle rect = new Rectangle(x, y, width, height);
+            _ = SDL_RenderSetClipRect(handle, ref rect);
+        }
+        public void ClearClip()
+        {
+            _ = SDL_RenderSetClipRect(handle, IntPtr.Zero);
+        }
+
+
         internal void Track(SDLTexture texture)
         {
             textureTracker.Track(texture);
@@ -1391,6 +1402,10 @@
         private static extern int SDL_RenderGeometry(IntPtr renderer, IntPtr texture, [In] SDL_Vertex[] vertices, int num_vertices, [In] int[] indices, int num_indices);
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         private static extern int SDL_RenderGeometry(IntPtr renderer, IntPtr texture, [In] SDL_Vertex[] vertices, int num_vertices, IntPtr indices, int num_indices);
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int SDL_RenderSetClipRect(IntPtr renderer, ref Rectangle rect);
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int SDL_RenderSetClipRect(IntPtr renderer, IntPtr rect);
 
 
     }

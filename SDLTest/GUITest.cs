@@ -36,7 +36,7 @@
             window1.WindowClose += Window1_WindowClose;
             Gadget gad1 = gui.AddGadget(window1, leftEdge: 10, topEdge: 10, width: -20, height: 40, text: "Back", clickAction: GoToTestScreen);
             Gadget gad2 = gui.AddGadget(window1, leftEdge: 10, topEdge: 60, width: -20, height: 40, text: "Buttons", clickAction: ShowButtonTest);
-            Gadget gad3 = gui.AddGadget(window1, leftEdge: 10, topEdge: 110, width: -20, height: 40, text: "Props", clickAction: ShowPropTest);
+            Gadget gad3 = gui.AddGadget(window1, leftEdge: 10, topEdge: 110, width: -20, height: 40, text: "Props & Strings", clickAction: ShowPropTest);
 
             mus1 = LoadMusic(nameof(Properties.Resources.loss_of_me_3_), Properties.Resources.loss_of_me_3_);
             SDLAudio.PlayMusic(mus1);
@@ -70,13 +70,15 @@
             {
                 if (winPropTest == null)
                 {
-                    winPropTest = gui.OpenWindow(screen1, 400, 10, 500, 500, "Props");
+                    winPropTest = gui.OpenWindow(screen1, 400, 10, 500, 500, "Props & Strings");
                     winPropTest.WindowClose += WinPropTest_WindowClose;
                     Gadget prop1 = gui.AddGadget(winPropTest, 10, 10, -20, 20, type: GadgetType.PropGadget);
                     gui.ModifyProp(prop1, PropFlags.FreeHoriz, 0x1000, 0, 0x5555, 0);
                     Gadget prop2 = gui.AddGadget(winPropTest, 10, 40, -20, 20, type: GadgetType.PropGadget);
                     gui.ModifyProp(prop2, PropFlags.FreeHoriz, 0x5000, 0, 0x1000, 0);
-
+                    Gadget prop3 = gui.AddGadget(winPropTest, 10, 70, -20, 100, type: GadgetType.PropGadget);
+                    gui.ModifyProp(prop3, PropFlags.FreeHoriz | PropFlags.FreeVert, 0x5000, 0x4000, 0x2000, 0x8000);
+                    Gadget str1 = gui.AddGadget(winPropTest, 10, 180, -20, 22, type: GadgetType.StrGadget, buffer: "Hello World");
 
                 }
                 else

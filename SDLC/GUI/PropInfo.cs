@@ -32,6 +32,12 @@
         private int knobStartY;
         private bool knobHover;
 
+        private readonly Gadget gadget;
+
+        public PropInfo(Gadget gadget)
+        {
+            this.gadget = gadget;
+        }
         public PropFlags Flags
         {
             get { return flags; }
@@ -142,7 +148,7 @@
         {
             Rectangle knob = GetKnob(bounds);
             if (knob.Contains(x, y))
-            {
+            {                
                 knobStartX = x - (knob.Left - bounds.X);
                 knobStartY = y - (knob.Top - bounds.Y);
                 flags |= PropFlags.KnobHit;
@@ -153,10 +159,18 @@
             }
             else
             {
-                flags &= ~PropFlags.KnobHit;
-                knobHover = false;
-                return HandleContainerHit(knob, x, y, horizPot, vertPot);
+                if (KnobHit)
+                {
+                    knobHover = false;
+                }
+                else
+                {
+                    flags &= ~PropFlags.KnobHit;
+                    knobHover = false;
+                    return HandleContainerHit(knob, x, y, horizPot, vertPot);
+                }
             }
+            return false;
         }
 
         internal bool HanldePropMouseMove(Rectangle bounds, int x, int y)

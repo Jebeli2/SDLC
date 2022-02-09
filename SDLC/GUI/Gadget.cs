@@ -18,6 +18,7 @@
         private bool transparentBackground;
         private Icons icon;
         private PropInfo? propInfo;
+        private StringInfo? strInfo;
         internal Gadget(IGUISystem gui, Window window)
             : base(gui)
         {
@@ -48,6 +49,7 @@
         }
 
         internal PropInfo? PropInfo => propInfo;
+        internal StringInfo? StrInfo => strInfo;
 
         public bool Selected
         {
@@ -164,8 +166,11 @@
                     gadgetType = value;
                     if (GType == GadgetType.PropGadget)
                     {
-                        propInfo = new PropInfo();
-                        SetBorders(2, 2, 2, 2);
+                        propInfo = new PropInfo(this);
+                    }
+                    else if (GType == GadgetType.StrGadget)
+                    {
+                        strInfo = new StringInfo(this);
                     }
                 }
             }
@@ -175,6 +180,11 @@
         public bool IsPropGadget
         {
             get => GType == GadgetType.PropGadget && propInfo != null;
+        }
+
+        public bool IsStrGadget
+        {
+            get => GType == GadgetType.StrGadget && strInfo != null;
         }
 
         public bool IsBoolGadget
@@ -233,6 +243,36 @@
                 window.InvalidateFromGadget();
             }
         }
+        internal bool HandleStrMouseDown(int x, int y)
+        {
+            if (strInfo?.HandleMouseDown(GetBounds(), x, y) ?? false)
+            {
+                window.InvalidateFromGadget();
+                return true;
+            }
+            return false;
+        }
+        internal bool HandleStrMouseUp(int x, int y)
+        {
+            if (strInfo?.HandleMouseUp(GetBounds(), x, y) ?? false)
+            {
+                window.InvalidateFromGadget();
+                return true;
+            }
+            return false;
+        }
+        internal bool HandleStrMouseMove(int x, int y)
+        {
+            if (Active && Selected)
+            {
+                if (strInfo?.HandleMouseMove(GetBounds(), x, y) ?? false)
+                {
+                    window.InvalidateFromGadget();
+                    return true;
+                }
+            }
+            return false;
+        }
         internal void HanldePropMouseMove(int x, int y)
         {
             if (propInfo?.HanldePropMouseMove(GetBounds(), x, y) ?? false)
@@ -246,6 +286,34 @@
             {
                 window.InvalidateFromGadget();
             }
+        }
+
+        internal bool HandleKeyDown(SDLKeyEventArgs e)
+        {
+            if (strInfo?.HandleKeyDown(e) ?? false)
+            {
+                window.InvalidateFromGadget();
+                return true;
+            }
+            return false;
+        }
+        internal bool HandleKeyUp(SDLKeyEventArgs e)
+        {
+            if (strInfo?.HandleKeyUp(e) ?? false)
+            {
+                window.InvalidateFromGadget();
+                return true;
+            }
+            return false;
+        }
+        internal bool HandleTextInput(SDLTextInputEventArgs e)
+        {
+            if (strInfo?.HandleTextInput(e) ?? false)
+            {
+                window.InvalidateFromGadget();
+                return true;
+            }
+            return false;
         }
         internal void ModifyProp(PropFlags flags, int horizPot, int vertPot, int horizBody, int vertBody)
         {
@@ -263,6 +331,7 @@
         protected override void Invalidate()
         {
             propInfo?.Invalidate();
+            strInfo?.Invalidate();
             window.InvalidateFromGadget();
         }
 
@@ -270,6 +339,7 @@
         {
             bounds = null;
             propInfo?.Invalidate();
+            strInfo?.Invalidate();
             window.InvalidateFromGadget();
         }
 

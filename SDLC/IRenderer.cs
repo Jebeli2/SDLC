@@ -50,5 +50,7 @@
         void PushTarget(SDLTexture? texture);
         void PopTarget();
         void ClearScreen();
+        void SetClip(int x, int y, int width, int height);
+        void ClearClip();
     }
 }

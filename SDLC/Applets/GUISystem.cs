@@ -421,6 +421,13 @@
                     downGadget.HanldePropMouseMove(e.X, e.Y);
                     result |= true;
                 }
+                else if (downGadget.IsStrGadget)
+                {
+                    if (downGadget.HandleStrMouseMove(e.X, e.Y))
+                    {
+                        result |= true;
+                    }
+                }
             }
             if (mouseGadget != null)
             {
@@ -434,6 +441,7 @@
         }
         private bool CheckGadgetDown(SDLMouseEventArgs e)
         {
+            bool result = false;
             if (e.Button == MouseButton.Left)
             {
                 downGadget = mouseGadget;
@@ -444,17 +452,25 @@
                     {
                         downGadget.HandlePropMouseDown(e.X, e.Y);
                     }
+                    else if (downGadget.IsStrGadget)
+                    {
+                        if (downGadget.HandleStrMouseDown(e.X, e.Y))
+                        {
+                            result |= true;
+                        }
+                    }
                     if (downGadget.Immediate)
                     {
                         downGadget.RaiseGadgetDown();
-                        return true;
+                        result |= true;
                     }
                 }
             }
-            return false;
+            return result;
         }
         private bool CheckGadgetUp(SDLMouseEventArgs e)
         {
+            bool result = false;
             if (e.Button == MouseButton.Left)
             {
                 upGadget = mouseGadget;
@@ -464,15 +480,22 @@
                     {
                         upGadget.HandlePropMouseUp(e.X, e.Y);
                     }
+                    else if (downGadget.IsStrGadget)
+                    {
+                        if (downGadget.HandleStrMouseUp(e.X, e.Y))
+                        {
+                            result |= true;
+                        }
+                    }
                     if (upGadget.RelVeriy)
                     {
                         upGadget.RaiseGadgetUp();
-                        return true;
+                        result |= true;
                     }
                 }
                 SetSelectedGadget(null);
             }
-            return false;
+            return result;
         }
 
         private bool CheckGadgetTimer(double time)
@@ -525,6 +548,46 @@
                 CheckGadgetTimer(time);
                 timerTick = 0;
             }
+        }
+
+        private bool CheckGadgetKeyDown(SDLKeyEventArgs e)
+        {
+            if (activeGadget != null)
+            {
+                return activeGadget.HandleKeyDown(e);
+            }
+            return false;
+        }
+        private bool CheckGadgetKeyUp(SDLKeyEventArgs e)
+        {
+            if (activeGadget != null)
+            {
+                return activeGadget.HandleKeyUp(e);
+            }
+            return false;
+        }
+        private bool CheckGadgetTextInput(SDLTextInputEventArgs e)
+        {
+            if (activeGadget != null)
+            {
+                return activeGadget.HandleTextInput(e);
+            }
+            return false;
+        }
+
+        protected internal override void OnKeyDown(SDLKeyEventArgs e)
+        {
+            if (CheckGadgetKeyDown(e)) { e.Handled = true; }
+        }
+
+        protected internal override void OnKeyUp(SDLKeyEventArgs e)
+        {
+            if (CheckGadgetKeyUp(e)) { e.Handled = true; }
+        }
+
+        protected internal override void OnTextInput(SDLTextInputEventArgs e)
+        {
+            if (CheckGadgetTextInput(e)) { e.Handled = true; }
         }
 
         protected internal override void OnMouseMove(SDLMouseEventArgs e)
@@ -668,6 +731,7 @@
             bool selected = false,
             bool toggleSelect = false,
             Action? clickAction = null,
+            string? buffer = null,
             int gadgetId = -1)
         {
             if (topEdge <= 0) { flags |= GadgetFlags.RelBottom; }
@@ -693,6 +757,10 @@
             gadget.GadgetId = gadgetId;
             gadget.Text = text;
             if (clickAction != null) { gadget.GadgetUp += (s, e) => { clickAction(); }; }
+            if (buffer != null && gadget.IsStrGadget && gadget.StrInfo != null)
+            {
+                gadget.StrInfo.Buffer = buffer;
+            }
             return gadget;
         }
 
