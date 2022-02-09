@@ -1,6 +1,7 @@
 ﻿namespace SDLTest
 {
     using SDLC;
+    using SDLC.GUI;
     using System;
     using System.Collections.Generic;
     using System.Drawing;
@@ -22,6 +23,8 @@
         private bool rinv;
         private bool ginv;
         private bool binv;
+        private SDLC.Applets.GUISystem gui = new();
+        private SDLC.Applets.BackgroundImage bg = new();
         private LinesApp lines = new();
         private RainingBoxesApp boxes = new();
 
@@ -48,14 +51,30 @@
             //mus1 = LoadMusic(nameof(Properties.Resources.loss_of_me_minstral_remix_), Properties.Resources.loss_of_me_minstral_remix_);
             //mus1 = LoadMusic(nameof(Properties.Resources.jesters_of_the_moon), Properties.Resources.jesters_of_the_moon);
             //mus1 = LoadMusic(nameof(Properties.Resources.find_your_way), Properties.Resources.find_your_way);
+
+            bg.Image = img1;
+
+            boxes.RenderPrio = -500;
+            lines.RenderPrio = -750;
+
+            AddApplet(bg);
             AddApplet(boxes);
             AddApplet(lines);
+            AddApplet(gui);
             SDLAudio.PlayMusic(mus1);
+
+            IGUIScreen screen1 = gui.OpenScreen();
+            IGUIWindow window1 = gui.OpenWindow(screen1, leftEdge: 50, topEdge: 50, width: 300, height: 300, title: "Window 1", minWidth: 200, minHeight: 220);
+            IGUIGadget gad1 = gui.AddGadget(window1, leftEdge: 10, topEdge: 10, width: -20, height: 40, text: "Gadget 1");
+            IGUIGadget gad2 = gui.AddGadget(window1, leftEdge: 10, topEdge: 60, width: -20, height: 40, text: "Gadget 2");
+            IGUIGadget gad3 = gui.AddGadget(window1, leftEdge: 10, topEdge: 110, width: -20, height: 40, text: "Gadget 3");
         }
 
         public override void Shutdown(IWindow window)
         {
             base.Shutdown(window);
+            RemoveApplet(gui);
+            RemoveApplet(bg);
             RemoveApplet(boxes);
             RemoveApplet(lines);
             SDLAudio.StopMusic();
@@ -86,7 +105,6 @@
         public override void Render(IRenderer renderer, double totalTime, double elapsedTime)
         {
             base.Render(renderer, totalTime, elapsedTime);
-            renderer.DrawTexture(img1);
             int width = renderer.Width;
             int height = renderer.Height;
             int midX = width / 2;
@@ -101,9 +119,9 @@
             renderer.AACircle(midX, midY, 100);
             renderer.AACircle(midX, midY, 110);
 
-            renderer.FillColorRect(new RectangleF(100, 100, 100, 100), Color.Black, Color.Black, Color.White, Color.White);
-            renderer.FillColorRect(new RectangleF(100, 200, 100, 100), Color.Black, Color.White, Color.Black, Color.White);
-            renderer.FillColorRect(new RectangleF(100, 300, 100, 100), Color.Black, Color.White, Color.White, Color.Black);
+            //renderer.FillColorRect(new RectangleF(100, 100, 100, 100), Color.Black, Color.Black, Color.White, Color.White);
+            //renderer.FillColorRect(new RectangleF(100, 200, 100, 100), Color.Black, Color.White, Color.Black, Color.White);
+            //renderer.FillColorRect(new RectangleF(100, 300, 100, 100), Color.Black, Color.White, Color.White, Color.Black);
             string t1 = $"{width}x{height}";
             Size tsize = renderer.MeasureText(null, t1);
             renderer.DrawText(null, t1, midX - tsize.Width / 2, 10);

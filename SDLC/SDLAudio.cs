@@ -17,6 +17,7 @@
         private static readonly SDLObjectTracker<SDLMusic> musicTracker = new(LogCategory.AUDIO, "Music");
 
         public static bool UseTmpFilesForMusic { get; set; } = true;
+        public static bool AttemptToDeleteOldTmpFiles { get; set; } = true;
 
         public static bool IsPlaying
         {
@@ -133,7 +134,7 @@
             SDLMusic? music = null;
             if (UseTmpFilesForMusic)
             {
-                string fileName = FileUtils.GetTempFile(name);
+                string fileName = FileUtils.GetTempFile(name, AttemptToDeleteOldTmpFiles);
                 try
                 {
                     File.WriteAllBytes(fileName, data);

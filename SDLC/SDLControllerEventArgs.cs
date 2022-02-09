@@ -6,7 +6,7 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    public class SDLControllerEventArgs : EventArgs
+    public class SDLControllerEventArgs : SDLHandledEventArgs
     {
         private readonly SDLController controller;
 

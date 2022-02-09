@@ -25,6 +25,7 @@
         private static double previousTime;
         private static double targetTime = 1000.0 / maxFramesPerSecond;
         private static int updateFrameLag;
+
         private static int frameCounter;
         private static bool suppressDraw;
         private static bool isRunningSlowly;
@@ -38,7 +39,7 @@
         {
             Run(new SDLWindow(screen), logPriority);
         }
-        public static void Run(SDLWindow window, LogPriority logPriority = LogPriority.Info)
+        private static void Run(SDLWindow window, LogPriority logPriority = LogPriority.Info)
         {
             mainWindow = window;
             Initialize(logPriority);
@@ -48,7 +49,7 @@
             Shutdown();
         }
 
-        public static SDLWindow? MainWindow => mainWindow;
+        //public static SDLWindow? MainWindow => mainWindow;
 
         public static int GetDriverIndex(string name)
         {
@@ -127,8 +128,11 @@
         }
 
         public static SDLFont? DefaultFont => defaultFont;
+        internal static SDLFont? IconFont => iconFont;
 
-        public static SDLWindow? GetWindowFromId(int id)
+        internal static SDLWindow? MainWindow => mainWindow;
+
+        internal static SDLWindow? GetWindowFromId(int id)
         {
             return windows.FirstOrDefault(window => window.WindowId == id);
         }
@@ -177,14 +181,13 @@
                     if (updateFrameLag == 0)
                     {
                         isRunningSlowly = false;
-                        SDLLog.Debug(LogCategory.APPLICATION, $"Stopped Running Slowly");
-
+                        SDLLog.Verbose(LogCategory.APPLICATION, $"Stopped Running Slowly");
                     }
                 }
                 else if (updateFrameLag >= 5)
                 {
                     isRunningSlowly = true;
-                    SDLLog.Debug(LogCategory.APPLICATION, $"Started Running Slowly");
+                    SDLLog.Verbose(LogCategory.APPLICATION, $"Started Running Slowly");
                 }
                 if (stepCount == 1 && updateFrameLag > 0) { updateFrameLag--; }
                 elapsedTime = targetTime * stepCount;

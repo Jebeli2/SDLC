@@ -14,6 +14,10 @@
         private int width;
         private int height;
         private IRenderer? renderer;
+        private int renderPrio;
+        private int inputPrio;
+        protected bool noInput;
+        protected bool noRender;
 
         public SDLApplet(string name)
         {
@@ -24,6 +28,21 @@
         public string Name => name;
         public int Width => width;
         public int Height => height;
+
+        public int RenderPrio
+        {
+            get => renderPrio;
+            set => renderPrio = value;
+        }
+
+        public int InputPrio
+        {
+            get => inputPrio;
+            set => inputPrio = value;
+        }
+
+        public bool NoInput => noInput;
+        public bool NoRender => noRender;
 
         public bool Installed
         {
@@ -46,25 +65,42 @@
         }
         internal bool Initialized { get; set; }
         internal bool Shown { get; set; }
-        protected virtual void OnWindowShown(EventArgs e) { }
-        protected virtual void OnWindowHidden(EventArgs e) { }
-        protected virtual void OnWindowClose(EventArgs e) { }
-
+        internal protected virtual void OnWindowShown(EventArgs e) { }
+        internal protected virtual void OnWindowHidden(EventArgs e) { }
+        internal protected virtual void OnWindowExposed(EventArgs e) { }
+        internal protected virtual void OnWindowMinimized(EventArgs e) { }
+        internal protected virtual void OnWindowMaximized(EventArgs e) { }
+        internal protected virtual void OnWindowRestored(EventArgs e) { }
+        internal protected virtual void OnWindowClose(EventArgs e) { }
+        internal protected virtual void OnWindowEnter(EventArgs e) { }
+        internal protected virtual void OnWindowLeave(EventArgs e) { }
+        internal protected virtual void OnWindowFocusGained(EventArgs e) { }
+        internal protected virtual void OnWindowFocusLost(EventArgs e) { }
+        internal protected virtual void OnWindowTakeFocus(EventArgs e) { }
         protected virtual void OnWindowUpdate(SDLWindowUpdateEventArgs e) { }
         protected virtual void OnWindowPaint(SDLWindowPaintEventArgs e) { }
         protected virtual void OnWindowLoad(SDLWindowLoadEventArgs e) { }
-        protected virtual void OnWindowSizeChanged(SDLWindowSizeEventArgs e) { }
+        internal protected virtual void OnWindowMoved(SDLWindowPositionEventArgs e) { }
+        internal protected virtual void OnWindowSizeChanged(SDLWindowSizeEventArgs e) { }
+        internal protected virtual void OnWindowResized(SDLWindowSizeEventArgs e) { }
+        internal protected virtual void OnMouseButtonDown(SDLMouseEventArgs e) { }
+        internal protected virtual void OnMouseButtonUp(SDLMouseEventArgs e) { }
+        internal protected virtual void OnMouseMove(SDLMouseEventArgs e) { }
+        internal protected virtual void OnMouseWheel(SDLMouseWheelEventArgs e) { }
+        internal protected virtual void OnKeyDown(SDLKeyEventArgs e) { }
+        internal protected virtual void OnKeyUp(SDLKeyEventArgs e) { }
+        internal protected virtual void OnTextInput(SDLTextInputEventArgs e) { }
+        internal protected virtual void OnControllerButtonDown(SDLControllerButtonEventArgs e) { }
+        internal protected virtual void OnControllerButtonUp(SDLControllerButtonEventArgs e) { }
+        internal protected virtual void OnControllerAxis(SDLControllerAxisEventArgs e) { }
+        internal protected virtual void OnControllerTouchpadDown(SDLControllerTouchpadEventArgs e) { }
+        internal protected virtual void OnControllerTouchpadUp(SDLControllerTouchpadEventArgs e) { }
+        internal protected virtual void OnControllerTouchpadMove(SDLControllerTouchpadEventArgs e) { }
 
-        protected virtual void OnMouseButtonDown(SDLMouseEventArgs e) { }
-        protected virtual void OnMouseButtonUp(SDLMouseEventArgs e) { }
-        protected virtual void OnMouseMove(SDLMouseEventArgs e) { }
-        protected virtual void OnMouseWheel(SDLMouseWheelEventArgs e) { }
-
-        protected virtual void OnKeyDown(SDLKeyEventArgs e) { }
-        protected virtual void OnKeyUp(SDLKeyEventArgs e) { }
-        protected virtual void OnTextInput(SDLTextInputEventArgs e) { }
-
-        internal void InternalOnUpdate(SDLWindowUpdateEventArgs e) { OnWindowUpdate(e); }
+        internal void InternalOnUpdate(SDLWindowUpdateEventArgs e)
+        {
+            OnWindowUpdate(e);
+        }
         internal void InternalOnPaint(SDLWindowPaintEventArgs e)
         {
             renderer = e.Renderer;
@@ -77,21 +113,11 @@
             renderer = e.Renderer;
             width = e.Renderer.Width;
             height = e.Renderer.Height;
-            OnWindowLoad(e);
+            if (!Initialized)
+            {
+                OnWindowLoad(e);
+            }
         }
-
-        internal void InternalOnShown(EventArgs e) { OnWindowShown(e); }
-        internal void InternalOnHidden(EventArgs e) { OnWindowHidden(e); }
-        internal void InternalOnClose(EventArgs e) { OnWindowClose(e); }
-        internal void InternalOnSizeChanged(SDLWindowSizeEventArgs e) { OnWindowSizeChanged(e); }
-
-        internal void InternalOnMouseButtonDown(SDLMouseEventArgs e) { OnMouseButtonDown(e); }
-        internal virtual void InternalOnMouseButtonUp(SDLMouseEventArgs e) { OnMouseButtonUp(e); }
-        internal virtual void InternalOnMouseMove(SDLMouseEventArgs e) { OnMouseMove(e); }
-        internal virtual void InternalOnMouseWheel(SDLMouseWheelEventArgs e) { OnMouseWheel(e); }
-        internal virtual void InternalOnKeyDown(SDLKeyEventArgs e) { OnKeyDown(e); }
-        internal virtual void InternalOnKeyUp(SDLKeyEventArgs e) { OnKeyUp(e); }
-        internal virtual void InternalOnTextInput(SDLTextInputEventArgs e) { OnTextInput(e); }
 
     }
 }

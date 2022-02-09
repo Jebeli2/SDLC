@@ -21,7 +21,7 @@
 
         public int Which => which;
         public IntPtr Handle => handle;
-        public SDLWindow? Window
+        internal SDLWindow? Window
         {
             get => window;
             set => window = value;

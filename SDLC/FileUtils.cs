@@ -8,7 +8,7 @@
 
     internal static class FileUtils
     {
-        public static string GetTempFile(string name, int maxTries = 9)
+        public static string GetTempFile(string name, bool tryDelete, int maxTries = 9)
         {
             string path = Path.GetTempPath();
             string? ext = GetFileExtension(name);
@@ -18,6 +18,18 @@
             if (!File.Exists(fileName)) return fileName;
             for (int num = 1; num <= maxTries; num++)
             {
+                if (tryDelete)
+                {
+                    try
+                    {
+                        File.Delete(fileName);
+                        return fileName;
+                    }
+                    catch (Exception)
+                    {
+
+                    }
+                }
                 testName = Path.Combine(path, simpleName + "(" + num + ")");
                 fileName = AddFileExtension(testName, ext);
                 if (!File.Exists(fileName)) return fileName;

@@ -6,7 +6,7 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    public class SDLTextInputEventArgs : EventArgs
+    public class SDLTextInputEventArgs : SDLHandledEventArgs
     {
         private readonly string text;
         public SDLTextInputEventArgs(string text)

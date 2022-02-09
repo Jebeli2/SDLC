@@ -6,7 +6,7 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    public class SDLMouseWheelEventArgs : EventArgs
+    public class SDLMouseWheelEventArgs : SDLHandledEventArgs
     {
         private readonly int which;
         private readonly int x;

@@ -6,7 +6,7 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    public class SDLKeyEventArgs
+    public class SDLKeyEventArgs : SDLHandledEventArgs
     {
         private readonly ScanCode scanCode;
         private readonly KeyCode keyCode;
