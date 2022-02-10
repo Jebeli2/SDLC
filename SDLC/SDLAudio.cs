@@ -15,6 +15,7 @@
         private static readonly EventHandlerList eventHandlerList = new();
         private static readonly object audioDataReceivedKey = new();
         private static readonly object audioMusicDoneKey = new();
+        private static short[] musicData = Array.Empty<short>();
         private static int musicVolume = MIX_MAX_VOLUME;
         private static int soundVolume = MIX_MAX_VOLUME;
         private static SDLMusic? currentMusic;
@@ -27,6 +28,13 @@
         {
             add { eventHandlerList.AddHandler(audioMusicDoneKey, value); }
             remove { eventHandlerList.RemoveHandler(audioMusicDoneKey, value); }
+        }
+
+        public static event SDLMusicDataEventHandler MusicDataReceived
+        {
+            add { eventHandlerList.AddHandler(audioDataReceivedKey, value); }
+            remove { eventHandlerList.RemoveHandler(audioDataReceivedKey, value); }
+
         }
 
         public static bool IsPlaying
@@ -194,14 +202,18 @@
             return music;
         }
 
+
         private static void MixPostMix(IntPtr udata, IntPtr stream, int len)
         {
-            //if (currentMusic != null && HasAudioDataHandler)
-            //{
-            //    short[] data = new short[len / 2];
-            //    Marshal.Copy(stream, data, 0, data.Length);
-            //    OnAudioDataReceived(new AudioDataEventArgs(currentMusic, data));
-            //}
+            if (currentMusic != null && HasMusicDataHandler)
+            {
+                if (musicData.Length != len / 2)
+                {
+                    musicData = new short[len / 2];
+                }
+                Marshal.Copy(stream, musicData, 0, musicData.Length);
+                OnMusicDataReceived(new SDLMusicDataEventArgs(currentMusic, musicData));
+            }
         }
 
         private static void MixMusicFinished()
@@ -221,6 +233,13 @@
         {
             ((SDLMusicFinishedEventHandler?)eventHandlerList[audioMusicDoneKey])?.Invoke(null, e);
         }
+        private static void OnMusicDataReceived(SDLMusicDataEventArgs e)
+        {
+            ((SDLMusicDataEventHandler?)eventHandlerList[audioDataReceivedKey])?.Invoke(null, e);
+        }
+
+        private static bool HasMusicDataHandler => eventHandlerList[audioDataReceivedKey] != null;
+
 
         internal static void Track(SDLMusic music)
         {

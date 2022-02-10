@@ -10,23 +10,12 @@
 
     internal class RainingBoxesApp : SDLApplet
     {
-        private static readonly Random random = new Random();
-        private class Square
-        {
-            public float x;
-            public float y;
-            public float w;
-            public float h;
-            public float xvelocity;
-            public float yvelocity;
-            public double born;
-            public double lastUpdate;
-            public double duration;
-        }
+        private static readonly Random random = new();
         private const float GRAVITY = 750.0f;
         private readonly List<Square> squares = new();
         private bool leftMouseDown;
-        private double time;
+        private int addX = -1;
+        private int addY = -1;
         private SDLTexture? box;
         public RainingBoxesApp() : base("Boxes")
         {
@@ -38,61 +27,21 @@
             box = LoadTexture(nameof(Properties.Resources.box));
         }
 
-        protected override void OnWindowClose(EventArgs e)
+        protected override void OnDispose()
         {
             box?.Dispose();
         }
 
         protected override void OnWindowUpdate(SDLWindowUpdateEventArgs e)
         {
-            time = e.TotalTime / 1000;
-            UpdateSquares();
-        }
-
-        protected override void OnWindowPaint(SDLWindowPaintEventArgs e)
-        {
-            PaintSquares(e.Renderer, squares);
-        }
-
-        protected override void OnMouseButtonDown(SDLMouseEventArgs e)
-        {
-            if (e.Button == MouseButton.Left) { leftMouseDown = true; }
-            if (leftMouseDown) { AddSquare(e.X, e.Y); }
-        }
-
-        protected override void OnMouseButtonUp(SDLMouseEventArgs e)
-        {
-            if (e.Button == MouseButton.Left) { leftMouseDown = false; }
-        }
-
-        protected override void OnMouseMove(SDLMouseEventArgs e)
-        {
-            if (leftMouseDown) { AddSquare(e.X, e.Y); }
-        }
-        private static int Rand() { return random.Next(); }
-        private void AddSquare(int x, int y)
-        {
-            Square s = new Square
+            double time = e.TotalTime / 1000;
+            if (addX >= 0 && addY >= 0)
             {
-                x = x,
-                y = y,
-                w = Rand() % 80 + 40,
-                h = Rand() % 80 + 40,
-                yvelocity = -10,
-                xvelocity = Rand() % 100 - 50,
-                born = time,
-                lastUpdate = time,
-                duration = Rand() % 4 + 1
-            };
-            s.x -= s.w / 2;
-            s.y -= s.h / 2;
-            squares.Add(s);
-        }
-
-        private void UpdateSquares()
-        {
+                squares.Add(new Square(addX, addY, time));
+                addX = -1;
+                addY = -1;
+            }
             int index = 0;
-            int w = Width;
             int h = Height;
             while (index < squares.Count)
             {
@@ -119,13 +68,66 @@
             }
         }
 
-        private void PaintSquares(IRenderer gfx, IList<Square> squares)
+        protected override void OnWindowPaint(SDLWindowPaintEventArgs e)
         {
-            gfx.BlendMode = BlendMode.Blend;
-            foreach (var s in squares)
+            e.Renderer.BlendMode = BlendMode.Blend;
+            foreach (Square s in squares)
             {
-                gfx.DrawTexture(box, new Rectangle((int)s.x, (int)s.y, (int)s.w, (int)s.h));
+                e.Renderer.DrawTexture(box, new Rectangle((int)s.x, (int)s.y, (int)s.w, (int)s.h));
             }
         }
+
+        protected override void OnMouseButtonDown(SDLMouseEventArgs e)
+        {
+            if (e.Button == MouseButton.Left)
+            {
+                leftMouseDown = true;
+                addX = e.X;
+                addY = e.Y;
+            }
+        }
+
+        protected override void OnMouseButtonUp(SDLMouseEventArgs e)
+        {
+            if (e.Button == MouseButton.Left)
+            {
+                leftMouseDown = false;
+            }
+        }
+
+        protected override void OnMouseMove(SDLMouseEventArgs e)
+        {
+            if (leftMouseDown)
+            {
+                addX = e.X;
+                addY = e.Y;
+            }
+        }
+        private static int Rand() { return random.Next(); }
+        private class Square
+        {
+            public Square(int x, int y, double time)
+            {
+                w = Rand() % 80 + 40;
+                h = Rand() % 80 + 40;
+                this.x = x - w / 2;
+                this.y = y - h / 2;
+                yvelocity = -10;
+                xvelocity = Rand() % 100 - 50;
+                born = time;
+                lastUpdate = time;
+                duration = Rand() % 4 + 1;
+            }
+            public float x;
+            public float y;
+            public float w;
+            public float h;
+            public float xvelocity;
+            public float yvelocity;
+            public double born;
+            public double lastUpdate;
+            public double duration;
+        }
+
     }
 }

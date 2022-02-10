@@ -491,6 +491,7 @@
         {
             if (IsSysGadget) { return $"SysGadget '{SysGadgetType}'"; }
             if (Text != null) { return $"Gadget '{Text}'"; }
+            if (Icon != Icons.NONE) { return $"Gadget '{Icon.ToString().Replace("ENTYPO_ICON_", "")}'"; }
             return $"Gadget '{GadgetId}'";
         }
     }

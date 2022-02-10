@@ -38,6 +38,7 @@
             GadgetActivation activation = GadgetActivation.Immediate | GadgetActivation.RelVerify,
             GadgetType type = GadgetType.BoolGadget,
             string? text = null,
+            Icons icon = Icons.NONE,
             bool disabled = false,
             bool selected = false,
             bool toggleSelect = false,

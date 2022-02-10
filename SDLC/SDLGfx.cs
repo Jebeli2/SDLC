@@ -85,7 +85,15 @@
         {
             FillVertGradient(renderer, new Rectangle(x, y, w, h), top, bottom);
         }
+        public static void FillVertGradient(this IRenderer renderer, float x, float y, float w, float h, Color top, Color bottom)
+        {
+            FillVertGradient(renderer, new RectangleF(x, y, w, h), top, bottom);
+        }
         public static void FillVertGradient(this IRenderer renderer, Rectangle rect, Color top, Color bottom)
+        {
+            renderer.FillColorRect(rect, top, top, bottom, bottom);
+        }
+        public static void FillVertGradient(this IRenderer renderer, RectangleF rect, Color top, Color bottom)
         {
             renderer.FillColorRect(rect, top, top, bottom, bottom);
         }
@@ -1248,7 +1256,7 @@
             {
                 int xx0, yy0, xx1, yy1;
                 int intshift, erracc, erradj;
-                int erracctmp, wgt, wgtcompmask;
+                int erracctmp, wgt;
                 int dx, dy, tmp, xdir, y0p1, x0pxdir;
 
                 /*
@@ -1357,7 +1365,7 @@
                 /*
                 * Mask used to flip all bits in an intensity weighting 
                 */
-                wgtcompmask = AAlevels - 1;
+                //wgtcompmask = AAlevels - 1;
 
                 /*
                 * Draw the initial pixel in the foreground color 

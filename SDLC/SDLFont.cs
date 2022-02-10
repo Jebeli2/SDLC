@@ -72,9 +72,14 @@
             int h = 0;
             if (!string.IsNullOrEmpty(text))
             {
-                _ = TTF_SizeUTF8(Handle, text, out w, out h);
+                _ = TTF_SizeUTF8(handle, text, out w, out h);
             }
             return new Size(w, h);
+        }
+
+        public void GetGlyphMetrics(char c, out int minx, out int maxx, out int miny, out int maxy, out int advance)
+        {
+            _ = TTF_GlyphMetrics32(handle, (uint)c, out minx, out maxx, out miny, out maxy, out advance);
         }
         public static SDLFont? LoadFont(string fileName, int ptSize)
         {
@@ -201,6 +206,11 @@
         internal static extern int TTF_SizeUTF8(IntPtr font, [In()][MarshalAs(UnmanagedType.LPUTF8Str)] string text, out int w, out int h);
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         internal static extern IntPtr TTF_RenderGlyph_Blended(IntPtr font, ushort ch, int fg);
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern int TTF_GlyphMetrics(IntPtr font, ushort ch, out int minx, out int maxx, out int miny, out int maxy, out int advance);
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern int TTF_GlyphMetrics32(IntPtr font, uint ch, out int minx, out int maxx, out int miny, out int maxy, out int advance);
+
 
     }
 

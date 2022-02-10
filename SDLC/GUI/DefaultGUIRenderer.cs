@@ -327,20 +327,27 @@
             int last = buffer.Length;
             gfx.PushClip(inner);
             int dispPos = strInfo.DispPos;
+            int minx;
+            int maxx;
+            int miny;
+            int maxy;
+            int advance;
             for (int i = dispPos; i < last + 1; i++)
             {
                 char c = ' ';
                 if (i < last) { c = buffer[i]; }
                 bool selected = (i >= strInfo.BufferSelStart && i < strInfo.BufferSelEnd);
-                Size size = gfx.MeasureText(null, "" + c);
+                gfx.GetGlyphMetrics(null, c, out minx, out maxx, out miny, out maxy, out advance);
+                string txt = "" + c;
+                //Size size = gfx.MeasureText(null, "" + c);
                 if (selected)
                 {
-                    gfx.FillRect(x, y, size.Width, inner.Height, Color.LightBlue);
-                    gfx.DrawText(null, "" + c, x, y, SelectedTextColor);
+                    gfx.FillRect(x, y, advance, inner.Height, Color.LightBlue);
+                    gfx.DrawText(null, txt, x, y, SelectedTextColor);
                 }
                 else
                 {
-                    gfx.DrawText(null, "" + c, x, y, TextColor);
+                    gfx.DrawText(null, txt, x, y, TextColor);
                 }
                 if (i == strInfo.BufferPos)
                 {
@@ -349,7 +356,7 @@
                         gfx.DrawLine(x, y, x, y + inner.Height, TextColor);
                     }
                 }
-                x += size.Width;
+                x += advance;
             }
             gfx.PopClip();
         }

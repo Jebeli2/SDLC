@@ -48,9 +48,14 @@
         private int oldWidth;
         private int oldHeight;
         private readonly List<SDLApplet> applets = new();
+        private readonly List<SDLApplet> paintApplets = new();
+        private readonly List<SDLApplet> inputApplets = new();
+        private readonly List<SDLApplet> otherApplets = new();
         private IScreen screen;
         private readonly ScreenForwarder screenForwarder;
         private bool enableEventHandlers;
+        private readonly SDLWindowPaintEventArgs paintEventArgs;
+        private readonly SDLWindowUpdateEventArgs updateEventArgs;
 
         private readonly EventHandlerList eventHandlerList = new();
         private static readonly object windowLoadEventKey = new();
@@ -112,6 +117,8 @@
             windowId = -1;
             contentManager = new SDLContentManager(this);
             renderer = new SDLRenderer(this);
+            paintEventArgs = new SDLWindowPaintEventArgs(renderer, 0, 0);
+            updateEventArgs = new SDLWindowUpdateEventArgs(0, 0);
             screenForwarder = new ScreenForwarder(this);
         }
         ~SDLWindow()
@@ -139,6 +146,18 @@
         private void ApplyConfiguration(Configuration config)
         {
 
+        }
+
+        public bool EnableEventHandlers
+        {
+            get => enableEventHandlers;
+            set
+            {
+                if (enableEventHandlers != value)
+                {
+                    enableEventHandlers = value;
+                }
+            }
         }
 
         public IContentManager ContentManager => contentManager;
@@ -648,7 +667,6 @@
         {
             screen.Hide(this);
             screen.Shutdown(this);
-            ClearApplets();
             Dispose();
         }
 
@@ -685,7 +703,7 @@
             {
                 if (applet is T t) { return t; }
             }
-            T newT = new T();
+            T newT = new();
             AddApplet(newT);
             return newT;
         }
@@ -696,6 +714,7 @@
             {
                 applets.Add(applet);
                 InitApplet(applet);
+                CacheAppletSortOrder();
             }
         }
 
@@ -703,6 +722,14 @@
         {
             applets.Remove(applet);
             applet.OnUninstall(this);
+            CacheAppletSortOrder();
+        }
+        public void ChangeApplet(SDLApplet applet)
+        {
+            if (applets.Contains(applet))
+            {
+                CacheAppletSortOrder();
+            }
         }
 
         private void InitLateApplets()
@@ -711,6 +738,7 @@
             {
                 InitApplet(applet);
             }
+            CacheAppletSortOrder();
         }
         private void InitApplet(SDLApplet applet)
         {
@@ -728,39 +756,28 @@
                 applet.Dispose();
             }
             applets.Clear();
+            CacheAppletSortOrder();
         }
 
-        private IList<SDLApplet> GetEnabledApplets()
+        private void CacheAppletSortOrder()
         {
-            return applets.Where(x => x.Enabled).ToList();
+            paintApplets.Clear();
+            paintApplets.AddRange(applets.Where(x => x.Enabled && !x.NoRender).OrderBy(x => x.RenderPrio));
+            inputApplets.Clear();
+            inputApplets.AddRange(applets.Where(x => x.Enabled && !x.NoInput).OrderBy(x => x.InputPrio));
+            otherApplets.Clear();
+            otherApplets.AddRange(applets.Where(x => x.Enabled));
         }
-
-        private IList<SDLApplet> GetEnabledAppletsForRendering()
-        {
-            return applets.Where(x => x.Enabled && !x.NoRender).OrderBy(x => x.RenderPrio).ToList();
-        }
-        private IList<SDLApplet> GetEnabledAppletsForInput()
-        {
-            return applets.Where(x => x.Enabled && !x.NoInput).OrderBy(x => x.InputPrio).ToList();
-        }
-
         private void ForEachEnabledApplet(Action<SDLApplet> action)
         {
-            foreach (SDLApplet applet in GetEnabledApplets())
-            {
-                action(applet);
-            }
-        }
-        private void RenderForEachEnabledApplet(Action<SDLApplet> action)
-        {
-            foreach (SDLApplet applet in GetEnabledAppletsForRendering())
+            foreach (SDLApplet applet in otherApplets)
             {
                 action(applet);
             }
         }
         private void InputForEachEnabledApplet(SDLHandledEventArgs e, Action<SDLApplet> action)
         {
-            foreach (SDLApplet applet in GetEnabledAppletsForInput())
+            foreach (SDLApplet applet in inputApplets)
             {
                 action(applet);
                 if (e.Handled) break;
@@ -878,7 +895,7 @@
                 {
 
                 }
-                RemoveApplet(screenForwarder);
+                ClearApplets();
                 renderer.Dispose();
                 if (handle != IntPtr.Zero)
                 {
@@ -889,7 +906,6 @@
                 disposedValue = true;
             }
         }
-
         internal void RaiseWindowShown()
         {
             SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Shown");
@@ -1012,16 +1028,16 @@
         }
         internal void RaiseWindowUpdate(double totalTime, double elapsedTime)
         {
-            SDLWindowUpdateEventArgs e = new SDLWindowUpdateEventArgs(totalTime, elapsedTime);
-            ForEachEnabledApplet(a => a.InternalOnUpdate(e));
-            if (enableEventHandlers) { ((SDLWindowUpdateEventHandler?)eventHandlerList[windowUpdateEventKey])?.Invoke(this, e); }
+            updateEventArgs.Update(totalTime, elapsedTime);
+            foreach (SDLApplet applet in otherApplets) { applet.InternalOnUpdate(updateEventArgs); }
+            if (enableEventHandlers) { ((SDLWindowUpdateEventHandler?)eventHandlerList[windowUpdateEventKey])?.Invoke(this, updateEventArgs); }
         }
         internal void RaiseWindowPaint(double totalTime, double elapsedTime)
         {
-            SDLWindowPaintEventArgs e = new SDLWindowPaintEventArgs(renderer, renderer.Width, renderer.Height, totalTime, elapsedTime);
+            paintEventArgs.Update(totalTime, elapsedTime);
             renderer.BeginPaint();
-            RenderForEachEnabledApplet(a => a.InternalOnPaint(e));
-            if (enableEventHandlers) { ((SDLWindowPaintEventHandler?)eventHandlerList[windowPaintEventKey])?.Invoke(this, e); }
+            foreach (SDLApplet applet in paintApplets) { applet.InternalOnPaint(paintEventArgs); }
+            if (enableEventHandlers) { ((SDLWindowPaintEventHandler?)eventHandlerList[windowPaintEventKey])?.Invoke(this, paintEventArgs); }
             if (showFPS) { renderer.DrawText(null, SDLApplication.FPSText, fpsPosX, fpsPosY, Color.White); }
             renderer.EndPaint();
         }

@@ -35,13 +35,27 @@
         public int RenderPrio
         {
             get => renderPrio;
-            set => renderPrio = value;
+            set
+            {
+                if (renderPrio != value)
+                {
+                    renderPrio = value;
+                    AppletChanged();
+                }
+            }
         }
 
         public int InputPrio
         {
             get => inputPrio;
-            set => inputPrio = value;
+            set
+            {
+                if (inputPrio != value)
+                {
+                    inputPrio = value;
+                    AppletChanged();
+                }
+            }
         }
 
         public bool NoInput => noInput;
@@ -54,7 +68,19 @@
         public bool Enabled
         {
             get => enabled;
-            set => enabled = value;
+            set
+            {
+                if (enabled != value)
+                {
+                    enabled = value;
+                    AppletChanged();
+                }
+            }
+        }
+
+        protected void AppletChanged()
+        {
+            window?.ChangeApplet(this);
         }
 
         protected SDLMusic? LoadMusic(string name)

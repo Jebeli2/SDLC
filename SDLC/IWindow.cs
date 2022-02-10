@@ -21,5 +21,6 @@
         T GetApplet<T>() where T : SDLApplet, new();
         void AddApplet(SDLApplet applet);
         void RemoveApplet(SDLApplet applet);
+        void ChangeApplet(SDLApplet applet);
     }
 }

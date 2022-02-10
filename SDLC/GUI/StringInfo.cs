@@ -144,8 +144,9 @@
                     char ch = ' ';
                     if (i < buffer.Length) { ch = buffer[i]; }
                     //if (ch == ' ') { ch = 'j'; }
-                    Size size = font.MeasureText("" + ch);
-                    x += size.Width;
+                    font.GetGlyphMetrics(ch, out _, out _, out _, out _, out int advance);
+                    //Size size = font.MeasureText("" + ch);
+                    x += advance;
                 }
             }
             return x;
@@ -161,8 +162,9 @@
             for (int i = dispPos; i < buffer.Length; i++)
             {
                 char ch = buffer[i];
-                Size size = font.MeasureText("" + ch);
-                int gx = size.Width;
+                font.GetGlyphMetrics(ch, out _, out _, out _, out _, out int advance);
+                //Size size = font.MeasureText("" + ch);
+                int gx = advance;
                 if ((my >= y && my <= (y + lineSkip)) && (mx >= x && mx <= x + gx))
                 {
                     pos = i;

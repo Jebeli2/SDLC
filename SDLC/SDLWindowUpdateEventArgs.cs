@@ -8,8 +8,8 @@
 
     public class SDLWindowUpdateEventArgs : EventArgs
     {
-        private readonly double totalTime;
-        private readonly double elapsedTime;
+        private double totalTime;
+        private double elapsedTime;
 
         public SDLWindowUpdateEventArgs(double totalTime, double elapsedTime)
         {
@@ -19,6 +19,12 @@
 
         public double TotalTime => totalTime;
         public double ElapsedTime => elapsedTime;
+
+        internal void Update(double totalTime, double elapsedTime)
+        {
+            this.totalTime = totalTime;
+            this.elapsedTime = elapsedTime;
+        }
     }
 
     public delegate void SDLWindowUpdateEventHandler(object sender, SDLWindowUpdateEventArgs e);

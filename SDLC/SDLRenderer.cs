@@ -42,6 +42,7 @@
         // Indices for 4 rectangle vertices: bottomleft-topleft-topright, topright,bottomright,bottomleft
         private readonly int[] rectIndices = new int[] { 2, 0, 1, 1, 3, 2 };
         private const int NUM_RECT_INDICES = 6;
+        private readonly SDL_Vertex[] rectVertices = new SDL_Vertex[4];
 
         internal SDLRenderer(SDLWindow window)
         {
@@ -184,6 +185,7 @@
             if (handle != IntPtr.Zero)
             {
                 ClearTextCache();
+                ClearIconCache();
                 if (backBuffer != IntPtr.Zero)
                 {
                     SDL_DestroyTexture(backBuffer);
@@ -319,30 +321,36 @@
 
         public void FillColorRect(Rectangle rect, Color colorTopLeft, Color colorTopRight, Color colorBottomLeft, Color colorBottomRight)
         {
-            SDL_Vertex[] vertices = new SDL_Vertex[4];
-            vertices[0].color = ToSDLColor(colorTopLeft);
-            vertices[0].position = new Point(rect.Left, rect.Top);
-            vertices[1].color = ToSDLColor(colorTopRight);
-            vertices[1].position = new Point(rect.Right, rect.Top);
-            vertices[2].color = ToSDLColor(colorBottomLeft);
-            vertices[2].position = new Point(rect.Left, rect.Bottom);
-            vertices[3].color = ToSDLColor(colorBottomRight);
-            vertices[3].position = new Point(rect.Right, rect.Bottom);
-            _ = SDL_RenderGeometry(handle, IntPtr.Zero, vertices, 4, rectIndices, NUM_RECT_INDICES);
+            rectVertices[0].color = ToSDLColor(colorTopLeft);
+            rectVertices[0].position.X = rect.X;
+            rectVertices[0].position.Y = rect.Y;
+            rectVertices[1].color = ToSDLColor(colorTopRight);
+            rectVertices[1].position.X = rect.Right;
+            rectVertices[1].position.Y = rect.Y;
+            rectVertices[2].color = ToSDLColor(colorBottomLeft);
+            rectVertices[2].position.X = rect.X;
+            rectVertices[2].position.Y = rect.Bottom;
+            rectVertices[3].color = ToSDLColor(colorBottomRight);
+            rectVertices[3].position.X = rect.Right;
+            rectVertices[3].position.Y = rect.Bottom;
+            _ = SDL_RenderGeometry(handle, IntPtr.Zero, rectVertices, 4, rectIndices, NUM_RECT_INDICES);
         }
 
         public void FillColorRect(RectangleF rect, Color colorTopLeft, Color colorTopRight, Color colorBottomLeft, Color colorBottomRight)
         {
-            SDL_Vertex[] vertices = new SDL_Vertex[4];
-            vertices[0].color = ToSDLColor(colorTopLeft);
-            vertices[0].position = new PointF(rect.Left, rect.Top);
-            vertices[1].color = ToSDLColor(colorTopRight);
-            vertices[1].position = new PointF(rect.Right, rect.Top);
-            vertices[2].color = ToSDLColor(colorBottomLeft);
-            vertices[2].position = new PointF(rect.Left, rect.Bottom);
-            vertices[3].color = ToSDLColor(colorBottomRight);
-            vertices[3].position = new PointF(rect.Right, rect.Bottom);
-            _ = SDL_RenderGeometry(handle, IntPtr.Zero, vertices, 4, rectIndices, NUM_RECT_INDICES);
+            rectVertices[0].color = ToSDLColor(colorTopLeft);
+            rectVertices[0].position.X = rect.X;
+            rectVertices[0].position.Y = rect.Y;
+            rectVertices[1].color = ToSDLColor(colorTopRight);
+            rectVertices[1].position.X = rect.Right;
+            rectVertices[1].position.Y = rect.Y;
+            rectVertices[2].color = ToSDLColor(colorBottomLeft);
+            rectVertices[2].position.X = rect.X;
+            rectVertices[2].position.Y = rect.Bottom;
+            rectVertices[3].color = ToSDLColor(colorBottomRight);
+            rectVertices[3].position.X = rect.Right;
+            rectVertices[3].position.Y = rect.Bottom;
+            _ = SDL_RenderGeometry(handle, IntPtr.Zero, rectVertices, 4, rectIndices, NUM_RECT_INDICES);
         }
 
         public void DrawTexture(SDLTexture? texture, Rectangle src, Rectangle dst)
@@ -436,6 +444,23 @@
                 }
             }
             return Size.Empty;
+        }
+
+        public void GetGlyphMetrics(SDLFont? font, char c, out int minx, out int maxx, out int miny, out int maxy, out int advance)
+        {
+            if (font == null) { font = SDLApplication.DefaultFont; }
+            if (font != null)
+            {
+                font.GetGlyphMetrics(c, out minx, out maxx, out miny, out maxy, out advance);
+            }
+            else
+            {
+                minx = 0;
+                maxx = 0;
+                miny = 0;
+                maxy = 0;
+                advance = 0;
+            }
         }
         public SDLTexture? LoadTexture(string fileName)
         {

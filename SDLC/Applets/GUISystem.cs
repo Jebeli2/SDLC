@@ -835,6 +835,7 @@
             GadgetActivation activation = GadgetActivation.Immediate | GadgetActivation.RelVerify,
             GadgetType type = GadgetType.BoolGadget,
             string? text = null,
+            Icons icon= Icons.NONE,
             bool disabled = false,
             bool selected = false,
             bool toggleSelect = false,
@@ -864,6 +865,7 @@
             gadget.GadgetType = type;
             gadget.GadgetId = gadgetId;
             gadget.Text = text;
+            gadget.Icon = icon;
             if (clickAction != null) { gadget.GadgetUp += (s, e) => { clickAction(); }; }
             if (buffer != null && gadget.IsStrGadget && gadget.StrInfo != null)
             {

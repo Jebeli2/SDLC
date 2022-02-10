@@ -40,10 +40,11 @@
             GetApplet<MusicPlayer>().PlayNow(nameof(Properties.Resources.jesu_joy));
             var boxes = GetApplet<RainingBoxesApp>();
             var lines = GetApplet<LinesApp>();
+            var music = GetApplet<MusicVisualizer>();
 
             boxes.RenderPrio = -500;
             lines.RenderPrio = -750;
-
+            music.RenderPrio = -800;
 
             var gui = GetApplet<GUISystem>();
 

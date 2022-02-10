@@ -103,8 +103,7 @@
                     winButTest.WindowClose += WinButTest_WindowClose;
                     fullScreenGadget = gui.AddGadget(winButTest, 10, 10, -20, 30, text: IsFullScreen ? "Windowed" : "Fullscreen", clickAction: ToggleFullScreen);
                     _ = gui.AddGadget(winButTest, 10, 50, -20, 30, text: "Toggle Button", toggleSelect: true);
-                    var iconGad = gui.AddGadget(winButTest, 10, 90, -20, 30, text: "Icon Button");
-                    iconGad.Icon = Icons.ENTYPO_ICON_AIRCRAFT_TAKE_OFF;
+                    _ = gui.AddGadget(winButTest, 10, 90, -20, 30, text: "Icon Button", icon: Icons.ENTYPO_ICON_YOUKO);
                     _ = gui.AddGadget(winButTest, 10, 130, -20, 30, text: "Disabled Button", disabled: true);
                     var colorGad = gui.AddGadget(winButTest, 10, 170, -20, 30, text: "Color Button");
                     colorGad.BackgroundColor = Color.Blue;
@@ -112,6 +111,12 @@
                         () => { GetApplet<MusicPlayer>().NextMusic(); });
                     _ = gui.AddGadget(winButTest, -248, 210, 240, 30, text: "Play Prev", clickAction:
                         () => { GetApplet<MusicPlayer>().PrevMusic(); });
+                    _ = gui.AddGadget(winButTest, 10, 250, 30, 30, icon: Icons.ENTYPO_ICON_MUSIC, toggleSelect: true,
+                        selected: GetApplet<MusicVisualizer>().Enabled, clickAction: () => { GetApplet<MusicVisualizer>().Enabled ^= true; });
+                    _ = gui.AddGadget(winButTest, 50, 250, 30, 30, icon: Icons.ENTYPO_ICON_LINE_GRAPH, toggleSelect: true,
+                        selected: GetApplet<LinesApp>().Enabled, clickAction: () => { GetApplet<LinesApp>().Enabled ^= true; });
+                    _ = gui.AddGadget(winButTest, 90, 250, 30, 30, icon: Icons.ENTYPO_ICON_BOX, toggleSelect: true,
+                        selected: GetApplet<RainingBoxesApp>().Enabled, clickAction: () => { GetApplet<RainingBoxesApp>().Enabled ^= true; });
                 }
                 else
                 {
