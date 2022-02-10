@@ -35,8 +35,88 @@
             ShadowColor = Color.FromArgb(128, 40, 40, 40);
             DarkBackColor = Color.FromArgb(230, 55, 55, 55);
             PropKnobColor = Color.FromArgb(200, 120, 120, 120);
+
+            BorderDark = MkColor(29, 255);
+            BorderLight = MkColor(92, 255);
+            BorderMedium = MkColor(35, 255);
+            TextColor = MkColor(255, 160);
+            DisabledTextColor = MkColor(255, 80);
+            TextColorShadow = MkColor(0, 160);
+            IconColor = TextColor;
+
+            ButtonGradientTopFocused = MkColor(64, 255);
+            ButtonGradientBotFocused = MkColor(48, 255);
+            ButtonGradientTopUnFocused = MkColor(74, 255);
+            ButtonGradientBotUnFocused = MkColor(58, 255);
+            ButtonGradientTopPushed = MkColor(41, 255);
+            ButtonGradientBotPushed = MkColor(28, 255);
+            ButtonGradientTopHover = MkColor(84, 255);
+            ButtonGradientBotHover = MkColor(68, 255);
+
+            WindowFillUnFocused = MkColor(43, 230);
+            WindowFillFocused = MkColor(45, 230);
+            WindowTitleUnFocused = MkColor(220, 160);
+            WindowTitleFocused = MkColor(225, 190);
+
+            WindowHeaderGradientTop = ButtonGradientTopUnFocused;
+            WindowHeaderGradientBot = ButtonGradientBotUnFocused;
+            WindowHeaderGradientTopActive = Color.FromArgb(200, 62 + 10, 92 + 10, 154 + 10);
+            WindowHeaderGradientBotActive = Color.FromArgb(130, 62, 92, 154);
+
+            PropGradientTop = MkColor(0, 32);
+            PropGradientBot = MkColor(0, 92);
+            KnobGradientTop = MkColor(100, 100);
+            KnobGradientBot = MkColor(128, 100);
+            KnobGradientTopHover = MkColor(220, 100);
+            KnobGradientBotHover = MkColor(128, 100);
+            StrGradientTop = MkColor(255, 32);
+            StrGradientBot = MkColor(32, 32);
+
+            DisabledGhost = MkColor(128, 22);
         }
+
+        private static Color MkColor(int gray, int alpha)
+        {
+            return Color.FromArgb(alpha, gray, gray, gray);
+        }
+
+        public Color BorderDark { get; set; }
+        public Color BorderLight { get; set; }
+        public Color BorderMedium { get; set; }
         public Color TextColor { get; set; }
+        public Color DisabledTextColor { get; set; }
+        public Color TextColorShadow { get; set; }
+        public Color IconColor { get; set; }
+        public Color ButtonGradientTopFocused { get; set; }
+        public Color ButtonGradientBotFocused { get; set; }
+        public Color ButtonGradientTopUnFocused { get; set; }
+        public Color ButtonGradientBotUnFocused { get; set; }
+        public Color ButtonGradientTopPushed { get; set; }
+        public Color ButtonGradientBotPushed { get; set; }
+        public Color ButtonGradientTopHover { get; set; }
+        public Color ButtonGradientBotHover { get; set; }
+
+        public Color WindowFillUnFocused { get; set; }
+        public Color WindowFillFocused { get; set; }
+        public Color WindowTitleUnFocused { get; set; }
+        public Color WindowTitleFocused { get; set; }
+        public Color WindowHeaderGradientTop { get; set; }
+        public Color WindowHeaderGradientBot { get; set; }
+        public Color WindowHeaderGradientTopActive { get; set; }
+        public Color WindowHeaderGradientBotActive { get; set; }
+
+        public Color PropGradientTop { get; set; }
+        public Color PropGradientBot { get; set; }
+        public Color KnobGradientTop { get; set; }
+        public Color KnobGradientBot { get; set; }
+        public Color KnobGradientTopHover { get; set; }
+        public Color KnobGradientBotHover { get; set; }
+        public Color StrGradientTop { get; set; }
+        public Color StrGradientBot { get; set; }
+
+        public Color DisabledGhost { get; set; }
+
+
         public Color ActiveTextColor { get; set; }
         public Color InactiveTextColor { get; set; }
         public Color SelectedTextColor { get; set; }
@@ -59,36 +139,21 @@
         public Color DarkBackColor { get; set; }
         public Color PropKnobColor { get; set; }
 
-        public void RenderScreen(IRenderer gfx, Screen screen)
+        public void RenderScreen(IRenderer gfx, Screen screen, int offsetX, int offsetY)
         {
-            DrawScreen(gfx, screen);
+            DrawScreen(gfx, screen, offsetX, offsetY);
         }
 
-        public void RenderWindow(IRenderer gfx, Window window)
+        public void RenderWindow(IRenderer gfx, Window window, int offsetX, int offsetY)
         {
-            if (window.Superbitmap)
-            {
-                DrawWindow(gfx, window, -window.LeftEdge, -window.TopEdge);
-            }
-            else
-            {
-                DrawWindow(gfx, window, 0, 0);
-            }
+            DrawWindow(gfx, window, offsetX, offsetY);
         }
-        public void RenderGadget(IRenderer gfx, Gadget gadget)
+        public void RenderGadget(IRenderer gfx, Gadget gadget, int offsetX, int offsetY)
         {
-            if (gadget.Window.Superbitmap)
-            {
-                DrawGadget(gfx, gadget, -gadget.Window.LeftEdge, -gadget.Window.TopEdge);
-
-            }
-            else
-            {
-                DrawGadget(gfx, gadget, 0, 0);
-            }
+            DrawGadget(gfx, gadget, offsetX, offsetY);
         }
 
-        private void DrawScreen(IRenderer gfx, Screen screen)
+        private void DrawScreen(IRenderer gfx, Screen screen, int offsetX, int offsetY)
         {
             Rectangle bounds = screen.GetBounds();
 
@@ -96,39 +161,35 @@
 
         private void DrawWindow(IRenderer gfx, Window window, int offsetX, int offsetY)
         {
+            if (window.BackDrop) return;
             Rectangle bounds = window.GetBounds();
             Rectangle inner = window.GetInnerBounds();
             bounds.Offset(offsetX, offsetY);
             inner.Offset(offsetX, offsetY);
             bool active = window.Active;
             bool hover = window.MouseHover;
-            Color c1;
-            if (hover)
+            Color bg = WindowFillUnFocused;
+            Color bt = WindowHeaderGradientTop;
+            Color bb = WindowHeaderGradientBot;
+            if (active)
             {
-                c1 = active ? WindowBackActiveHover : WindowBackInactiveHover;
+                bg = WindowFillFocused;
+                bt = WindowHeaderGradientTopActive;
+                bb = WindowHeaderGradientBotActive;
             }
-            else
-            {
-                c1 = active ? WindowBackActive : WindowBackInactive;
-            }
-            Color c2 = Color.FromArgb(c1.A, c1.R + 20, c1.G + 30, c1.B + 40);
-            gfx.FillColorRect(bounds, c2, c2, c1, c1);
-            Color fc = window.Active ? WindowBorderActive : WindowBorderInactive;
-            Color tc = window.Active ? ActiveTextColor : InactiveTextColor;
 
+            gfx.FillRect(bounds, bg);
             if (!window.Borderless)
             {
-                gfx.Color = fc;
-                if (window.BorderTop > 2) gfx.FillRect(bounds.Left, bounds.Top, bounds.Width, window.BorderTop);
-                if (window.BorderLeft > 2) gfx.FillRect(bounds.Left, inner.Top, window.BorderLeft, inner.Height);
-                if (window.BorderRight > 2) gfx.FillRect(bounds.Right - window.BorderRight - 1, inner.Top, window.BorderRight, inner.Height);
-                if (window.BorderBottom > 2) gfx.FillRect(bounds.Left, bounds.Bottom - window.BorderBottom - 1, bounds.Width, window.BorderBottom);
+                if (window.BorderTop > 2) { gfx.FillVertGradient(bounds.Left, bounds.Top, bounds.Width, window.BorderTop, bt, bb); }
+                if (window.BorderLeft > 2) gfx.FillRect(bounds.Left, inner.Top, window.BorderLeft, inner.Height, bb);
+                if (window.BorderRight > 2) gfx.FillRect(bounds.Right - window.BorderRight - 1, inner.Top, window.BorderRight, inner.Height, bb);
+                if (window.BorderBottom > 2) gfx.FillVertGradient(bounds.Left, bounds.Bottom - window.BorderBottom - 1, bounds.Width, window.BorderBottom, bb, bt);
 
-                DrawBox(gfx, bounds, ShineColor, ShadowColor);
-                DrawBox(gfx, inner, ShadowColor, ShineColor);
+                DrawBox(gfx, bounds, BorderLight, BorderDark);
                 if (!string.IsNullOrEmpty(window.Title))
                 {
-                    gfx.DrawText(null, window.Title, inner.X, bounds.Y, inner.Width, window.BorderTop, tc);
+                    gfx.DrawText(null, window.Title, inner.X, bounds.Y, inner.Width, window.BorderTop, active ? WindowTitleFocused : WindowTitleUnFocused);
                 }
             }
         }
@@ -159,51 +220,64 @@
             bool selected = gadget.Selected;
             if (!gadget.TransparentBackground)
             {
-                Color c1;
-                if (hover)
+                Color gradTop = ButtonGradientTopUnFocused;
+                Color gradBottom = ButtonGradientBotUnFocused;
+                if (selected)
                 {
-                    c1 = active ? ButtonActiveHover : ButtonInactiveHover;
+                    gradTop = ButtonGradientTopPushed;
+                    gradBottom = ButtonGradientBotPushed;
                 }
-                else
+                else if (active)
                 {
-                    c1 = active ? ButtonActive : ButtonInactive;
+                    gradTop = ButtonGradientTopFocused;
+                    gradBottom = ButtonGradientBotFocused;
                 }
-                Color c2 = Color.FromArgb(c1.A, c1.R + 20, c1.G + 30, c1.B + 40);
+                else if (hover)
+                {
+                    gradTop = ButtonGradientTopHover;
+                    gradBottom = ButtonGradientBotHover;
+                }
+                gfx.FillVertGradient(bounds, gradTop, gradBottom);
+                if (!gadget.BackgroundColor.IsEmpty)
+                {
+                    gfx.FillRect(bounds, Color.FromArgb(64, gadget.BackgroundColor));
+                }
 
-                gfx.FillColorRect(bounds, c2, c2, c1, c1);
             }
             if (gadget.IsBorderGadget)
             {
                 if (hover)
                 {
-                    gfx.DrawRect(bounds, ShineColor);
+                    DrawBox(gfx, bounds, BorderLight, BorderDark);
                 }
             }
             else
             {
-                if (selected)
-                {
-                    DrawBox(gfx, bounds, ShadowColor, ShineColor);
-                    DrawBox(gfx, inner, ShineColor, ShadowColor);
-                }
-                else
-                {
-                    DrawBox(gfx, bounds, ShineColor, ShadowColor);
-                    DrawBox(gfx, inner, ShadowColor, ShineColor);
-                }
+                DrawBox(gfx, bounds, BorderLight, BorderDark);
             }
             int offset = selected ? 1 : 0;
-            if (gadget.Icon != Icons.NONE)
+            bool hasIcon = gadget.Icon != Icons.NONE;
+            bool hasText = !string.IsNullOrEmpty(gadget.Text);
+            Color tc = gadget.Enabled ? TextColor : DisabledTextColor;
+            if (hasIcon && hasText)
             {
-                Color tc = (active || selected) ? ActiveTextColor : InactiveTextColor;
-                gfx.DrawIcon(gadget.Icon, inner.X, inner.Y, inner.Width, inner.Height, tc, HorizontalAlignment.Center, VerticalAlignment.Center, offset, offset);
-            }
-            if (!string.IsNullOrEmpty(gadget.Text))
-            {
-                Color tc = (active || selected) ? ActiveTextColor : InactiveTextColor;
+                Size textSize = gfx.MeasureText(null, gadget.Text);
+
+                gfx.DrawIcon(gadget.Icon, inner.X, inner.Y, inner.Width / 2 - textSize.Width / 2 - 10, inner.Height, tc, HorizontalAlignment.Right, VerticalAlignment.Center, offset, offset);
                 gfx.DrawText(null, gadget.Text, inner.X, inner.Y, inner.Width, inner.Height, tc, HorizontalAlignment.Center, VerticalAlignment.Center, offset, offset);
             }
-
+            else if (hasIcon)
+            {
+                gfx.DrawIcon(gadget.Icon, inner.X, inner.Y, inner.Width, inner.Height, tc, HorizontalAlignment.Center, VerticalAlignment.Center, offset, offset);
+            }
+            else if (hasText)
+            {
+                gfx.DrawText(null, gadget.Text, inner.X, inner.Y, inner.Width, inner.Height, tc, HorizontalAlignment.Center, VerticalAlignment.Center, offset, offset);
+            }
+            if (!gadget.Enabled)
+            {
+                gfx.FillRect(bounds, DisabledGhost);
+            }
         }
 
         private void DrawPropGadget(IRenderer gfx, Gadget gadget, PropInfo prop, int offsetX, int offsetY)
@@ -224,16 +298,18 @@
             innerKnob.Y += 1;
             innerKnob.Width -= 2;
             innerKnob.Height -= 2;
-            gfx.FillRect(bounds, DarkBackColor);
+            gfx.FillVertGradient(bounds, PropGradientTop, PropGradientBot);
             if (!prop.Borderless)
             {
-                DrawBox(gfx, bounds, ShineColor, ShadowColor);
+                DrawBox(gfx, bounds, BorderLight, BorderDark);
             }
-            gfx.FillRect(knob, PropKnobColor);
-            gfx.DrawRect(knob, ShadowColor);
-            if ((knobHover && hover) || (knobHover && selected))
+            if ((knobHover && hover) || (knobHover && selected) || (knobHit))
             {
-                gfx.DrawRect(innerKnob, ShineColor);
+                gfx.FillVertGradient(knob, KnobGradientTopHover, KnobGradientBotHover);
+            }
+            else
+            {
+                gfx.FillVertGradient(knob, KnobGradientTop, KnobGradientBot);
             }
         }
 
@@ -243,13 +319,13 @@
             Rectangle inner = gadget.GetInnerBounds();
             bounds.Offset(offsetX, offsetY);
             inner.Offset(offsetX, offsetY);
-            gfx.FillRect(bounds, DarkBackColor);
-            DrawBox(gfx, bounds, ShadowColor, ShineColor);
+            gfx.FillVertGradient(bounds, StrGradientTop, StrGradientBot);
+            DrawBox(gfx, bounds, BorderDark, BorderLight);
             string buffer = strInfo.Buffer;
             int x = inner.X;
             int y = inner.Y;
             int last = buffer.Length;
-            gfx.SetClip(inner.X, inner.Y, inner.Width, inner.Height);
+            gfx.PushClip(inner);
             int dispPos = strInfo.DispPos;
             for (int i = dispPos; i < last + 1; i++)
             {
@@ -275,17 +351,13 @@
                 }
                 x += size.Width;
             }
-            gfx.ClearClip();
+            gfx.PopClip();
         }
 
         private static void DrawBox(IRenderer gfx, Rectangle rect, Color shinePen, Color shadowPen)
         {
-            gfx.Color = shinePen;
-            gfx.DrawLine(rect.Left, rect.Top, rect.Right - 2, rect.Top);
-            gfx.DrawLine(rect.Left, rect.Top, rect.Left, rect.Bottom - 2);
-            gfx.Color = shadowPen;
-            gfx.DrawLine(rect.Left, rect.Bottom - 1, rect.Right - 1, rect.Bottom - 1);
-            gfx.DrawLine(rect.Right - 1, rect.Top, rect.Right - 1, rect.Bottom - 1);
+            gfx.DrawRect(rect.X + 1, rect.Y + 1, rect.Width - 2, rect.Height - 2, shinePen);
+            gfx.DrawRect(rect.X, rect.Y, rect.Width - 1, rect.Height - 1, shadowPen);
         }
 
     }

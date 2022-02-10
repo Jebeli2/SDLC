@@ -191,12 +191,15 @@
             return false;
         }
 
-        internal bool HandleMouseDown(Rectangle bounds, int x, int y)
+        internal bool HandleMouseDown(Rectangle bounds, int x, int y, bool isTimerRepeat = false)
         {
-            if (GetPos(x - bounds.X, y - bounds.Y, out int pos))
+            if (!isTimerRepeat)
             {
-                BufferPos = pos;
-                return true;
+                if (GetPos(x - bounds.X, y - bounds.Y, out int pos))
+                {
+                    BufferPos = pos;
+                    return true;
+                }
             }
             return false;
         }
@@ -211,15 +214,19 @@
         }
         internal bool HandleMouseMove(Rectangle bounds, int x, int y)
         {
-            if (GetPos(x - bounds.X, y - bounds.Y, out int pos))
+            if (gadget.Active && gadget.Selected)
             {
-                SetBufferSel(pos);
-                return true;
+                if (GetPos(x - bounds.X, y - bounds.Y, out int pos))
+                {
+                    SetBufferSel(pos);
+                    return true;
+                }
             }
             return false;
         }
-        internal bool HandleKeyDown(SDLKeyEventArgs e)
+        internal ActionResult HandleKeyDown(SDLKeyEventArgs e)
         {
+            ActionResult result = ActionResult.Consumed;
             switch (e.ScanCode)
             {
                 case ScanCode.SCANCODE_LEFT:
@@ -244,11 +251,19 @@
                     RemoveOrDelText(true);
                     break;
             }
-            return true;
+            return result;
         }
-        internal bool HandleKeyUp(SDLKeyEventArgs e)
+        internal ActionResult HandleKeyUp(SDLKeyEventArgs e)
         {
-            return true;
+            ActionResult result = ActionResult.Consumed;
+            switch (e.ScanCode)
+            {
+                case ScanCode.SCANCODE_ESCAPE:
+                    Buffer = undoBuffer;
+                    BufferPos = undoPos;
+                    break;
+            }
+            return result;
         }
         internal bool HandleTextInput(SDLTextInputEventArgs e)
         {
@@ -257,6 +272,12 @@
                 ReplaceOrAddText(e.Text);
             }
             return true;
+        }
+
+        internal void HandleSelected()
+        {
+            undoBuffer = buffer;
+            undoPos = bufferPos;
         }
         private void RemoveOrDelText(bool backSpace)
         {

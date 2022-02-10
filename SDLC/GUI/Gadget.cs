@@ -16,6 +16,7 @@
         private GadgetType gadgetType;
         private Rectangle? bounds;
         private bool transparentBackground;
+        private Color bgColor = Color.Empty;
         private Icons icon;
         private PropInfo? propInfo;
         private StringInfo? strInfo;
@@ -43,6 +44,19 @@
                 if (icon != value)
                 {
                     icon = value;
+                    Invalidate();
+                }
+            }
+        }
+
+        public Color BackgroundColor
+        {
+            get => bgColor;
+            set
+            {
+                if (bgColor != value)
+                {
+                    bgColor = value;
                     Invalidate();
                 }
             }
@@ -95,6 +109,21 @@
                 else
                 {
                     Activation &= ~GadgetActivation.ToggleSelect;
+                }
+            }
+        }
+        public bool TabCycle
+        {
+            get => (flags & GadgetFlags.TabCycle) != 0;
+            set
+            {
+                if (value)
+                {
+                    Flags |= GadgetFlags.TabCycle;
+                }
+                else
+                {
+                    Flags &= ~GadgetFlags.TabCycle;
                 }
             }
         }
@@ -170,6 +199,7 @@
                     }
                     else if (GType == GadgetType.StrGadget)
                     {
+                        flags |= GadgetFlags.TabCycle;
                         strInfo = new StringInfo(this);
                     }
                 }
@@ -219,105 +249,131 @@
             get => transparentBackground;
             set => transparentBackground = value;
         }
-        internal void RaiseGadgetDown()
+
+        public Gadget? FindNextGadget()
+        {
+            return window.FindNextGadget(this);
+        }
+
+        public Gadget? FindPrevGadget()
+        {
+            return window.FindPrevGadget(this);
+        }
+        private void RaiseGadgetDown()
         {
             EventHelper.Raise(this, GadgetDown, EventArgs.Empty);
         }
-
-        internal void RaiseGadgetUp()
+        private void RaiseGadgetUp()
         {
             EventHelper.Raise(this, GadgetUp, EventArgs.Empty);
         }
 
+        private ActionResult CheckNavKeys(SDLKeyEventArgs e)
+        {
+            if (e.ScanCode == ScanCode.SCANCODE_TAB && e.State == KeyButtonState.Pressed)
+            {
+                if ((e.KeyMod & KeyMod.SHIFT) != 0)
+                {
+                    return ActionResult.NavigatePrevious;
+                }
+                else
+                {
+                    return ActionResult.NavigateNext;
+                }
+            }
+            else if (e.ScanCode == ScanCode.SCANCODE_RETURN && e.State == KeyButtonState.Pressed)
+            {
+                RaiseGadgetUp();
+                return ActionResult.GadgetUp;
+            }
+            return ActionResult.None;
+        }
         internal void HandleDeselection()
         {
+            if (!ToggleSelect)
+            {
+                Selected = false;
+            }
+            else
+            {
+                Selected = !Selected;
+            }
             if (propInfo?.HandleDeselection() ?? false)
             {
                 window.InvalidateFromGadget();
             }
         }
-        internal void HandlePropMouseDown(int x, int y)
+
+        internal void HandleSelection()
         {
-            if (propInfo?.HandlePropMouseDown(GetBounds(), x, y) ?? false)
+            if (!ToggleSelect)
             {
-                window.InvalidateFromGadget();
+                Selected = true;
             }
-        }
-        internal bool HandleStrMouseDown(int x, int y)
-        {
-            if (strInfo?.HandleMouseDown(GetBounds(), x, y) ?? false)
-            {
-                window.InvalidateFromGadget();
-                return true;
-            }
-            return false;
-        }
-        internal bool HandleStrMouseUp(int x, int y)
-        {
-            if (strInfo?.HandleMouseUp(GetBounds(), x, y) ?? false)
-            {
-                window.InvalidateFromGadget();
-                return true;
-            }
-            return false;
-        }
-        internal bool HandleStrMouseMove(int x, int y)
-        {
-            if (Active && Selected)
-            {
-                if (strInfo?.HandleMouseMove(GetBounds(), x, y) ?? false)
-                {
-                    window.InvalidateFromGadget();
-                    return true;
-                }
-            }
-            return false;
-        }
-        internal void HanldePropMouseMove(int x, int y)
-        {
-            if (propInfo?.HanldePropMouseMove(GetBounds(), x, y) ?? false)
-            {
-                window.InvalidateFromGadget();
-            }
-        }
-        internal void HandlePropMouseUp(int x, int y)
-        {
-            if (propInfo?.HandlePropMouseUp(GetBounds(), x, y) ?? false)
-            {
-                window.InvalidateFromGadget();
-            }
+            strInfo?.HandleSelected();
         }
 
-        internal bool HandleKeyDown(SDLKeyEventArgs e)
+        internal bool HandleMouseDown(int x, int y, bool isTimerRepeat = false)
         {
-            if (strInfo?.HandleKeyDown(e) ?? false)
-            {
-                window.InvalidateFromGadget();
-                return true;
-            }
-            return false;
+            bool result = false;
+            Rectangle bounds = GetBounds();
+            result |= propInfo?.HandleMouseDown(bounds, x, y, isTimerRepeat) ?? false;
+            result |= strInfo?.HandleMouseDown(bounds, x, y, isTimerRepeat) ?? false;
+            if (Immediate) { RaiseGadgetDown(); result |= true; }
+            if (result) { window.InvalidateFromGadget(); }
+            return result;
         }
-        internal bool HandleKeyUp(SDLKeyEventArgs e)
+        internal bool HandleMouseUp(int x, int y)
         {
-            if (strInfo?.HandleKeyUp(e) ?? false)
+            bool result = false;
+            Rectangle bounds = GetBounds();
+            result |= propInfo?.HandleMouseUp(bounds, x, y) ?? false;
+            result |= strInfo?.HandleMouseUp(bounds, x, y) ?? false;
+            if (RelVeriy) { RaiseGadgetUp(); result |= true; }
+            if (result) { window.InvalidateFromGadget(); }
+            return result;
+        }
+
+        internal bool HandleMouseMove(int x, int y)
+        {
+            bool result = false;
+            Rectangle bounds = GetBounds();
+            result |= propInfo?.HandleMouseMove(bounds, x, y) ?? false;
+            result |= strInfo?.HandleMouseMove(bounds, x, y) ?? false;
+
+            if (result) { window.InvalidateFromGadget(); }
+            return result;
+        }
+        internal ActionResult HandleKeyDown(SDLKeyEventArgs e)
+        {
+            ActionResult result = CheckNavKeys(e);
+            if (result == ActionResult.None)
             {
-                window.InvalidateFromGadget();
-                return true;
+                result |= strInfo?.HandleKeyDown(e) ?? ActionResult.None;
+                if (result != ActionResult.None) { window.InvalidateFromGadget(); }
             }
-            return false;
+            return result;
+        }
+        internal ActionResult HandleKeyUp(SDLKeyEventArgs e)
+        {
+            ActionResult result = CheckNavKeys(e);
+            if (result == ActionResult.None)
+            {
+                result |= strInfo?.HandleKeyUp(e) ?? ActionResult.None;
+                if (result != ActionResult.None) { window.InvalidateFromGadget(); }
+            }
+            return result;
         }
         internal bool HandleTextInput(SDLTextInputEventArgs e)
         {
-            if (strInfo?.HandleTextInput(e) ?? false)
-            {
-                window.InvalidateFromGadget();
-                return true;
-            }
-            return false;
+            bool result = false;
+            result |= strInfo?.HandleTextInput(e) ?? false;
+            if (result) { window.InvalidateFromGadget(); }
+            return result;
         }
         internal void ModifyProp(PropFlags flags, int horizPot, int vertPot, int horizBody, int vertBody)
         {
-            if (IsPropGadget && propInfo != null)
+            if (propInfo != null)
             {
                 propInfo.Flags = flags;
                 propInfo.HorizPot = horizPot;
@@ -421,7 +477,14 @@
 
         public void Render(IRenderer gfx, IGUIRenderer ren)
         {
-            ren.RenderGadget(gfx, this);
+            if (window.Superbitmap)
+            {
+                ren.RenderGadget(gfx, this, -window.LeftEdge, -window.TopEdge);
+            }
+            else
+            {
+                ren.RenderGadget(gfx, this, 0, 0);
+            }
         }
 
         public override string ToString()

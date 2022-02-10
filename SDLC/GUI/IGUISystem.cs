@@ -19,7 +19,14 @@
             int height = 256,
             string title = "",
             int minWidth = 0,
-            int minHeight = 0);
+            int minHeight = 0,
+            bool borderless = false,
+            bool backdrop = false,
+            bool sizing = true,
+            bool dragging = true,
+            bool zooming = true,
+            bool closing = true,
+            bool depth = true);
         void CloseWindow(Window window);
 
         Gadget AddGadget(Window window,

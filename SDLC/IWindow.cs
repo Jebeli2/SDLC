@@ -12,6 +12,7 @@
         IntPtr Handle { get; }
         bool HandleCreated { get; }
         IRenderer Renderer { get; }
+        IContentManager ContentManager { get; }
         IScreen Screen { get; set; }
         int Width { get; }
         int Height { get; }

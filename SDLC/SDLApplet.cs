@@ -13,7 +13,9 @@
         private bool enabled;
         private int width;
         private int height;
+        private IWindow? window;
         private IRenderer? renderer;
+        private IContentManager? contentManager;
         private int renderPrio;
         private int inputPrio;
         protected bool noInput;
@@ -48,7 +50,6 @@
         public bool Installed
         {
             get => installed;
-            internal set => installed = value;
         }
         public bool Enabled
         {
@@ -56,15 +57,39 @@
             set => enabled = value;
         }
 
+        protected SDLMusic? LoadMusic(string name)
+        {
+            byte[]? data = contentManager?.FindContent(name);
+            return SDLAudio.LoadMusic(name, data);
+        }
+        protected SDLMusic? LoadMusic(string name, byte[]? data)
+        {
+            return SDLAudio.LoadMusic(name, data);
+        }
+
         protected SDLTexture? LoadTexture(string name)
         {
-            return renderer?.LoadTexture(name);
+            byte[]? data = contentManager?.FindContent(name);
+            return renderer?.LoadTexture(name, data);
         }
         protected SDLTexture? LoadTexture(string name, byte[]? data)
         {
             return renderer?.LoadTexture(name, data);
         }
-        internal bool Initialized { get; set; }
+
+        internal void OnInstall(IWindow window)
+        {
+            this.window = window;
+            renderer = this.window.Renderer;
+            contentManager = this.window.ContentManager;
+            installed = true;
+            InternalOnLoad(new SDLWindowLoadEventArgs(renderer));
+        }
+
+        internal void OnUninstall(IWindow window)
+        {
+            installed = false;
+        }
         internal bool Shown { get; set; }
         internal protected virtual void OnWindowShown(EventArgs e) { }
         internal protected virtual void OnWindowHidden(EventArgs e) { }
@@ -115,10 +140,7 @@
             renderer = e.Renderer;
             width = e.Renderer.Width;
             height = e.Renderer.Height;
-            if (!Initialized)
-            {
-                OnWindowLoad(e);
-            }
+            OnWindowLoad(e);
         }
 
         protected virtual void Dispose(bool disposing)

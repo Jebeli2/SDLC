@@ -14,6 +14,15 @@
             renderer.Color = color;
             renderer.ClearScreen();
         }
+
+        public static void PushClip(this IRenderer renderer, int x, int y, int width, int height)
+        {
+            renderer.PushClip(new Rectangle(x, y, width, height));
+        }
+        public static void SetClip(this IRenderer renderer, int x, int y, int width, int height)
+        {
+            renderer.SetClip(new Rectangle(x, y, width, height));
+        }
         public static void DrawRect(this IRenderer renderer, int x, int y, int width, int height)
         {
             renderer.DrawRect(new Rectangle(x, y, width, height));
@@ -71,6 +80,14 @@
         {
             renderer.Color = color;
             renderer.FillRect(rect);
+        }
+        public static void FillVertGradient(this IRenderer renderer, int x, int y, int w, int h, Color top, Color bottom)
+        {
+            FillVertGradient(renderer, new Rectangle(x, y, w, h), top, bottom);
+        }
+        public static void FillVertGradient(this IRenderer renderer, Rectangle rect, Color top, Color bottom)
+        {
+            renderer.FillColorRect(rect, top, top, bottom, bottom);
         }
 
         public static void DrawLine(this IRenderer renderer, Point p1, Point p2)
@@ -237,7 +254,11 @@
             renderer.Color = color;
             renderer.DrawLine(x, y1, x, y2);
         }
-
+        public static void RoundedRectangle(this IRenderer renderer, Rectangle rect, int rad, Color color)
+        {
+            renderer.Color = color;
+            RoundedRectangle(renderer, rect.X, rect.Y, rect.Right, rect.Bottom, rad);
+        }
         public static void RoundedRectangle(this IRenderer renderer, int x1, int y1, int x2, int y2, int rad)
         {
             int tmp;

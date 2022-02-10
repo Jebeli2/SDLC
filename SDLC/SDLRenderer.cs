@@ -14,7 +14,8 @@
         private readonly uint format;
         private IntPtr handle;
         private IntPtr backBuffer;
-        private Queue<IntPtr> prevTargets = new();
+        private readonly Stack<IntPtr> prevTargets = new();
+        private readonly Stack<Rectangle> prevClips = new();
         private BlendMode blendMode;
         private TextureFilter textureFilter = TextureFilter.Nearest;
         private byte colorR;
@@ -23,6 +24,8 @@
         private byte colorA;
         private Color color;
         private RendererSizeMode sizeMode;
+        private bool checkStateOnPaint = true;
+        private bool disableClipping = false;
         private int windowWidth;
         private int windowHeight;
         private int backBufferWidth;
@@ -194,6 +197,8 @@
         }
         internal void BeginPaint()
         {
+            prevTargets.Clear();
+            prevClips.Clear();
             switch (sizeMode)
             {
                 case RendererSizeMode.Window:
@@ -212,6 +217,11 @@
 
         internal void EndPaint()
         {
+            if (checkStateOnPaint)
+            {
+                if (prevClips.Count > 0) { SDLLog.Warn(LogCategory.RENDER, $"ClipRects not empty: {prevClips.Count} {(prevClips.Count == 1 ? "was" : "were")} not popped"); }
+                if (prevTargets.Count > 0) { SDLLog.Warn(LogCategory.RENDER, $"Targets not empty: {prevTargets.Count} {(prevTargets.Count == 1 ? "was" : "were")} not popped"); }
+            }
             switch (sizeMode)
             {
                 case RendererSizeMode.Window:
@@ -295,16 +305,28 @@
             _ = SDL_RenderDrawPointF(handle, x, y);
         }
 
+        private static int ToSDLColor(Color c)
+        {
+            int i = c.A;
+            i <<= 8;
+            i |= c.B;
+            i <<= 8;
+            i |= c.G;
+            i <<= 8;
+            i |= c.R;
+            return i;
+        }
+
         public void FillColorRect(Rectangle rect, Color colorTopLeft, Color colorTopRight, Color colorBottomLeft, Color colorBottomRight)
         {
             SDL_Vertex[] vertices = new SDL_Vertex[4];
-            vertices[0].color = colorTopLeft.ToArgb();
+            vertices[0].color = ToSDLColor(colorTopLeft);
             vertices[0].position = new Point(rect.Left, rect.Top);
-            vertices[1].color = colorTopRight.ToArgb();
+            vertices[1].color = ToSDLColor(colorTopRight);
             vertices[1].position = new Point(rect.Right, rect.Top);
-            vertices[2].color = colorBottomLeft.ToArgb();
+            vertices[2].color = ToSDLColor(colorBottomLeft);
             vertices[2].position = new Point(rect.Left, rect.Bottom);
-            vertices[3].color = colorBottomRight.ToArgb();
+            vertices[3].color = ToSDLColor(colorBottomRight);
             vertices[3].position = new Point(rect.Right, rect.Bottom);
             _ = SDL_RenderGeometry(handle, IntPtr.Zero, vertices, 4, rectIndices, NUM_RECT_INDICES);
         }
@@ -312,13 +334,13 @@
         public void FillColorRect(RectangleF rect, Color colorTopLeft, Color colorTopRight, Color colorBottomLeft, Color colorBottomRight)
         {
             SDL_Vertex[] vertices = new SDL_Vertex[4];
-            vertices[0].color = colorTopLeft.ToArgb();
+            vertices[0].color = ToSDLColor(colorTopLeft);
             vertices[0].position = new PointF(rect.Left, rect.Top);
-            vertices[1].color = colorTopRight.ToArgb();
+            vertices[1].color = ToSDLColor(colorTopRight);
             vertices[1].position = new PointF(rect.Right, rect.Top);
-            vertices[2].color = colorBottomLeft.ToArgb();
+            vertices[2].color = ToSDLColor(colorBottomLeft);
             vertices[2].position = new PointF(rect.Left, rect.Bottom);
-            vertices[3].color = colorBottomRight.ToArgb();
+            vertices[3].color = ToSDLColor(colorBottomRight);
             vertices[3].position = new PointF(rect.Right, rect.Bottom);
             _ = SDL_RenderGeometry(handle, IntPtr.Zero, vertices, 4, rectIndices, NUM_RECT_INDICES);
         }
@@ -465,12 +487,16 @@
             }
             return texture;
         }
+        public void ClearScreen()
+        {
+            _ = SDL_RenderClear(handle);
+        }
         public void PushTarget(SDLTexture? texture)
         {
             if (texture != null)
             {
                 IntPtr oldTarget = SDL_GetRenderTarget(handle);
-                prevTargets.Enqueue(oldTarget);
+                prevTargets.Push(oldTarget);
                 _ = SDL_SetRenderTarget(handle, texture.Handle);
                 _ = SDL_SetRenderDrawBlendMode(handle, blendMode);
             }
@@ -479,23 +505,73 @@
         {
             if (prevTargets.Count > 0)
             {
-                IntPtr oldTarget = prevTargets.Dequeue();
+                IntPtr oldTarget = prevTargets.Pop();
                 _ = SDL_SetRenderTarget(handle, oldTarget);
             }
         }
 
-        public void ClearScreen()
+        public Rectangle CurrentClip
         {
-            _ = SDL_RenderClear(handle);
+            get
+            {
+                SDL_RenderGetClipRect(handle, out Rectangle clip);
+                return clip;
+                //if (prevClips.Count > 0)
+                //{
+                //    return prevClips.Peek();
+                //}
+                //return Rectangle.Empty;
+            }
         }
 
-        public void SetClip(int x, int y, int width, int height)
+        private Rectangle CombineClip(Rectangle clip)
         {
-            Rectangle rect = new Rectangle(x, y, width, height);
-            _ = SDL_RenderSetClipRect(handle, ref rect);
+            if (prevClips.Count > 0)
+            {
+                Rectangle current = prevClips.Peek();
+                return Rectangle.Intersect(current, clip);
+            }
+            return clip;
+        }
+
+        private void CheckedSDLCall(Func<int> func)
+        {
+            int result = func();
+            if (result != 0)
+            {
+                SDLLog.Error(LogCategory.RENDER, $"SDL returned an error: {result} ({SDLApplication.GetError()})");
+            }
+        }
+        public void PushClip(Rectangle clip)
+        {
+            if (disableClipping) return;
+            clip = CombineClip(clip);
+            CheckedSDLCall(() => { return SDL_RenderSetClipRect(handle, ref clip); });
+            prevClips.Push(clip);
+        }
+        public void PopClip()
+        {
+            if (disableClipping) return;
+            if (prevClips.Count > 0) { _ = prevClips.Pop(); }
+            if (prevClips.Count > 0)
+            {
+                Rectangle clip = prevClips.Peek();
+                CheckedSDLCall(() => { return SDL_RenderSetClipRect(handle, ref clip); });
+            }
+            else
+            {
+                CheckedSDLCall(() => { return SDL_RenderSetClipRect(handle, IntPtr.Zero); });
+            }
+        }
+
+        public void SetClip(Rectangle clip)
+        {
+            if (disableClipping) return;
+            _ = SDL_RenderSetClipRect(handle, ref clip);
         }
         public void ClearClip()
         {
+            if (disableClipping) return;
             _ = SDL_RenderSetClipRect(handle, IntPtr.Zero);
         }
 
@@ -1406,6 +1482,8 @@
         private static extern int SDL_RenderSetClipRect(IntPtr renderer, ref Rectangle rect);
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         private static extern int SDL_RenderSetClipRect(IntPtr renderer, IntPtr rect);
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int SDL_RenderGetClipRect(IntPtr renderer, out Rectangle rect);
 
 
     }

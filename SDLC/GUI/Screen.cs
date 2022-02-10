@@ -80,7 +80,7 @@
 
         public void Render(IRenderer gfx, IGUIRenderer ren)
         {
-            ren.RenderScreen(gfx, this);
+            ren.RenderScreen(gfx, this, LeftEdge, TopEdge);
             foreach (var win in windows)
             {
                 win.Render(gfx, ren);

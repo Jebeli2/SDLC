@@ -15,7 +15,7 @@
         int Height { get; }
         Color Color { get; set; }
         BlendMode BlendMode { get; set; }
-
+        Rectangle CurrentClip { get; }
         void DrawRect(Rectangle rect);
         void DrawRect(RectangleF rect);
         void DrawRects(IEnumerable<Rectangle> rects);
@@ -46,11 +46,12 @@
         SDLTexture? LoadTexture(string fileName);
         SDLTexture? LoadTexture(string name, byte[]? data);
         SDLTexture? CreateTexture(string name, int width, int height);
-
+        void ClearScreen();
         void PushTarget(SDLTexture? texture);
         void PopTarget();
-        void ClearScreen();
-        void SetClip(int x, int y, int width, int height);
+        void PushClip(Rectangle clip);
+        void PopClip();
+        void SetClip(Rectangle clip);
         void ClearClip();
     }
 }

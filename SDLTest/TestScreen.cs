@@ -13,7 +13,6 @@
     internal class TestScreen : SDLScreen
     {
         private SDLTexture? img2;
-        private SDLMusic? mus1;
         private double angle;
         private double diff;
         private int diffDirection = 1;
@@ -23,10 +22,6 @@
         private bool rinv;
         private bool ginv;
         private bool binv;
-        //private SDLC.Applets.GUISystem gui = new();
-        //private SDLC.Applets.BackgroundImage bg = new();
-        //private LinesApp lines = new();
-        //private RainingBoxesApp boxes = new();
 
         public TestScreen()
             : base("Test Screen")
@@ -40,7 +35,9 @@
         public override void Show(IWindow window)
         {
             base.Show(window);
-            GetApplet<BackgroundImage>().Image = LoadTexture(nameof(Properties.Resources.ice_palace), Properties.Resources.ice_palace);
+            AddResourceManager(Properties.Resources.ResourceManager);
+            GetApplet<BackgroundImage>().Image = LoadTexture(nameof(Properties.Resources.ice_palace));
+            GetApplet<MusicPlayer>().PlayNow(nameof(Properties.Resources.jesu_joy));
             var boxes = GetApplet<RainingBoxesApp>();
             var lines = GetApplet<LinesApp>();
 
@@ -51,31 +48,26 @@
             var gui = GetApplet<GUISystem>();
 
             Screen screen1 = gui.OpenScreen();
-            Window window1 = gui.OpenWindow(screen1, leftEdge: 50, topEdge: 50, width: 300, height: 300, title: "Window 1", minWidth: 200, minHeight: 220);
+            Window window1 = gui.OpenWindow(screen1, leftEdge: 50, topEdge: 50, width: 300, height: 300,
+                minWidth: 200, minHeight: 220,
+                borderless: true,
+                sizing: false,
+                dragging: false,
+                zooming: false,
+                closing: false,
+                depth: false,
+                backdrop: true);
             Gadget gad1 = gui.AddGadget(window1, leftEdge: 10, topEdge: 10, width: -20, height: 40, text: "GUI Test", clickAction: GoToGUITest);
             Gadget gad2 = gui.AddGadget(window1, leftEdge: 10, topEdge: 60, width: -20, height: 40, text: "Gadget 2");
             Gadget gad3 = gui.AddGadget(window1, leftEdge: 10, topEdge: 110, width: -20, height: 40, text: "Gadget 3");
 
-            img2 = LoadTexture(nameof(Properties.Resources.badlands), Properties.Resources.badlands);
-            mus1 = LoadMusic(nameof(Properties.Resources.jesu_joy), Properties.Resources.jesu_joy);
-            //mus1 = LoadMusic(nameof(Properties.Resources.bach), Properties.Resources.bach);
-            //mus1 = LoadMusic(nameof(Properties.Resources.loss_of_me), Properties.Resources.loss_of_me);
-            //mus1 = LoadMusic(nameof(Properties.Resources.loss_of_me_2_), Properties.Resources.loss_of_me_2_);
-            //mus1 = LoadMusic(nameof(Properties.Resources.loss_of_me_3_), Properties.Resources.loss_of_me_3_);
-            //mus1 = LoadMusic(nameof(Properties.Resources.loss_of_me_metallic_pad_), Properties.Resources.loss_of_me_metallic_pad_);
-            //mus1 = LoadMusic(nameof(Properties.Resources.loss_of_me_minstral_remix_), Properties.Resources.loss_of_me_minstral_remix_);
-            //mus1 = LoadMusic(nameof(Properties.Resources.jesters_of_the_moon), Properties.Resources.jesters_of_the_moon);
-            //mus1 = LoadMusic(nameof(Properties.Resources.find_your_way), Properties.Resources.find_your_way);
-            SDLAudio.PlayMusic(mus1);
+            img2 = LoadTexture(nameof(Properties.Resources.badlands));
         }
 
         public override void Hide(IWindow window)
         {
             base.Hide(window);
-            SDLAudio.StopMusic();
-            mus1?.Dispose();
             img2?.Dispose();
-
         }
 
 
@@ -120,9 +112,6 @@
             renderer.AACircle(midX, midY, 100);
             renderer.AACircle(midX, midY, 110);
 
-            //renderer.FillColorRect(new RectangleF(100, 100, 100, 100), Color.Black, Color.Black, Color.White, Color.White);
-            //renderer.FillColorRect(new RectangleF(100, 200, 100, 100), Color.Black, Color.White, Color.Black, Color.White);
-            //renderer.FillColorRect(new RectangleF(100, 300, 100, 100), Color.Black, Color.White, Color.White, Color.Black);
             string t1 = $"{width}x{height}";
             Size tsize = renderer.MeasureText(null, t1);
             renderer.DrawText(null, t1, midX - tsize.Width / 2, 10);

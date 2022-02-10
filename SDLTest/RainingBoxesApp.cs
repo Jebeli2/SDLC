@@ -35,7 +35,7 @@
 
         protected override void OnWindowLoad(SDLWindowLoadEventArgs e)
         {
-            box = LoadTexture(nameof(Properties.Resources.box),Properties.Resources.box);
+            box = LoadTexture(nameof(Properties.Resources.box));
         }
 
         protected override void OnWindowClose(EventArgs e)

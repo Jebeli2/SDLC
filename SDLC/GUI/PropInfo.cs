@@ -144,16 +144,15 @@
             }
             return false;
         }
-        internal bool HandlePropMouseDown(Rectangle bounds, int x, int y)
+        internal bool HandleMouseDown(Rectangle bounds, int x, int y, bool isTimerRepeat=false)
         {
             Rectangle knob = GetKnob(bounds);
             if (knob.Contains(x, y))
-            {                
+            {
                 knobStartX = x - (knob.Left - bounds.X);
                 knobStartY = y - (knob.Top - bounds.Y);
                 flags |= PropFlags.KnobHit;
                 knobHover = true;
-                //SDLLog.Debug(LogCategory.APPLICATION, $"KnobHit: {knobStartX}x{knobStartY}");
                 Invalidate();
                 return true;
             }
@@ -173,14 +172,13 @@
             return false;
         }
 
-        internal bool HanldePropMouseMove(Rectangle bounds, int x, int y)
+        internal bool HandleMouseMove(Rectangle bounds, int x, int y)
         {
             Rectangle knob = GetKnob(bounds);
             if (KnobHit)
             {
                 int dx = x - knobStartX;
                 int dy = y - knobStartY;
-                //SDLLog.Debug(LogCategory.APPLICATION, $"KnobMove: {dx}x{dy}");
                 if (FreeHoriz && (cWidth != knob.Width))
                 {
                     dx = (dx * MAXPOT) / (cWidth - knob.Width);
@@ -208,7 +206,7 @@
             return false;
 
         }
-        internal bool HandlePropMouseUp(Rectangle bounds, int x, int y)
+        internal bool HandleMouseUp(Rectangle bounds, int x, int y)
         {
             Rectangle knob = GetKnob(bounds);
             flags &= ~PropFlags.KnobHit;
@@ -224,7 +222,6 @@
             {
                 knobHover = overKnob;
                 Invalidate();
-                //SDLLog.Debug(LogCategory.APPLICATION, $"KnobHover: {x}x{y} = {knobHover}");
                 return true;
             }
             return false;
@@ -291,7 +288,7 @@
                 {
                     knob.Width = cWidth * horizBody / MAXBODY;
                     if (knob.Width < KNOBHMIN) knob.Width = KNOBHMIN;
-                    knob.X = knob.X + (cWidth - knob.Width) * horizPot / MAXPOT;
+                    knob.X += (cWidth - knob.Width) * horizPot / MAXPOT;
                     if (horizBody > 0)
                     {
                         if (horizBody < MAXBODY / 2)
@@ -312,7 +309,7 @@
                 {
                     knob.Height = cHeight * vertBody / MAXBODY;
                     if (knob.Height < KNOBVMIN) knob.Height = KNOBVMIN;
-                    knob.Y = knob.Y + (cHeight - knob.Height) * vertPot / MAXPOT;
+                    knob.Y += (cHeight - knob.Height) * vertPot / MAXPOT;
                     if (vertBody > 0)
                     {
                         if (vertBody < MAXBODY / 2)

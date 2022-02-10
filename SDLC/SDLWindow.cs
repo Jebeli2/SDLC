@@ -16,6 +16,7 @@
 
         private IntPtr handle;
         private readonly SDLRenderer renderer;
+        private readonly SDLContentManager contentManager;
         private bool disposedValue;
         private int windowId;
         private string? title;
@@ -109,6 +110,7 @@
             backBufferWidth = width;
             backBufferHeight = height;
             windowId = -1;
+            contentManager = new SDLContentManager(this);
             renderer = new SDLRenderer(this);
             screenForwarder = new ScreenForwarder(this);
         }
@@ -138,6 +140,8 @@
         {
 
         }
+
+        public IContentManager ContentManager => contentManager;
 
         public event EventHandler WindowShown
         {
@@ -692,29 +696,35 @@
             {
                 applets.Add(applet);
                 InitApplet(applet);
-                applet.Installed = true;
             }
         }
 
         public void RemoveApplet(SDLApplet applet)
         {
             applets.Remove(applet);
-            applet.Installed = false;
+            applet.OnUninstall(this);
         }
 
+        private void InitLateApplets()
+        {
+            foreach (SDLApplet applet in applets)
+            {
+                InitApplet(applet);
+            }
+        }
         private void InitApplet(SDLApplet applet)
         {
-            if (HandleCreated && !applet.Initialized)
+            if (HandleCreated && !applet.Installed)
             {
-                applet.InternalOnLoad(new SDLWindowLoadEventArgs(renderer));
-                applet.Initialized = true;
+                applet.OnInstall(this);
             }
         }
 
         private void ClearApplets()
         {
-            foreach(SDLApplet applet in applets)
+            foreach (SDLApplet applet in applets)
             {
+                applet.OnUninstall(this);
                 applet.Dispose();
             }
             applets.Clear();
@@ -997,13 +1007,13 @@
         {
             SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Load");
             SDLWindowLoadEventArgs e = new SDLWindowLoadEventArgs(renderer);
-            ForEachEnabledApplet(a => a.InternalOnLoad(e));
+            //ForEachEnabledApplet(a => a.InternalOnLoad(e));
             if (enableEventHandlers) { ((SDLWindowLoadEventHandler?)eventHandlerList[windowLoadEventKey])?.Invoke(this, e); }
         }
         internal void RaiseWindowUpdate(double totalTime, double elapsedTime)
         {
             SDLWindowUpdateEventArgs e = new SDLWindowUpdateEventArgs(totalTime, elapsedTime);
-            RenderForEachEnabledApplet(a => a.InternalOnUpdate(e));
+            ForEachEnabledApplet(a => a.InternalOnUpdate(e));
             if (enableEventHandlers) { ((SDLWindowUpdateEventHandler?)eventHandlerList[windowUpdateEventKey])?.Invoke(this, e); }
         }
         internal void RaiseWindowPaint(double totalTime, double elapsedTime)
@@ -1143,6 +1153,7 @@
                 renderer.CreateHandle();
                 if (renderer.HandleCreated)
                 {
+                    InitLateApplets();
                     AddApplet(screenForwarder);
                     if (fullScreen) { GoFullScreen(); }
                     RaiseWindowLoad();
@@ -1165,7 +1176,7 @@
 
             protected override void OnWindowLoad(SDLWindowLoadEventArgs e)
             {
-                if (!Initialized) { window.screen.Initialize(window); }
+                window.screen.Initialize(window);
             }
             protected override void OnWindowUpdate(SDLWindowUpdateEventArgs e)
             {

@@ -41,7 +41,7 @@
         {
             if (tracked.Remove(obj.Name))
             {
-                SDLLog.Log(category, removalPrio, $"{name} '{obj.Name}' removed");
+                SDLLog.Log(category, removalPrio, $"{name} '{obj.Name}' destroyed");
             }
             else
             {

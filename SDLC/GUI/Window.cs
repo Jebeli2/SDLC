@@ -23,15 +23,18 @@
         private int unzoomH = -1;
         private SDLTexture? bitmap;
         private bool valid;
-        private bool superbitmap;
         private byte alpha;
-        internal Window(IGUISystem gui, Screen screen)
+
+        public const WindowFlags DefaultFlags = WindowFlags.SizeGadget | WindowFlags.DragBar | WindowFlags.DepthGadget |
+            WindowFlags.HasZoom | WindowFlags.CloseGadget | WindowFlags.Activate | WindowFlags.SizeBBottom |
+            WindowFlags.SuperBitmap;
+        internal Window(IGUISystem gui, Screen screen, WindowFlags flags, string? title)
             : base(gui)
         {
             this.screen = screen;
-            superbitmap = true;
-            windowFlags = WindowFlags.SizeGadget | WindowFlags.DragBar | WindowFlags.DepthGadget | WindowFlags.HasZoom | WindowFlags.CloseGadget | WindowFlags.SizeBBottom | WindowFlags.Activate;
-            SetBorders(4, 28, 4, 4);
+            windowFlags = flags;
+            Title = title;
+            SetBorders(4, HasTitleBar ? 28 : 4, 4, 4);
             screen.AddWindow(this);
         }
         public string? Title { get => Text; set => Text = value; }
@@ -63,26 +66,6 @@
         public int WindowId { get; internal set; }
 
         public event EventHandler<EventArgs>? WindowClose;
-        public bool Superbitmap
-        {
-            get => superbitmap;
-            set
-            {
-                if (superbitmap != value)
-                {
-                    superbitmap = value;
-                    if (superbitmap)
-                    {
-                        valid = false;
-                    }
-                    else
-                    {
-                        bitmap?.Dispose();
-                        bitmap = null;
-                    }
-                }
-            }
-        }
         public WindowFlags WindowFlags
         {
             get => windowFlags;
@@ -92,6 +75,21 @@
                 {
                     windowFlags = value;
                     Invalidate();
+                }
+            }
+        }
+        public bool Superbitmap
+        {
+            get => (windowFlags & WindowFlags.SuperBitmap) == WindowFlags.SuperBitmap;
+            set
+            {
+                if (value)
+                {
+                    WindowFlags |= WindowFlags.SuperBitmap;
+                }
+                else
+                {
+                    WindowFlags &= ~WindowFlags.SuperBitmap;
                 }
             }
         }
@@ -107,6 +105,22 @@
                 else
                 {
                     WindowFlags &= ~WindowFlags.Borderless;
+                }
+            }
+        }
+
+        public bool BackDrop
+        {
+            get => (windowFlags & WindowFlags.BackDrop) == WindowFlags.BackDrop;
+            set
+            {
+                if (value)
+                {
+                    WindowFlags |= WindowFlags.BackDrop;
+                }
+                else
+                {
+                    WindowFlags &= ~WindowFlags.BackDrop;
                 }
             }
         }
@@ -145,6 +159,11 @@
             get => (windowFlags & WindowFlags.Zoomed) == WindowFlags.Zoomed;
         }
 
+        public bool HasTitleBar
+        {
+            get => !string.IsNullOrEmpty(Title) || (windowFlags & WindowFlags.DragBar) == WindowFlags.DragBar;
+        }
+
         public IEnumerable<Gadget> Gadgets => gadgets;
 
         internal void AddGadget(Gadget gadget)
@@ -175,6 +194,31 @@
         internal void ToBack()
         {
             screen.WindowToBack(this);
+        }
+
+        internal Gadget? FindNextGadget(Gadget gadget)
+        {
+            int index = gadgets.IndexOf(gadget);
+            while (true)
+            {
+                index++;
+                if (index >= gadgets.Count) { index = 0; }
+                Gadget gad = gadgets[index];
+                if (gad == gadget) return null;
+                if (gad.TabCycle) return gad;
+            }
+        }
+        internal Gadget? FindPrevGadget(Gadget gadget)
+        {
+            int index = gadgets.IndexOf(gadget);
+            while (true)
+            {
+                index--;
+                if (index < 0) { index = gadgets.Count - 1; }
+                Gadget gad = gadgets[index];
+                if (gad == gadget) return null;
+                if (gad.TabCycle) return gad;
+            }
         }
 
         internal void Zip()
@@ -312,7 +356,7 @@
             for (int i = gadgets.Count - 1; i >= 0; i--)
             {
                 Gadget gad = gadgets[i];
-                if (gad.Contains(x, y))
+                if (gad.Enabled && gad.Contains(x, y))
                 {
                     return gad;
                 }
@@ -371,7 +415,7 @@
                     CheckBitmap(gfx);
                     gfx.PushTarget(bitmap);
                     gfx.ClearScreen(Color.FromArgb(0, 0, 0, 0));
-                    RenderWindow(gfx, ren);
+                    RenderWindow(gfx, ren, -LeftEdge, -TopEdge);
                     gfx.PopTarget();
                     valid = true;
                 }
@@ -387,17 +431,25 @@
             }
             else
             {
-                RenderWindow(gfx, ren);
+                RenderWindow(gfx, ren, 0, 0);
             }
         }
 
-        private void RenderWindow(IRenderer gfx, IGUIRenderer ren)
+        private void RenderWindow(IRenderer gfx, IGUIRenderer ren, int offsetX, int offsetY)
         {
-            ren.RenderWindow(gfx, this);
-            foreach (var gad in gadgets)
+            ren.RenderWindow(gfx, this, offsetX, offsetY);
+            foreach (var gad in gadgets.Where(g => g.IsBorderGadget))
             {
                 gad.Render(gfx, ren);
             }
+            Rectangle inner = GetInnerBounds();
+            inner.Offset(offsetX, offsetY);
+            gfx.PushClip(inner);
+            foreach (var gad in gadgets.Where(g => !g.IsBorderGadget))
+            {
+                gad.Render(gfx, ren);
+            }
+            gfx.PopClip();
         }
 
         private string GetWindowName()

@@ -26,6 +26,8 @@
         private const int fadeOutSpeed = 22;
         private const int fadeInSpeed = 27;
         private bool useFadeOut = true;
+        private bool useFadeIn = true;
+        private bool moveWindowToFrontOnActivate = true;
         private Screen? activeScreen;
         private Screen? mouseScreen;
         private Window? activeWindow;
@@ -164,6 +166,10 @@
                 {
                     activeWindow.Active = true;
                     SDLLog.Debug(LogCategory.APPLICATION, $"Window activated: {activeWindow}");
+                    if (moveWindowToFrontOnActivate)
+                    {
+                        activeWindow.ToFront();
+                    }
                 }
             }
         }
@@ -206,17 +212,13 @@
             {
                 if (selectedGadget != null)
                 {
-                    if (!selectedGadget.ToggleSelect)
-                    {
-                        selectedGadget.Selected = false;
-                        selectedGadget.HandleDeselection();
-                        SDLLog.Debug(LogCategory.APPLICATION, $"Gadget deselected: {selectedGadget}");
-                    }
+                    selectedGadget.HandleDeselection();
+                    SDLLog.Debug(LogCategory.APPLICATION, $"Gadget deselected: {selectedGadget}");
                 }
                 selectedGadget = gad;
                 if (selectedGadget != null)
                 {
-                    selectedGadget.Selected = true;
+                    selectedGadget.HandleSelection();
                     SDLLog.Debug(LogCategory.APPLICATION, $"Gadget selected: {selectedGadget}");
                 }
             }
@@ -430,27 +432,19 @@
         private bool CheckGadgetMove(SDLMouseEventArgs e)
         {
             bool result = false;
-            if (downGadget != null)
+            if (downGadget == mouseGadget && downGadget != null)
             {
-                if (downGadget.IsPropGadget)
-                {
-                    downGadget.HanldePropMouseMove(e.X, e.Y);
-                    result |= true;
-                }
-                else if (downGadget.IsStrGadget)
-                {
-                    if (downGadget.HandleStrMouseMove(e.X, e.Y))
-                    {
-                        result |= true;
-                    }
-                }
+                result |= downGadget.HandleMouseMove(e.X, e.Y);
             }
-            if (mouseGadget != null)
+            else
             {
-                if (mouseGadget.IsPropGadget)
+                if (downGadget != null)
                 {
-                    mouseGadget.HanldePropMouseMove(e.X, e.Y);
-                    result |= true;
+                    result |= downGadget.HandleMouseMove(e.X, e.Y);
+                }
+                if (mouseGadget != null)
+                {
+                    result |= mouseGadget.HandleMouseMove(e.X, e.Y);
                 }
             }
             return result;
@@ -464,22 +458,7 @@
                 if (downGadget != null)
                 {
                     SetSelectedGadget(downGadget);
-                    if (downGadget.IsPropGadget)
-                    {
-                        downGadget.HandlePropMouseDown(e.X, e.Y);
-                    }
-                    else if (downGadget.IsStrGadget)
-                    {
-                        if (downGadget.HandleStrMouseDown(e.X, e.Y))
-                        {
-                            result |= true;
-                        }
-                    }
-                    if (downGadget.Immediate)
-                    {
-                        downGadget.RaiseGadgetDown();
-                        result |= true;
-                    }
+                    result |= downGadget.HandleMouseDown(e.X, e.Y, isTimerRepeat: false);
                 }
             }
             return result;
@@ -492,22 +471,7 @@
                 upGadget = mouseGadget;
                 if (upGadget != null && upGadget == downGadget)
                 {
-                    if (upGadget.IsPropGadget)
-                    {
-                        upGadget.HandlePropMouseUp(e.X, e.Y);
-                    }
-                    else if (downGadget.IsStrGadget)
-                    {
-                        if (downGadget.HandleStrMouseUp(e.X, e.Y))
-                        {
-                            result |= true;
-                        }
-                    }
-                    if (upGadget.RelVeriy)
-                    {
-                        upGadget.RaiseGadgetUp();
-                        result |= true;
-                    }
+                    result |= upGadget.HandleMouseUp(e.X, e.Y);
                 }
                 SetSelectedGadget(null);
             }
@@ -516,16 +480,10 @@
 
         private bool CheckGadgetTimer(double time)
         {
-            //SDLLog.Debug(LogCategory.APPLICATION, $"Checking Timer {timerTick} - {(int)time}");
             if (selectedGadget != null && downGadget != null && selectMouseDown)
             {
-                if (downGadget.IsPropGadget)
+                if (downGadget.HandleMouseDown(mouseX, mouseY, isTimerRepeat: true))
                 {
-                    downGadget.HandlePropMouseDown(mouseX, mouseY);
-                }
-                if (downGadget.Immediate)
-                {
-                    downGadget.RaiseGadgetDown();
                     return true;
                 }
             }
@@ -568,19 +526,35 @@
 
         private bool CheckGadgetKeyDown(SDLKeyEventArgs e)
         {
+            ActionResult result = ActionResult.None;
             if (activeGadget != null)
             {
-                return activeGadget.HandleKeyDown(e);
+                result |= activeGadget.HandleKeyDown(e);
+                if (result == ActionResult.NavigateNext)
+                {
+                    Gadget? next = activeGadget.FindNextGadget();
+                    if (next != null) { ActivateGadget(next); }
+                }
+                else if (result == ActionResult.NavigatePrevious)
+                {
+                    Gadget? prev = activeGadget.FindPrevGadget();
+                    if (prev != null) { ActivateGadget(prev); }
+                }
+                else if (result == ActionResult.GadgetUp)
+                {
+                    //activeGadget.Rai
+                }
             }
-            return false;
+            return result != ActionResult.None;
         }
         private bool CheckGadgetKeyUp(SDLKeyEventArgs e)
         {
+            ActionResult result = ActionResult.None;
             if (activeGadget != null)
             {
-                return activeGadget.HandleKeyUp(e);
+                result |= activeGadget.HandleKeyUp(e);
             }
-            return false;
+            return result != ActionResult.None;
         }
         private bool CheckGadgetTextInput(SDLTextInputEventArgs e)
         {
@@ -606,6 +580,14 @@
             if (CheckGadgetTextInput(e)) { e.Handled = true; }
         }
 
+        private bool CheckHandled(Screen? screen, Window? window, Gadget? gadget)
+        {
+            if (screen == null) return false;
+            if (gadget != null) return true;
+            if (window != null && !window.BackDrop) return true;
+            return false;
+        }
+
         protected internal override void OnMouseMove(SDLMouseEventArgs e)
         {
             UpdateMouse(e.X, e.Y);
@@ -615,7 +597,7 @@
             SetMouseScreen(screen);
             SetMouseWindow(window);
             SetMouseGadget(gadget);
-            e.Handled = gadget != null || window != null;
+            e.Handled = CheckHandled(screen, window, gadget);
             if (CheckWindowDragging(e) || CheckWindowSizing(e) || CheckGadgetMove(e)) { e.Handled = true; }
         }
 
@@ -631,7 +613,7 @@
             SetActiveScreen(screen);
             SetActiveWindow(window);
             SetActiveGadget(gadget);
-            e.Handled = gadget != null || window != null;
+            e.Handled = CheckHandled(screen, window, gadget);
             if (e.Button == MouseButton.Left) { selectMouseDown = true; }
             if (CheckGadgetDown(e)) { e.Handled = true; }
         }
@@ -645,7 +627,7 @@
             SetMouseScreen(screen);
             SetMouseWindow(window);
             SetMouseGadget(gadget);
-            e.Handled = gadget != null || window != null;
+            e.Handled = CheckHandled(screen, window, gadget);
             if (e.Button == MouseButton.Left) { selectMouseDown = false; }
             if (CheckGadgetUp(e)) { e.Handled = true; }
         }
@@ -706,14 +688,51 @@
             int height = 256,
             string title = "",
             int minWidth = 0,
-            int minHeight = 0)
+            int minHeight = 0,
+            bool borderless = false,
+            bool backdrop = false,
+            bool sizing = true,
+            bool dragging = true,
+            bool zooming = true,
+            bool closing = true,
+            bool depth = true)
         {
-            Window window = new Window(this, s);
+            WindowFlags flags = Window.DefaultFlags;
+            if (borderless)
+            {
+                flags |= WindowFlags.Borderless;
+            }
+            if (!sizing)
+            {
+                flags &= ~WindowFlags.SizeGadget;
+                flags &= ~WindowFlags.SizeBBottom;
+                flags &= ~WindowFlags.SizeBRight;
+            }
+            if (!dragging)
+            {
+                flags &= ~WindowFlags.DragBar;
+            }
+            if (!zooming)
+            {
+                flags &= ~WindowFlags.HasZoom;
+            }
+            if (!closing)
+            {
+                flags &= ~WindowFlags.CloseGadget;
+            }
+            if (!depth)
+            {
+                flags &= ~WindowFlags.DepthGadget;
+            }
+            if (backdrop)
+            {
+                flags |= WindowFlags.BackDrop;
+            }
+            Window window = new Window(this, s, flags, title);
             window.LeftEdge = leftEdge;
             window.TopEdge = topEdge;
             window.Width = width;
             window.Height = height;
-            window.Title = title;
             window.MinWidth = minWidth;
             window.MinHeight = minHeight;
             window.WindowId = nextWindowID++;
@@ -723,7 +742,7 @@
             {
                 activationWindows.Enqueue(window);
             }
-            fadingInWindows.Add(window);
+            if (useFadeIn) { fadingInWindows.Add(window); }
             return window;
         }
 

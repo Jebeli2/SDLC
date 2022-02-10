@@ -17,6 +17,7 @@
         private int height;
         private IWindow? window;
         private IRenderer? renderer;
+        private IContentManager? contentManager;
 
         public SDLScreen(string name = "SDLScreen")
         {
@@ -85,6 +86,7 @@
         {
             this.window = window;
             renderer = this.window.Renderer;
+            contentManager = this.window.ContentManager;
             width = window.Width;
             height = window.Height;
             while (appletsToAdd.Count > 0)
@@ -124,10 +126,14 @@
                 window.Screen = screen;
             }
         }
-
+        protected void AddResourceManager(System.Resources.ResourceManager resourceManager)
+        {
+            contentManager?.AddResourceManager(resourceManager);
+        }
         protected SDLTexture? LoadTexture(string name)
         {
-            return renderer?.LoadTexture(name);
+            byte[]? data = contentManager?.FindContent(name);
+            return renderer?.LoadTexture(name, data);
         }
 
         protected SDLTexture? LoadTexture(string name, byte[]? data)
@@ -137,7 +143,8 @@
 
         protected SDLMusic? LoadMusic(string name)
         {
-            return SDLAudio.LoadMusic(name);
+            byte[]? data = contentManager?.FindContent(name);
+            return SDLAudio.LoadMusic(name, data);
         }
         protected SDLMusic? LoadMusic(string name, byte[]? data)
         {

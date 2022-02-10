@@ -5,13 +5,14 @@
     using SDLC.GUI;
     using System;
     using System.Collections.Generic;
+    using System.Drawing;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
 
     internal class GUITest : SDLScreen
     {
-        private SDLMusic? mus1;
+        private const string SONG2 = @"D:\Users\jebel\Music\iTunes\iTunes Media\Music\Blur\Blur\02 Song 2.mp3";
         private GUISystem? gui;
         private Screen? screen1;
         private Window? window1;
@@ -28,7 +29,11 @@
         public override void Show(IWindow window)
         {
             base.Show(window);
-            GetApplet<BackgroundImage>().Image = LoadTexture(nameof(Properties.Resources.fire_temple), Properties.Resources.fire_temple);
+            GetApplet<BackgroundImage>().Image = LoadTexture(nameof(Properties.Resources.fire_temple));
+            GetApplet<MusicPlayer>().AddToPlayList(nameof(Properties.Resources.loss_of_me_3_));
+            GetApplet<MusicPlayer>().AddToPlayList(nameof(Properties.Resources.jesters_of_the_moon));
+            GetApplet<MusicPlayer>().AddToPlayList(SONG2);
+
             gui = GetApplet<GUISystem>();
 
             screen1 = gui.OpenScreen();
@@ -38,16 +43,12 @@
             Gadget gad2 = gui.AddGadget(window1, leftEdge: 10, topEdge: 60, width: -20, height: 40, text: "Buttons", clickAction: ShowButtonTest);
             Gadget gad3 = gui.AddGadget(window1, leftEdge: 10, topEdge: 110, width: -20, height: 40, text: "Props & Strings", clickAction: ShowPropTest);
 
-            mus1 = LoadMusic(nameof(Properties.Resources.loss_of_me_3_), Properties.Resources.loss_of_me_3_);
-            SDLAudio.PlayMusic(mus1);
         }
 
 
         public override void Hide(IWindow window)
         {
             base.Hide(window);
-            SDLAudio.StopMusic();
-            mus1?.Dispose();
         }
 
         private void GoToTestScreen()
@@ -79,6 +80,7 @@
                     Gadget prop3 = gui.AddGadget(winPropTest, 10, 70, -20, 100, type: GadgetType.PropGadget);
                     gui.ModifyProp(prop3, PropFlags.FreeHoriz | PropFlags.FreeVert, 0x5000, 0x4000, 0x2000, 0x8000);
                     Gadget str1 = gui.AddGadget(winPropTest, 10, 180, -20, 22, type: GadgetType.StrGadget, buffer: "Hello World");
+                    Gadget str2 = gui.AddGadget(winPropTest, 10, 210, -20, 22, type: GadgetType.StrGadget, buffer: "Example Text");
 
                 }
                 else
@@ -100,6 +102,16 @@
                     winButTest = gui.OpenWindow(screen1, 400, 10, 500, 500, "Buttons");
                     winButTest.WindowClose += WinButTest_WindowClose;
                     fullScreenGadget = gui.AddGadget(winButTest, 10, 10, -20, 30, text: IsFullScreen ? "Windowed" : "Fullscreen", clickAction: ToggleFullScreen);
+                    _ = gui.AddGadget(winButTest, 10, 50, -20, 30, text: "Toggle Button", toggleSelect: true);
+                    var iconGad = gui.AddGadget(winButTest, 10, 90, -20, 30, text: "Icon Button");
+                    iconGad.Icon = Icons.ENTYPO_ICON_AIRCRAFT_TAKE_OFF;
+                    _ = gui.AddGadget(winButTest, 10, 130, -20, 30, text: "Disabled Button", disabled: true);
+                    var colorGad = gui.AddGadget(winButTest, 10, 170, -20, 30, text: "Color Button");
+                    colorGad.BackgroundColor = Color.Blue;
+                    _ = gui.AddGadget(winButTest, 10, 210, -262, 30, text: "Play Next", clickAction:
+                        () => { GetApplet<MusicPlayer>().NextMusic(); });
+                    _ = gui.AddGadget(winButTest, -248, 210, 240, 30, text: "Play Prev", clickAction:
+                        () => { GetApplet<MusicPlayer>().PrevMusic(); });
                 }
                 else
                 {

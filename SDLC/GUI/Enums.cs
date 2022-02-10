@@ -16,6 +16,7 @@
         RelHeight = 0x0040,
         Selected = 0x0080,
         Disabled = 0x0100,
+        TabCycle = 0x0200
     }
 
     [Flags]
@@ -69,6 +70,7 @@
         CloseGadget = 0x0008,
         SizeBRight = 0x0010,
         SizeBBottom = 0x0020,
+        SuperBitmap = 0x0040,
         BackDrop = 0x0100,
         ReportMouse = 0x0200,
         Borderless = 0x0400,
@@ -86,5 +88,15 @@
         FreeVert = 0x0004,
         PropBorderless = 0x0008,
         KnobHit = 0x0100
+    }
+
+    [Flags]
+    public enum ActionResult
+    {
+        None = 0x0000,
+        Consumed =0x0001,
+        GadgetUp = 0x0002,
+        NavigateNext = 0x0004,
+        NavigatePrevious = 0x0008,
     }
 }

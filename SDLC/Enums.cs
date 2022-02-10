@@ -197,4 +197,9 @@
         SDLC,
     }
 
+    public enum MusicFinishReason
+    {
+        Finished,
+        Interrupted
+    }
 }
