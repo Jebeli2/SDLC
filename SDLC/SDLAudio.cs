@@ -18,6 +18,7 @@
         private static short[] musicData = Array.Empty<short>();
         private static int musicVolume = MIX_MAX_VOLUME;
         private static int soundVolume = MIX_MAX_VOLUME;
+        private static string? driverName;
         private static SDLMusic? currentMusic;
         private static readonly SDLObjectTracker<SDLMusic> musicTracker = new(LogCategory.AUDIO, "Music");
 
@@ -51,12 +52,13 @@
             _ = Mix_Init(MIX_InitFlags.MIX_INIT_MP3 | MIX_InitFlags.MIX_INIT_OGG | MIX_InitFlags.MIX_INIT_MID);
             if (Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 1024) != 0)
             {
-                SDLLog.Error(LogCategory.AUDIO, $"Couldn't open SDLAudio");
+                SDLLog.Error(LogCategory.AUDIO, "Couldn't open Audio");
             }
             else
             {
                 _ = Mix_AllocateChannels(128);
-                SDLLog.Info(LogCategory.AUDIO, $"SDLAudio opened");
+                driverName = Marshal.PtrToStringUTF8(SDL_GetCurrentAudioDriver());
+                SDLLog.Info(LogCategory.AUDIO, "Audio opened: {0}", driverName);
                 Mix_HookMusicFinished(musicFinished);
                 Mix_SetPostMix(postMix, IntPtr.Zero);
             }
@@ -71,7 +73,7 @@
             musicTracker.Dispose();
             Mix_CloseAudio();
             Mix_Quit();
-            SDLLog.Info(LogCategory.AUDIO, $"SDLAudio closed");
+            SDLLog.Info(LogCategory.AUDIO, "Audio closed");
         }
 
         public static void PlayMusic(SDLMusic? music, int loops = -1, bool forceRestart = false)
@@ -88,23 +90,23 @@
                 else if (forceRestart)
                 {
                     Mix_RewindMusic();
-                    SDLLog.Info(LogCategory.AUDIO, "Music {0} restarted", music.Name);
+                    SDLLog.Info(LogCategory.AUDIO, "Music '{0}' restarted", music.Name);
                     return;
                 }
                 else
                 {
-                    SDLLog.Info(LogCategory.AUDIO, "Music {0} already playing, continuing...", music.Name);
+                    SDLLog.Info(LogCategory.AUDIO, "Music '{0}' already playing, continuing...", music.Name);
                     return;
                 }
             }
             if (Mix_PlayMusic(handle, loops) != 0)
             {
-                SDLLog.Error(LogCategory.AUDIO, "Could not play Music {0} of type {1}: {2}", music.Name, music.MusicType, SDLApplication.GetError());
+                SDLLog.Error(LogCategory.AUDIO, "Could not play Music '{0}' of type {1}: {2}", music.Name, music.MusicType, SDLApplication.GetError());
             }
             else
             {
                 _ = Mix_VolumeMusic(musicVolume);
-                SDLLog.Info(LogCategory.AUDIO, "Music {0} started", music.Name);
+                SDLLog.Info(LogCategory.AUDIO, "Music '{0}' started", music.Name);
                 currentMusic = music;
             }
         }
@@ -288,19 +290,14 @@
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void MixFuncDelegate(IntPtr udata, IntPtr stream, int len);
-
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void MusicFinishedDelegate();
-
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void Mix_EffectFunc_t(int chan, IntPtr stream, int len, IntPtr udata);
-
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void Mix_EffectDone_t(int channel, IntPtr udata);
-
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         private static extern int Mix_Init(MIX_InitFlags flags);
-
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         private static extern void Mix_Quit();
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
@@ -342,16 +339,6 @@
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         private static extern void Mix_RewindMusic();
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern IntPtr Mix_GetMusicTitle(IntPtr music);
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern IntPtr Mix_GetMusicTitleTag(IntPtr music);
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern IntPtr Mix_GetMusicArtistTag(IntPtr music);
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern IntPtr Mix_GetMusicAlbumTag(IntPtr music);
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern IntPtr Mix_GetMusicCopyrightTag(IntPtr music);
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         private static extern int Mix_RegisterEffect(int channel, Mix_EffectFunc_t f, Mix_EffectDone_t d, IntPtr arg);
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         private static extern int Mix_UnregisterEffect(int channel, Mix_EffectFunc_t f);
@@ -371,6 +358,10 @@
         private static extern int Mix_PausedMusic();
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         private static extern int Mix_PlayingMusic();
+
+
+        [DllImport("SDL2", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr SDL_GetCurrentAudioDriver();
 
     }
 }

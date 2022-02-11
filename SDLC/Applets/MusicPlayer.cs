@@ -92,7 +92,14 @@
             if (playQueue.Count > 0)
             {
                 PlayListEntry entry = playQueue.Dequeue();
-                Play(entry);
+                if (!Play(entry))
+                {
+                    SDLLog.Warn(LogCategory.AUDIO, "Could not play '{0}' from playlist. Removing entry, trying next song", entry.Name);
+                    if (playList.Remove(entry))
+                    {
+                        NextMusic();
+                    }
+                }
             }
         }
 
@@ -119,7 +126,7 @@
         }
         private void SDLAudio_MusicFinished(object? sender, SDLMusicFinishedEventArgs e)
         {
-            SDLLog.Debug(LogCategory.AUDIO, "Music {0} stopped ({1})", e.Music.Name, e.Reason);
+            SDLLog.Debug(LogCategory.AUDIO, "Music '{0}' stopped ({1})", e.Music.Name, e.Reason);
             if (e.Music == currentMusic)
             {
                 currentMusic.Dispose();

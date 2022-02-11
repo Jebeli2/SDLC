@@ -40,6 +40,7 @@
                 }
                 data = FindInResManagers(name);
                 if (data != null) return data;
+                SDLLog.Warn(LogCategory.SYSTEM, "Could not find resource '{0}'", name);
             }
             return null;
         }

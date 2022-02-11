@@ -94,7 +94,7 @@
                 colorG = value.G;
                 colorB = value.B;
                 colorA = value.A;
-                _ = SDL_SetRenderDrawColor(handle, colorR, colorG, colorB, colorA);
+                CheckedSDLCall(() => SDL_SetRenderDrawColor(handle, colorR, colorG, colorB, colorA), nameof(SDL_SetRenderDrawColor));
             }
         }
 
@@ -103,7 +103,7 @@
             if (blendMode != value)
             {
                 blendMode = value;
-                _ = SDL_SetRenderDrawBlendMode(handle, blendMode);
+                CheckedSDLCall(() => SDL_SetRenderDrawBlendMode(handle, blendMode), nameof(SDL_SetRenderDrawBlendMode));
             }
         }
 
@@ -121,8 +121,9 @@
             handle = SDL_CreateRenderer(window.Handle, driverIndex, flags);
             if (handle != IntPtr.Zero)
             {
-                _ = SDL_GetRendererInfo(handle, out SDL_RendererInfo info);
-                SDLLog.Info(LogCategory.RENDER, "SDLRenderer {0} created: {1} ({2}x{3} max texture size)", window.WindowId, Marshal.PtrToStringUTF8(info.name), info.max_texture_width, info.max_texture_height);
+                SDL_RendererInfo info = new();
+                CheckedSDLCall(() => SDL_GetRendererInfo(handle, out info), nameof(SDL_GetRendererInfo));
+                SDLLog.Info(LogCategory.RENDER, "Renderer {0} created: {1} ({2}x{3} max texture size)", window.WindowId, Marshal.PtrToStringUTF8(info.name), info.max_texture_width, info.max_texture_height);
                 backBufferWidth = window.BackBufferWidth;
                 backBufferHeight = window.BackBufferHeight;
                 windowWidth = window.Width;
@@ -131,7 +132,7 @@
             }
             else
             {
-                SDLLog.Critical(LogCategory.RENDER, "Could not create SDLRenderer: {0}", SDLApplication.GetError());
+                SDLLog.Critical(LogCategory.RENDER, "Could not create Renderer: {0}", SDLApplication.GetError());
             }
         }
 
@@ -147,12 +148,15 @@
                 if (sizeMode == RendererSizeMode.BackBuffer)
                 {
                     backBuffer = SDL_CreateTexture(handle, format, SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, backBufferWidth, backBufferHeight);
-                    _ = SDL_SetTextureAlphaMod(backBuffer, 255);
-                    _ = SDL_SetTextureColorMod(backBuffer, 255, 255, 255);
-                    _ = SDL_SetTextureBlendMode(backBuffer, BlendMode.Blend);
-                    _ = SDL_SetTextureScaleMode(backBuffer, textureFilter);
-                    width = backBufferWidth;
-                    height = backBufferHeight;
+                    if (backBuffer != IntPtr.Zero)
+                    {
+                        CheckedSDLCall(() => SDL_SetTextureAlphaMod(backBuffer, 255), nameof(SDL_SetTextureAlphaMod));
+                        CheckedSDLCall(() => SDL_SetTextureColorMod(backBuffer, 255, 255, 255), nameof(SDL_SetTextureColorMod));
+                        CheckedSDLCall(() => SDL_SetTextureBlendMode(backBuffer, BlendMode.Blend), nameof(SDL_SetTextureBlendMode));
+                        CheckedSDLCall(() => SDL_SetTextureScaleMode(backBuffer, textureFilter), nameof(SDL_SetTextureScaleMode));
+                        width = backBufferWidth;
+                        height = backBufferHeight;
+                    }
                 }
                 else
                 {
@@ -194,7 +198,7 @@
                 textureTracker.Dispose();
                 SDL_DestroyRenderer(handle);
                 handle = IntPtr.Zero;
-                SDLLog.Info(LogCategory.RENDER, "SDLRenderer {0} destroyed", window.WindowId);
+                SDLLog.Info(LogCategory.RENDER, "Renderer {0} destroyed", window.WindowId);
             }
         }
         internal void BeginPaint()
@@ -206,13 +210,13 @@
                 case RendererSizeMode.Window:
                     SetColor(Color.Black);
                     SetBlendMode(BlendMode.Blend);
-                    _ = SDL_RenderClear(handle);
+                    CheckedSDLCall(() => SDL_RenderClear(handle), nameof(SDL_RenderClear));
                     break;
                 case RendererSizeMode.BackBuffer:
                     _ = SDL_SetRenderTarget(handle, backBuffer);
                     SetColor(Color.Black);
                     SetBlendMode(BlendMode.Blend);
-                    _ = SDL_RenderClear(handle);
+                    CheckedSDLCall(() => SDL_RenderClear(handle), nameof(SDL_RenderClear));
                     break;
             }
         }
@@ -229,8 +233,8 @@
                 case RendererSizeMode.Window:
                     break;
                 case RendererSizeMode.BackBuffer:
-                    _ = SDL_SetRenderTarget(handle, IntPtr.Zero);
-                    _ = SDL_RenderCopy(handle, backBuffer, IntPtr.Zero, IntPtr.Zero);
+                    CheckedSDLCall(() => SDL_SetRenderTarget(handle, IntPtr.Zero), nameof(SDL_SetRenderTarget));
+                    CheckedSDLCall(() => SDL_RenderCopy(handle, backBuffer, IntPtr.Zero, IntPtr.Zero), nameof(SDL_RenderCopy));
                     break;
             }
             SDL_RenderPresent(handle);
@@ -238,18 +242,18 @@
 
         public void DrawRect(Rectangle rect)
         {
-            _ = SDL_RenderDrawRect(handle, ref rect);
+            CheckedSDLCall(() => SDL_RenderDrawRect(handle, ref rect), nameof(SDL_RenderDrawRect));
         }
         public void DrawRect(RectangleF rect)
         {
-            _ = SDL_RenderDrawRectF(handle, ref rect);
+            CheckedSDLCall(() => SDL_RenderDrawRectF(handle, ref rect), nameof(SDL_RenderDrawRectF));
         }
         public void DrawRects(IEnumerable<Rectangle> rects)
         {
             Rectangle[] rcts = rects.AsArray();
             if (rcts.Length > 0)
             {
-                _ = SDL_RenderDrawRects(handle, rcts, rcts.Length);
+                CheckedSDLCall(() => SDL_RenderDrawRects(handle, rcts, rcts.Length), nameof(SDL_RenderDrawRects));
             }
         }
         public void DrawRects(IEnumerable<RectangleF> rects)
@@ -257,28 +261,27 @@
             RectangleF[] rcts = rects.AsArray();
             if (rcts.Length > 0)
             {
-                _ = SDL_RenderDrawRectsF(handle, rcts, rcts.Length);
+                CheckedSDLCall(() => SDL_RenderDrawRectsF(handle, rcts, rcts.Length), nameof(SDL_RenderDrawRectsF));
             }
         }
 
         public void FillRect(Rectangle rect)
         {
-            _ = SDL_RenderFillRect(Handle, ref rect);
+            CheckedSDLCall(() => SDL_RenderFillRect(Handle, ref rect), nameof(SDL_RenderFillRect));
         }
         public void FillRect(RectangleF rect)
         {
-            _ = SDL_RenderFillRectF(Handle, ref rect);
+            CheckedSDLCall(() => SDL_RenderFillRectF(Handle, ref rect), nameof(SDL_RenderFillRectF));
         }
-
 
         public void DrawLine(int x1, int y1, int x2, int y2)
         {
-            _ = SDL_RenderDrawLine(handle, x1, y1, x2, y2);
+            CheckedSDLCall(() => SDL_RenderDrawLine(handle, x1, y1, x2, y2), nameof(SDL_RenderDrawLine));
         }
 
         public void DrawLine(float x1, float y1, float x2, float y2)
         {
-            _ = SDL_RenderDrawLineF(handle, x1, y1, x2, y2);
+            CheckedSDLCall(() => SDL_RenderDrawLineF(handle, x1, y1, x2, y2), nameof(SDL_RenderDrawLineF));
         }
 
         public void DrawLines(IEnumerable<Point> points)
@@ -286,7 +289,7 @@
             Point[] pts = points.AsArray();
             if (pts.Length > 0)
             {
-                _ = SDL_RenderDrawLines(handle, pts, pts.Length);
+                CheckedSDLCall(() => SDL_RenderDrawLines(handle, pts, pts.Length), nameof(SDL_RenderDrawLines));
             }
         }
         public void DrawLines(IEnumerable<PointF> points)
@@ -294,17 +297,17 @@
             PointF[] pts = points.AsArray();
             if (pts.Length > 0)
             {
-                _ = SDL_RenderDrawLinesF(handle, pts, pts.Length);
+                CheckedSDLCall(() => SDL_RenderDrawLinesF(handle, pts, pts.Length), nameof(SDL_RenderDrawLinesF));
             }
         }
 
         public void DrawPoint(int x, int y)
         {
-            _ = SDL_RenderDrawPoint(handle, x, y);
+            CheckedSDLCall(() => SDL_RenderDrawPoint(handle, x, y), nameof(SDL_RenderDrawPoint));
         }
         public void DrawPoint(float x, float y)
         {
-            _ = SDL_RenderDrawPointF(handle, x, y);
+            CheckedSDLCall(() => SDL_RenderDrawPointF(handle, x, y), nameof(SDL_RenderDrawPointF));
         }
 
         private static int ToSDLColor(Color c)
@@ -333,7 +336,7 @@
             rectVertices[3].color = ToSDLColor(colorBottomRight);
             rectVertices[3].position.X = rect.Right;
             rectVertices[3].position.Y = rect.Bottom;
-            _ = SDL_RenderGeometry(handle, IntPtr.Zero, rectVertices, 4, rectIndices, NUM_RECT_INDICES);
+            CheckedSDLCall(() => SDL_RenderGeometry(handle, IntPtr.Zero, rectVertices, 4, rectIndices, NUM_RECT_INDICES), nameof(SDL_RenderGeometry));
         }
 
         public void FillColorRect(RectangleF rect, Color colorTopLeft, Color colorTopRight, Color colorBottomLeft, Color colorBottomRight)
@@ -350,42 +353,42 @@
             rectVertices[3].color = ToSDLColor(colorBottomRight);
             rectVertices[3].position.X = rect.Right;
             rectVertices[3].position.Y = rect.Bottom;
-            _ = SDL_RenderGeometry(handle, IntPtr.Zero, rectVertices, 4, rectIndices, NUM_RECT_INDICES);
+            CheckedSDLCall(() => SDL_RenderGeometry(handle, IntPtr.Zero, rectVertices, 4, rectIndices, NUM_RECT_INDICES), nameof(SDL_RenderGeometry));
         }
 
         public void DrawTexture(SDLTexture? texture, Rectangle src, Rectangle dst)
         {
             if (texture.GetTextureHandle(out IntPtr th))
             {
-                _ = SDL_RenderCopy(handle, th, ref src, ref dst);
+                CheckedSDLCall(() => SDL_RenderCopy(handle, th, ref src, ref dst), nameof(SDL_RenderCopy));
             }
         }
         public void DrawTexture(SDLTexture? texture, Rectangle dst)
         {
             if (texture.GetTextureHandle(out IntPtr th))
             {
-                _ = SDL_RenderCopy(handle, th, IntPtr.Zero, ref dst);
+                CheckedSDLCall(() => SDL_RenderCopy(handle, th, IntPtr.Zero, ref dst), nameof(SDL_RenderCopy));
             }
         }
         public void DrawTexture(SDLTexture? texture)
         {
             if (texture.GetTextureHandle(out IntPtr th))
             {
-                _ = SDL_RenderCopy(handle, th, IntPtr.Zero, IntPtr.Zero);
+                CheckedSDLCall(() => SDL_RenderCopy(handle, th, IntPtr.Zero, IntPtr.Zero), nameof(SDL_RenderCopy));
             }
         }
         public void DrawTexture(SDLTexture? texture, Rectangle src, RectangleF dst)
         {
             if (texture.GetTextureHandle(out IntPtr th))
             {
-                _ = SDL_RenderCopyF(handle, th, ref src, ref dst);
+                CheckedSDLCall(() => SDL_RenderCopyF(handle, th, ref src, ref dst), nameof(SDL_RenderCopyF));
             }
         }
         public void DrawTexture(SDLTexture? texture, RectangleF dst)
         {
             if (texture.GetTextureHandle(out IntPtr th))
             {
-                _ = SDL_RenderCopyF(handle, th, IntPtr.Zero, ref dst);
+                CheckedSDLCall(() => SDL_RenderCopyF(handle, th, IntPtr.Zero, ref dst), nameof(SDL_RenderCopyF));
             }
         }
 
@@ -393,28 +396,28 @@
         {
             if (texture.GetTextureHandle(out IntPtr th))
             {
-                _ = SDL_RenderCopyEx(handle, th, ref src, ref dst, angle, ref center, flip);
+                CheckedSDLCall(() => SDL_RenderCopyEx(handle, th, ref src, ref dst, angle, ref center, flip), nameof(SDL_RenderCopyEx));
             }
         }
         public void DrawTexture(SDLTexture? texture, Rectangle src, Rectangle dst, double angle, RendererFlip flip = RendererFlip.None)
         {
             if (texture.GetTextureHandle(out IntPtr th))
             {
-                _ = SDL_RenderCopyEx(handle, th, ref src, ref dst, angle, IntPtr.Zero, flip);
+                CheckedSDLCall(() => SDL_RenderCopyEx(handle, th, ref src, ref dst, angle, IntPtr.Zero, flip), nameof(SDL_RenderCopyEx));
             }
         }
         public void DrawTexture(SDLTexture? texture, Rectangle dst, double angle, Point center, RendererFlip flip = RendererFlip.None)
         {
             if (texture.GetTextureHandle(out IntPtr th))
             {
-                _ = SDL_RenderCopyEx(handle, th, IntPtr.Zero, ref dst, angle, ref center, flip);
+                CheckedSDLCall(() => SDL_RenderCopyEx(handle, th, IntPtr.Zero, ref dst, angle, ref center, flip), nameof(SDL_RenderCopyEx));
             }
         }
         public void DrawTexture(SDLTexture? texture, Rectangle dst, double angle, RendererFlip flip = RendererFlip.None)
         {
             if (texture.GetTextureHandle(out IntPtr th))
             {
-                _ = SDL_RenderCopyEx(handle, th, IntPtr.Zero, ref dst, angle, IntPtr.Zero, flip);
+                CheckedSDLCall(() => SDL_RenderCopyEx(handle, th, IntPtr.Zero, ref dst, angle, IntPtr.Zero, flip), nameof(SDL_RenderCopyEx));
             }
         }
         public void DrawIcon(Icons icon, float x, float y, float width, float height, Color color, HorizontalAlignment hAlign = HorizontalAlignment.Center, VerticalAlignment vAlign = VerticalAlignment.Center, float offsetX = 0, float offsetY = 0)
@@ -514,7 +517,7 @@
         }
         public void ClearScreen()
         {
-            _ = SDL_RenderClear(handle);
+            CheckedSDLCall(() => SDL_RenderClear(handle), nameof(SDL_RenderClear));
         }
         public void PushTarget(SDLTexture? texture)
         {
@@ -522,8 +525,8 @@
             {
                 IntPtr oldTarget = SDL_GetRenderTarget(handle);
                 prevTargets.Push(oldTarget);
-                _ = SDL_SetRenderTarget(handle, texture.Handle);
-                _ = SDL_SetRenderDrawBlendMode(handle, blendMode);
+                CheckedSDLCall(() => SDL_SetRenderTarget(handle, texture.Handle), nameof(SDL_SetRenderTarget));
+                CheckedSDLCall(() => SDL_SetRenderDrawBlendMode(handle, blendMode), nameof(SDL_SetRenderDrawBlendMode));
             }
         }
         public void PopTarget()
@@ -531,7 +534,7 @@
             if (prevTargets.Count > 0)
             {
                 IntPtr oldTarget = prevTargets.Pop();
-                _ = SDL_SetRenderTarget(handle, oldTarget);
+                CheckedSDLCall(() => SDL_SetRenderTarget(handle, oldTarget), nameof(SDL_SetRenderTarget));
             }
         }
 
@@ -539,13 +542,9 @@
         {
             get
             {
-                SDL_RenderGetClipRect(handle, out Rectangle clip);
+                Rectangle clip = Rectangle.Empty;
+                CheckedSDLCall(() => SDL_RenderGetClipRect(handle, out clip), nameof(SDL_RenderGetClipRect));
                 return clip;
-                //if (prevClips.Count > 0)
-                //{
-                //    return prevClips.Peek();
-                //}
-                //return Rectangle.Empty;
             }
         }
 
@@ -559,19 +558,19 @@
             return clip;
         }
 
-        private void CheckedSDLCall(Func<int> func)
+        private static void CheckedSDLCall(Func<int> func, string funcName)
         {
             int result = func();
             if (result != 0)
             {
-                SDLLog.Error(LogCategory.RENDER, $"SDL returned an error: {result} ({SDLApplication.GetError()})");
+                SDLLog.Error(LogCategory.RENDER, "{0} returned an error: {1} ({2})", funcName, result, SDLApplication.GetError());
             }
         }
         public void PushClip(Rectangle clip)
         {
             if (disableClipping) return;
             clip = CombineClip(clip);
-            CheckedSDLCall(() => { return SDL_RenderSetClipRect(handle, ref clip); });
+            CheckedSDLCall(() => SDL_RenderSetClipRect(handle, ref clip), nameof(SDL_RenderSetClipRect));
             prevClips.Push(clip);
         }
         public void PopClip()
@@ -581,23 +580,23 @@
             if (prevClips.Count > 0)
             {
                 Rectangle clip = prevClips.Peek();
-                CheckedSDLCall(() => { return SDL_RenderSetClipRect(handle, ref clip); });
+                CheckedSDLCall(() => SDL_RenderSetClipRect(handle, ref clip), nameof(SDL_RenderSetClipRect));
             }
             else
             {
-                CheckedSDLCall(() => { return SDL_RenderSetClipRect(handle, IntPtr.Zero); });
+                CheckedSDLCall(() => SDL_RenderSetClipRect(handle, IntPtr.Zero), nameof(SDL_RenderSetClipRect));
             }
         }
 
         public void SetClip(Rectangle clip)
         {
             if (disableClipping) return;
-            _ = SDL_RenderSetClipRect(handle, ref clip);
+            CheckedSDLCall(() => SDL_RenderSetClipRect(handle, ref clip), nameof(SDL_RenderSetClipRect));
         }
         public void ClearClip()
         {
             if (disableClipping) return;
-            _ = SDL_RenderSetClipRect(handle, IntPtr.Zero);
+            CheckedSDLCall(() => SDL_RenderSetClipRect(handle, IntPtr.Zero), nameof(SDL_RenderSetClipRect));
         }
 
 
@@ -642,7 +641,7 @@
             }
             RectangleF dstRect = new RectangleF(x + offsetX, y + offsetY, w, h);
             BlendMode = BlendMode.Blend;
-            _ = SDL_RenderCopyF(handle, textCache.Handle, IntPtr.Zero, ref dstRect);
+            CheckedSDLCall(() => SDL_RenderCopyF(handle, textCache.Handle, IntPtr.Zero, ref dstRect), nameof(SDL_RenderCopyF));
         }
 
         private void DrawIconCache(IconCache? iconCache, float x, float y, float width, float height, HorizontalAlignment hAlign, VerticalAlignment vAlign, float offsetX, float offsetY)
@@ -676,7 +675,7 @@
             }
             RectangleF dstRect = new RectangleF(x + offsetX, y + offsetY, w, h);
             BlendMode = BlendMode.Blend;
-            _ = SDL_RenderCopyF(handle, iconCache.Handle, IntPtr.Zero, ref dstRect);
+            CheckedSDLCall(() => SDL_RenderCopyF(handle, iconCache.Handle, IntPtr.Zero, ref dstRect), nameof(SDL_RenderCopyF));
         }
 
         private TextCache? GetTextCache(SDLFont font, string text, Color color)
@@ -725,8 +724,10 @@
                         IntPtr texHandle = SDL_CreateTextureFromSurface(handle, surface);
                         if (texHandle != IntPtr.Zero)
                         {
-                            _ = SDL_QueryTexture(texHandle, out _, out _, out int w, out int h);
-                            _ = SDL_SetTextureAlphaMod(texHandle, color.A);
+                            int w = 0;
+                            int h = 0;
+                            CheckedSDLCall(() => SDL_QueryTexture(texHandle, out _, out _, out w, out h), nameof(SDL_QueryTexture));
+                            CheckedSDLCall(() => SDL_SetTextureAlphaMod(texHandle, color.A), nameof(SDL_SetTextureAlphaMod));
                             textCache = new TextCache(font, text, color, w, h, texHandle);
                         }
                         SDL_FreeSurface(surface);
@@ -747,21 +748,16 @@
                     IntPtr surface = SDLFont.TTF_RenderGlyph_Blended(fontHandle, (ushort)icon, color.ToArgb());
                     if (surface != IntPtr.Zero)
                     {
-                        IntPtr texture = SDL_CreateTextureFromSurface(handle, surface);
-                        if (texture != IntPtr.Zero)
+                        IntPtr texHandle = SDL_CreateTextureFromSurface(handle, surface);
+                        if (texHandle != IntPtr.Zero)
                         {
-                            if (texture != IntPtr.Zero)
+                            if (texHandle != IntPtr.Zero)
                             {
-                                _ = SDL_QueryTexture(texture, out _, out _, out int w, out int h);
-                                _ = SDL_SetTextureAlphaMod(texture, color.A);
-                                iconCache = new IconCache()
-                                {
-                                    Icon = icon,
-                                    Color = color,
-                                    Width = w,
-                                    Height = h,
-                                    Handle = texture
-                                };
+                                int w = 0;
+                                int h = 0;
+                                CheckedSDLCall(() => SDL_QueryTexture(texHandle, out _, out _, out w, out h), nameof(SDL_QueryTexture));
+                                CheckedSDLCall(() => SDL_SetTextureAlphaMod(texHandle, color.A), nameof(SDL_SetTextureAlphaMod));
+                                iconCache = new IconCache(icon, color, w, h, texHandle);
                             }
                         }
                         SDL_FreeSurface(surface);
@@ -886,6 +882,14 @@
             public int Height;
             public IntPtr Handle;
 
+            internal IconCache(Icons icon, Color color, int width, int height, IntPtr handle)
+            {
+                Icon = icon;
+                Color = color;
+                Width = width;
+                Height = height;
+                Handle = handle;
+            }
             public bool Matches(Icons icon, Color color)
             {
                 return (icon == Icon) && (color == Color);

@@ -52,8 +52,6 @@
             Shutdown();
         }
 
-        //public static SDLWindow? MainWindow => mainWindow;
-
         public static bool UseStopwatch
         {
             get => useStopwatch;
@@ -83,23 +81,24 @@
             int numDrivers = SDL_GetNumRenderDrivers();
             for (int i = 0; i < numDrivers; i++)
             {
-                _ = SDLRenderer.SDL_GetRenderDriverInfo(i, out SDLRenderer.SDL_RendererInfo info);
-                SDLDriverInfo driverInfo = new()
+                if (SDLRenderer.SDL_GetRenderDriverInfo(i, out SDLRenderer.SDL_RendererInfo info) == 0)
                 {
-                    MaxTextureWidth = info.max_texture_width,
-                    MaxTextureHeight = info.max_texture_height,
-                    Flags = (uint)info.flags,
-                    Name = IntPtr2String(info.name) ?? "",
-                };
-                for (int j = 0; j < info.num_texture_formats; j++)
-                {
-                    driverInfo.TextureFormats.Add(info.texture_formats[j]);
-                    driverInfo.TextureFormatNames.Add(IntPtr2String(SDL_GetPixelFormatName(info.texture_formats[j])) ?? "UNKNOWN");
+                    SDLDriverInfo driverInfo = new()
+                    {
+                        MaxTextureWidth = info.max_texture_width,
+                        MaxTextureHeight = info.max_texture_height,
+                        Flags = (uint)info.flags,
+                        Name = IntPtr2String(info.name) ?? "",
+                    };
+                    for (int j = 0; j < info.num_texture_formats; j++)
+                    {
+                        driverInfo.TextureFormats.Add(info.texture_formats[j]);
+                        driverInfo.TextureFormatNames.Add(IntPtr2String(SDL_GetPixelFormatName(info.texture_formats[j])) ?? "UNKNOWN");
+                    }
+                    driverInfos.Add(driverInfo);
                 }
-                driverInfos.Add(driverInfo);
             }
         }
-
 
         public static string FPSText
         {
@@ -169,7 +168,7 @@
 
         private static void Tick()
         {
-            RetryTick:
+        RetryTick:
             double currentTime = GetCurrentTime();
             accumulatedElapsedTime += currentTime - previousTime;
             previousTime = currentTime;
@@ -258,7 +257,27 @@
                 }
             }
         }
-        private static void Initialize(LogPriority logPriority)
+
+        public static bool SetHint(string name, string value)
+        {
+            return SDL_SetHint(name, value);
+        }
+
+        internal static bool CheckedSDLCall(Func<int> func, string funcName)
+        {
+            int result = func();
+            if (result != 0)
+            {
+                SDLLog.Error(LogCategory.RENDER, "{0} returned an error: {1} ({2})", funcName, result, GetError());
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        private static bool Initialize(LogPriority logPriority)
         {
             string dllDir = Path.Combine(Environment.CurrentDirectory, IntPtr.Size == 4 ? "x86" : "x64");
             Environment.SetEnvironmentVariable("PATH", Environment.GetEnvironmentVariable("PATH") + ";" + dllDir);
@@ -266,27 +285,29 @@
             SDLLog.Info(LogCategory.APPLICATION, $"SDL Initialization Starting...");
             SDL_SetMainReady();
             _ = SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1");
-            _ = SDL_Init(InitFlags.Everything);
-            _ = SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
-            _ = SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
-            _ = SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
-            _ = SDL_SetHint(SDL_HINT_RENDER_BATCHING, "1");
-            _ = SDL_SetHint(SDL_HINT_GRAB_KEYBOARD, "1");
-            _ = SDL_SetHint(SDL_HINT_ALLOW_ALT_TAB_WHILE_GRABBED, "1");
-            _ = SDL_SetHint(SDL_BORDERLESS_WINDOWED_STYLE, "1");
-            _ = SDL_SetHint(SDL_BORDERLESS_RESIZABLE_STYLE, "1");
-
-            InitTimer();
-            //_ = SDL_SetHint(SDL_HINT_RENDER_LOGICAL_SIZE_MODE, "0");
-            //_ = SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_SCALING, "1");
-            GetDriverInfos();
-            _ = SDLTexture.IMG_Init(SDLTexture.IMG_InitFlags.IMG_INIT_PNG);
-            SDLInput.Initialize();
-            SDLAudio.Initialize();
-            _ = SDLFont.TTF_Init();
-            defaultFont = SDLFont.LoadFont(Properties.Resources.Roboto_Regular, nameof(Properties.Resources.Roboto_Regular), 16);
-            iconFont = SDLFont.LoadFont(Properties.Resources.entypo, nameof(Properties.Resources.entypo), 16);
-            SDLLog.Info(LogCategory.APPLICATION, $"SDL Initialization Done...");
+            if (CheckedSDLCall(() => SDL_Init(InitFlags.Everything & ~InitFlags.Sensor), nameof(SDL_Init)))
+            {
+                _ = SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
+                _ = SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
+                _ = SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
+                _ = SDL_SetHint(SDL_HINT_RENDER_BATCHING, "1");
+                _ = SDL_SetHint(SDL_HINT_GRAB_KEYBOARD, "1");
+                _ = SDL_SetHint(SDL_HINT_ALLOW_ALT_TAB_WHILE_GRABBED, "1");
+                _ = SDL_SetHint(SDL_BORDERLESS_WINDOWED_STYLE, "1");
+                _ = SDL_SetHint(SDL_BORDERLESS_RESIZABLE_STYLE, "1");
+                InitTimer();
+                GetDriverInfos();
+                _ = SDLTexture.IMG_Init(SDLTexture.IMG_InitFlags.IMG_INIT_PNG);
+                SDLInput.Initialize();
+                SDLAudio.Initialize();
+                _ = SDLFont.TTF_Init();
+                defaultFont = SDLFont.LoadFont(Properties.Resources.Roboto_Regular, nameof(Properties.Resources.Roboto_Regular), 16);
+                iconFont = SDLFont.LoadFont(Properties.Resources.entypo, nameof(Properties.Resources.entypo), 16);
+                SDLLog.Info(LogCategory.APPLICATION, $"SDL Initialization Done...");
+                return true;
+            }
+            SDLLog.Critical(LogCategory.APPLICATION, $"SDL Initialization Failed...");
+            return false;
         }
 
         private static void Shutdown()
@@ -307,6 +328,8 @@
         }
         public static void Delay(double ms)
         {
+            if (ms < 1) return;
+
             if (ms > 0)
             {
                 uint ums = (uint)ms;
@@ -331,7 +354,6 @@
             frequency = swfreq;
             SDLLog.Info(LogCategory.SYSTEM, "Timer Initialized. Frequency = {0}, Ticks to Milliseconds = {1}", frequency, ticksToMs);
         }
-
         public static long GetCurrentTicks()
         {
             if (useStopwatch)

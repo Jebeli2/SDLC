@@ -31,6 +31,7 @@
             base.Show(window);
             GetApplet<BackgroundImage>().Image = LoadTexture(nameof(Properties.Resources.fire_temple));
             GetApplet<MusicPlayer>().AddToPlayList(nameof(Properties.Resources.loss_of_me_3_));
+            GetApplet<MusicPlayer>().AddToPlayList(nameof(Properties.Resources.jesu_joy));
             GetApplet<MusicPlayer>().AddToPlayList(nameof(Properties.Resources.jesters_of_the_moon));
             GetApplet<MusicPlayer>().AddToPlayList(SONG2);
 

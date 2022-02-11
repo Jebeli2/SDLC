@@ -26,13 +26,23 @@
             : base(handle, name)
         {
             this.renderer = renderer;
-            _ = SDLRenderer.SDL_QueryTexture(this.handle, out format, out access, out width, out height);
-            _ = SDLRenderer.SDL_GetTextureScaleMode(this.handle, out textureFilter);
-            _ = SDLRenderer.SDL_GetTextureAlphaMod(this.handle, out alphaMod);
-            _ = SDLRenderer.SDL_GetTextureColorMod(this.handle, out byte r, out byte g, out byte b);
-            colorMod = Color.FromArgb(r, g, b);
-            _ = SDLRenderer.SDL_GetTextureBlendMode(this.handle, out blendMode);
-            this.renderer.Track(this);
+            int result = SDLRenderer.SDL_QueryTexture(this.handle, out format, out access, out width, out height);
+            if (result == 0)
+            {
+                CheckedSDLCall(() => SDLRenderer.SDL_GetTextureScaleMode(this.handle, out textureFilter), nameof(SDLRenderer.SDL_GetTextureScaleMode));
+                CheckedSDLCall(() => SDLRenderer.SDL_GetTextureAlphaMod(this.handle, out alphaMod), nameof(SDLRenderer.SDL_GetTextureAlphaMod));
+                byte r = 0;
+                byte g = 0;
+                byte b = 0;
+                CheckedSDLCall(() => SDLRenderer.SDL_GetTextureColorMod(this.handle, out r, out g, out b), nameof(SDLRenderer.SDL_GetTextureColorMod));
+                colorMod = Color.FromArgb(r, g, b);
+                CheckedSDLCall(() => SDLRenderer.SDL_GetTextureBlendMode(this.handle, out blendMode), nameof(SDLRenderer.SDL_GetTextureBlendMode));
+                this.renderer.Track(this);
+            }
+            else
+            {
+                SDLLog.Error(LogCategory.RENDER, "{0} returned an error: {1} ({2})", nameof(SDLRenderer.SDL_QueryTexture), result, SDLApplication.GetError());
+            }
         }
         public int Width => width;
         public int Height => height;
@@ -44,7 +54,7 @@
                 if (textureFilter != value)
                 {
                     textureFilter = value;
-                    _ = SDLRenderer.SDL_SetTextureScaleMode(handle, value);
+                    CheckedSDLCall(() => SDLRenderer.SDL_SetTextureScaleMode(handle, value), nameof(SDLRenderer.SDL_SetTextureScaleMode));
                 }
             }
         }
@@ -57,7 +67,7 @@
                 if (alphaMod != value)
                 {
                     alphaMod = value;
-                    _ = SDLRenderer.SDL_SetTextureAlphaMod(handle, alphaMod);
+                    CheckedSDLCall(() => SDLRenderer.SDL_SetTextureAlphaMod(handle, alphaMod), nameof(SDLRenderer.SDL_SetTextureAlphaMod));
                 }
             }
         }
@@ -70,7 +80,7 @@
                 if (colorMod != value)
                 {
                     colorMod = value;
-                    _ = SDLRenderer.SDL_SetTextureColorMod(handle, colorMod.R, colorMod.G, colorMod.B);
+                    CheckedSDLCall(() => SDLRenderer.SDL_SetTextureColorMod(handle, colorMod.R, colorMod.G, colorMod.B), nameof(SDLRenderer.SDL_SetTextureColorMod));
                 }
             }
         }
@@ -83,7 +93,7 @@
                 if (blendMode != value)
                 {
                     blendMode = value;
-                    _ = SDLRenderer.SDL_SetTextureBlendMode(handle, blendMode);
+                    CheckedSDLCall(() => SDLRenderer.SDL_SetTextureBlendMode(handle, blendMode), nameof(SDLRenderer.SDL_SetTextureBlendMode));
                 }
             }
         }
@@ -104,6 +114,16 @@
             }
             base.Dispose(disposing);
         }
+
+        private static void CheckedSDLCall(Func<int> func, string funcName)
+        {
+            int result = func();
+            if (result != 0)
+            {
+                SDLLog.Error(LogCategory.RENDER, "{0} returned an error: {1} ({2})", funcName, result, SDLApplication.GetError());
+            }
+        }
+
 
         private const string LibName = "SDL2_image";
         [Flags]

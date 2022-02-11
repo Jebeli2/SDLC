@@ -43,7 +43,7 @@
             base.Show(window);
             AddResourceManager(Properties.Resources.ResourceManager);
             GetApplet<BackgroundImage>().Image = LoadTexture(nameof(Properties.Resources.ice_palace));
-            GetApplet<MusicPlayer>().PlayNow(nameof(Properties.Resources.jesu_joy));
+            GetApplet<MusicPlayer>().PlayNow(nameof(Properties.Resources.bach));
             var boxes = GetApplet<RainingBoxesApp>();
             var lines = GetApplet<LinesApp>();
             var music = GetApplet<MusicVisualizer>();

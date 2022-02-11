@@ -799,8 +799,10 @@
         {
             if (fullScreenMode == FullScreenMode.Desktop)
             {
-                _ = SDL_SetWindowFullscreen(Handle, 0);
-                SDLLog.Info(LogCategory.VIDEO, $"Entered Windowed Mode");
+                if (SDL_SetWindowFullscreen(Handle, 0) == 0)
+                {
+                    SDLLog.Info(LogCategory.VIDEO, $"Entered Windowed Mode");
+                }
             }
             else
             {
@@ -819,50 +821,58 @@
             SDL_GetWindowPosition(handle, out oldX, out oldY);
             SDL_GetWindowSize(handle, out oldWidth, out oldHeight);
             int index = SDL_GetWindowDisplayIndex(handle);
-            _ = SDL_GetDisplayBounds(index, out Rectangle bounds);
-            SDL_SetWindowBordered(handle, false);
-            SDL_SetWindowResizable(handle, false);
-            SDL_SetWindowTitle(handle, IntPtr.Zero);
-            SDL_SetWindowAlwaysOnTop(handle, true);
-            SDL_SetWindowSize(handle, bounds.Width, bounds.Height);
-            SDL_SetWindowPosition(handle, bounds.X, bounds.Y);
-            SDLLog.Info(LogCategory.VIDEO, $"Entered Full Size Full Screen Mode");
+            if (SDL_GetDisplayBounds(index, out Rectangle bounds) == 0)
+            {
+                SDL_SetWindowBordered(handle, false);
+                SDL_SetWindowResizable(handle, false);
+                SDL_SetWindowTitle(handle, IntPtr.Zero);
+                SDL_SetWindowAlwaysOnTop(handle, true);
+                SDL_SetWindowSize(handle, bounds.Width, bounds.Height);
+                SDL_SetWindowPosition(handle, bounds.X, bounds.Y);
+                SDLLog.Info(LogCategory.VIDEO, $"Entered Full Size Full Screen Mode");
+            }
         }
 
         private void GoMultiMonitorFullScreen()
         {
             SDL_GetWindowPosition(handle, out oldX, out oldY);
             SDL_GetWindowSize(handle, out oldWidth, out oldHeight);
-            _ = SDL_GetDisplayBounds(0, out Rectangle bounds);
-            int numDisplays = SDL_GetNumVideoDisplays();
-            for (int index = 1; index < numDisplays; index++)
+            if (SDL_GetDisplayBounds(0, out Rectangle bounds) == 0)
             {
-                _ = SDL_GetDisplayBounds(index, out Rectangle otherBounds);
-                if (otherBounds.Height == bounds.Height)
+                int numDisplays = SDL_GetNumVideoDisplays();
+                for (int index = 1; index < numDisplays; index++)
                 {
-                    bounds = Rectangle.Union(bounds, otherBounds);
+                    if (SDL_GetDisplayBounds(index, out Rectangle otherBounds) == 0)
+                    {
+                        if (otherBounds.Height == bounds.Height)
+                        {
+                            bounds = Rectangle.Union(bounds, otherBounds);
 
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
                 }
-                else
-                {
-                    break;
-                }
+                SDL_SetWindowBordered(handle, false);
+                SDL_SetWindowResizable(handle, false);
+                SDL_SetWindowTitle(handle, IntPtr.Zero);
+                SDL_SetWindowAlwaysOnTop(handle, true);
+                SDL_SetWindowSize(handle, bounds.Width, bounds.Height);
+                SDL_SetWindowPosition(handle, bounds.X, bounds.Y);
+                SDLLog.Info(LogCategory.VIDEO, $"Entered Multi Monitor Full Screen Mode");
             }
-            SDL_SetWindowBordered(handle, false);
-            SDL_SetWindowResizable(handle, false);
-            SDL_SetWindowTitle(handle, IntPtr.Zero);
-            SDL_SetWindowAlwaysOnTop(handle, true);
-            SDL_SetWindowSize(handle, bounds.Width, bounds.Height);
-            SDL_SetWindowPosition(handle, bounds.X, bounds.Y);
-            SDLLog.Info(LogCategory.VIDEO, $"Entered Multi Monitor Full Screen Mode");
         }
 
         private void GoDesktopFullScreen()
         {
             SDL_GetWindowPosition(handle, out oldX, out oldY);
             SDL_GetWindowSize(handle, out oldWidth, out oldHeight);
-            _ = SDL_SetWindowFullscreen(Handle, (uint)SDL_WindowFlags.FULLSCREEN_DESKTOP);
-            SDLLog.Info(LogCategory.VIDEO, $"Entered Desktop Full Screen Mode");
+            if (SDL_SetWindowFullscreen(Handle, (uint)SDL_WindowFlags.FULLSCREEN_DESKTOP) == 0)
+            {
+                SDLLog.Info(LogCategory.VIDEO, $"Entered Desktop Full Screen Mode");
+            }
         }
 
         private void ScaleMouse(ref int x, ref int y)

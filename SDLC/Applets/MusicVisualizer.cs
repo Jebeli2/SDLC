@@ -52,6 +52,7 @@
         {
             if (data.Length > 0)
             {
+                int countNonZero = 0;
                 int w = gfx.Width;
                 int h = gfx.Height;
                 int len = data.Length;
@@ -69,8 +70,12 @@
                     int index = 0;
                     while (pX < endW && index < data.Length)
                     {
-                        float sample = data[index];
-                        PaintSample(gfx, pX, midY, lineWidth, sample * facY, leftColor1, leftColor2);
+                        if (data[index] != 0)
+                        {
+                            countNonZero++;
+                            float sample = data[index];
+                            PaintSample(gfx, pX, midY, lineWidth, sample * facY, leftColor1, leftColor2);
+                        }
                         pX += lineWidth;
                         index += cut;
                     }
@@ -81,11 +86,19 @@
                     int index = 1;
                     while (pX < endW && index < data.Length)
                     {
-                        float sample = data[index];
-                        PaintSample(gfx, pX, midY, lineWidth, sample * facY, rightColor1, rightColor2);
+                        if (data[index] != 0)
+                        {
+                            countNonZero++;
+                            float sample = data[index];
+                            PaintSample(gfx, pX, midY, lineWidth, sample * facY, rightColor1, rightColor2);
+                        }
                         pX += lineWidth;
                         index += cut;
                     }
+                }
+                if (countNonZero == 0)
+                {
+                    //SDLLog.Debug(LogCategory.AUDIO, "All Music is zero...");
                 }
             }
         }
