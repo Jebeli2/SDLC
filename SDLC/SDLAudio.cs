@@ -89,12 +89,12 @@ public static class SDLAudio
             else if (forceRestart)
             {
                 Mix_RewindMusic();
-                SDLLog.Info(LogCategory.AUDIO, "Music '{0}' restarted", music.Name);
+                SDLLog.Verbose(LogCategory.AUDIO, "Music '{0}' restarted", music.Name);
                 return;
             }
             else
             {
-                SDLLog.Info(LogCategory.AUDIO, "Music '{0}' already playing, continuing...", music.Name);
+                SDLLog.Verbose(LogCategory.AUDIO, "Music '{0}' already playing, continuing...", music.Name);
                 return;
             }
         }
@@ -105,7 +105,7 @@ public static class SDLAudio
         else
         {
             _ = Mix_VolumeMusic(musicVolume);
-            SDLLog.Info(LogCategory.AUDIO, "Music '{0}' started", music.Name);
+            SDLLog.Verbose(LogCategory.AUDIO, "Music '{0}' started", music.Name);
             currentMusic = music;
         }
     }
@@ -151,7 +151,7 @@ public static class SDLAudio
             if (handle != IntPtr.Zero)
             {
                 music = new SDLMusic(handle, name);
-                SDLLog.Info(LogCategory.AUDIO, "Music loaded from file '{0}'", name);
+                SDLLog.Verbose(LogCategory.AUDIO, "Music loaded from file '{0}'", name);
             }
         }
         return music;
@@ -181,7 +181,7 @@ public static class SDLAudio
                     if (handle != IntPtr.Zero)
                     {
                         music = new SDLMusic(handle, name, fileName);
-                        SDLLog.Info(LogCategory.AUDIO, "Music loaded from resource '{0}' (via temporary file '{1}')", name, fileName);
+                        SDLLog.Verbose(LogCategory.AUDIO, "Music loaded from resource '{0}' (via temporary file '{1}')", name, fileName);
                     }
                 }
                 catch (Exception ex)
@@ -196,7 +196,7 @@ public static class SDLAudio
                 if (handle != IntPtr.Zero)
                 {
                     music = new SDLMusic(handle, name);
-                    SDLLog.Info(LogCategory.AUDIO, "Music loaded from resource '{0}'", name);
+                    SDLLog.Verbose(LogCategory.AUDIO, "Music loaded from resource '{0}'", name);
                 }
             }
         }

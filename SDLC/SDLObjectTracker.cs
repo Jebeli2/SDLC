@@ -19,7 +19,7 @@ public class SDLObjectTracker<T> : IDisposable where T : SDLObject
     {
         this.category = category;
         this.name = name;
-        removalPrio = LogPriority.Info;
+        removalPrio = LogPriority.Verbose;
     }
 
     public string Name => name;

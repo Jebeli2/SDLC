@@ -89,7 +89,7 @@ public class SDLFont : SDLObject
             if (fnt != IntPtr.Zero)
             {
                 font = new SDLFont(fnt, ptSize);
-                SDLLog.Info(LogCategory.FONT, "Font {0} loaded from file '{1}'", font.Name, fileName);
+                SDLLog.Verbose(LogCategory.FONT, "Font {0} loaded from file '{1}'", font.Name, fileName);
             }
         }
         return font;
@@ -108,7 +108,7 @@ public class SDLFont : SDLObject
             if (handle != IntPtr.Zero)
             {
                 font = new SDLFont(handle, ptSize, mem);
-                SDLLog.Info(LogCategory.FONT, "Font {0} loaded from resource '{1}'", font.Name, name);
+                SDLLog.Verbose(LogCategory.FONT, "Font {0} loaded from resource '{1}'", font.Name, name);
             }
         }
         return font;

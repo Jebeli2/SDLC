@@ -168,7 +168,8 @@ public enum LogPriority
     Info = 3,
     Warn = 4,
     Error = 5,
-    Critical = 6
+    Critical = 6,
+    Max = 7
 }
 
 public enum LogCategory
@@ -195,6 +196,7 @@ public enum LogCategory
     CUSTOM,
     FONT,
     SDLC,
+    MAX
 }
 
 public enum MusicFinishReason

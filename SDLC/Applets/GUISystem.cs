@@ -119,12 +119,12 @@ public class GUISystem : SDLApplet, IGUISystem
         {
             if (activeScreen != null)
             {
-                SDLLog.Debug(LogCategory.APPLICATION, "Screen deactivated: {0}", activeScreen);
+                SDLLog.Verbose(LogCategory.APPLICATION, "Screen deactivated: {0}", activeScreen);
             }
             activeScreen = scr;
             if (activeScreen != null)
             {
-                SDLLog.Debug(LogCategory.APPLICATION, "Screen activated: {0}", activeScreen);
+                SDLLog.Verbose(LogCategory.APPLICATION, "Screen activated: {0}", activeScreen);
             }
         }
     }
@@ -152,13 +152,13 @@ public class GUISystem : SDLApplet, IGUISystem
             if (activeWindow != null)
             {
                 activeWindow.Active = false;
-                SDLLog.Debug(LogCategory.APPLICATION, "Window deactivated: {0}", activeWindow);
+                SDLLog.Verbose(LogCategory.APPLICATION, "Window deactivated: {0}", activeWindow);
             }
             activeWindow = win;
             if (activeWindow != null)
             {
                 activeWindow.Active = true;
-                SDLLog.Debug(LogCategory.APPLICATION, "Window activated: {0}", activeWindow);
+                SDLLog.Verbose(LogCategory.APPLICATION, "Window activated: {0}", activeWindow);
                 if (moveWindowToFrontOnActivate)
                 {
                     activeWindow.ToFront();
@@ -189,13 +189,13 @@ public class GUISystem : SDLApplet, IGUISystem
             if (activeGadget != null)
             {
                 activeGadget.Active = false;
-                SDLLog.Debug(LogCategory.APPLICATION, "Gadget deactivated: {0}", activeGadget);
+                SDLLog.Verbose(LogCategory.APPLICATION, "Gadget deactivated: {0}", activeGadget);
             }
             activeGadget = gad;
             if (activeGadget != null)
             {
                 activeGadget.Active = true;
-                SDLLog.Debug(LogCategory.APPLICATION, "Gadget activated: {0}", activeGadget);
+                SDLLog.Verbose(LogCategory.APPLICATION, "Gadget activated: {0}", activeGadget);
             }
         }
     }
@@ -206,13 +206,13 @@ public class GUISystem : SDLApplet, IGUISystem
             if (selectedGadget != null)
             {
                 selectedGadget.HandleDeselection();
-                SDLLog.Debug(LogCategory.APPLICATION, "Gadget deselected: {0}", selectedGadget);
+                SDLLog.Verbose(LogCategory.APPLICATION, "Gadget deselected: {0}", selectedGadget);
             }
             selectedGadget = gad;
             if (selectedGadget != null)
             {
                 selectedGadget.HandleSelection();
-                SDLLog.Debug(LogCategory.APPLICATION, "Gadget selected: {0}", selectedGadget);
+                SDLLog.Verbose(LogCategory.APPLICATION, "Gadget selected: {0}", selectedGadget);
             }
         }
     }
@@ -535,7 +535,7 @@ public class GUISystem : SDLApplet, IGUISystem
             }
             else if (result == ActionResult.GadgetUp)
             {
-                //activeGadget.Rai
+                
             }
         }
         return result != ActionResult.None;
@@ -791,10 +791,8 @@ public class GUISystem : SDLApplet, IGUISystem
             }
             else
             {
-                //SDLLog.Debug(LogCategory.APPLICATION, $"Removing {window} from fade out list ({fadingOutWindows.Count})");
                 fadingOutWindows.RemoveAt(i);
                 ReallyCloseWindow(window);
-                //SDLLog.Debug(LogCategory.APPLICATION, $"Removed {window} from fade out list ({fadingOutWindows.Count})");
             }
         }
     }

@@ -474,7 +474,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
             if (tex != IntPtr.Zero)
             {
                 texture = new SDLTexture(this, tex, fileName);
-                SDLLog.Info(LogCategory.RENDER, "Texture loaded from file '{0}'", fileName);
+                SDLLog.Verbose(LogCategory.RENDER, "Texture loaded from file '{0}'", fileName);
             }
         }
         return texture;
@@ -493,7 +493,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
                 if (tex != IntPtr.Zero)
                 {
                     texture = new SDLTexture(this, tex, name);
-                    SDLLog.Info(LogCategory.RENDER, "Texture loaded from resource '{0}'", name);
+                    SDLLog.Verbose(LogCategory.RENDER, "Texture loaded from resource '{0}'", name);
                 }
             }
         }
@@ -509,7 +509,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
             if (tex != IntPtr.Zero)
             {
                 texture = new SDLTexture(this, tex, name);
-                SDLLog.Info(LogCategory.RENDER, "Texture created from scratch '{0}'", name);
+                SDLLog.Verbose(LogCategory.RENDER, "Texture created from scratch '{0}'", name);
             }
         }
         return texture;

@@ -11,6 +11,8 @@ public static class SDLLog
     private static readonly SDL_LogOutputFunction logFunc = LogOutputFunc;
     private static bool logToConsole = true;
     private static LogPriority logPriority;
+    private static string[] prioText = new string[(int)LogPriority.Max];
+    private static string[] catText = new string[(int)LogCategory.MAX];
 
     public static bool LogToConsole
     {
@@ -21,6 +23,8 @@ public static class SDLLog
     public static void InitializeLog(LogPriority prio)
     {
         logPriority = prio;
+        for (int i = 0; i < prioText.Length; i++) { prioText[i] = string.Format("{0,-8}", ((LogPriority)i).ToString().ToUpperInvariant()); }
+        for (int i = 0; i < catText.Length; i++) { catText[i] = string.Format("{0,-11}", ((LogCategory)i).ToString().ToUpperInvariant()); }
         SDL_LogSetOutputFunction(logFunc, IntPtr.Zero);
         SDL_LogSetAllPriority(prio);
     }
@@ -205,9 +209,12 @@ public static class SDLLog
         {
             ClearConsoleColor();
             Console.Write(DateTime.Now);
+            Console.Write(' ');
             SetConsoleColor(priority);
-            Console.Write("{0,8} ", priority.ToString().ToUpperInvariant());
-            Console.Write(" {0,11} ", (LogCategory)category);
+            Console.Write(prioText[(int)priority]);
+            Console.Write(' ');
+            Console.Write(catText[category]);
+            Console.Write(' ');
             ClearConsoleColor();
             Console.WriteLine(Marshal.PtrToStringUTF8(message));
         }
