@@ -1,20 +1,18 @@
-﻿namespace SDLC
+﻿// Copyright © 2021 Jean Pascal Bellot. All Rights Reserved.
+// Licensed under the GNU General Public License.
+
+namespace SDLC;
+
+using System;
+
+public class SDLWindowLoadEventArgs : EventArgs
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-
-    public class SDLWindowLoadEventArgs : EventArgs
+    private readonly IRenderer renderer;
+    public SDLWindowLoadEventArgs(IRenderer renderer)
     {
-        private readonly IRenderer renderer;
-        public SDLWindowLoadEventArgs(IRenderer renderer)
-        {
-            this.renderer = renderer;
-        }
-        public IRenderer Renderer => renderer;
+        this.renderer = renderer;
     }
-
-    public delegate void SDLWindowLoadEventHandler(object sender, SDLWindowLoadEventArgs e);
+    public IRenderer Renderer => renderer;
 }
+
+public delegate void SDLWindowLoadEventHandler(object sender, SDLWindowLoadEventArgs e);

@@ -1,898 +1,897 @@
-﻿namespace SDLC.Applets
+﻿// Copyright © 2021 Jean Pascal Bellot. All Rights Reserved.
+// Licensed under the GNU General Public License.
+
+namespace SDLC.Applets;
+
+using SDLC.GUI;
+using System;
+using System.Collections.Generic;
+
+public class GUISystem : SDLApplet, IGUISystem
 {
-    using SDLC.GUI;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
+    private readonly List<Screen> screens = new();
+    private IGUIRenderer guiRenderer = new DefaultGUIRenderer();
+    private int nextGadgetID;
+    private int nextWindowID;
+    private int prevMouseX;
+    private int prevMouseY;
+    private int mouseX;
+    private int mouseY;
+    private int diffMouseX;
+    private int diffMouseY;
+    private readonly Queue<Window> activationWindows = new();
+    private readonly Queue<Gadget> activationGadgets = new();
+    private readonly List<Window> fadingInWindows = new();
+    private readonly List<Window> fadingOutWindows = new();
+    private const int fadeOutSpeed = 22;
+    private const int fadeInSpeed = 27;
+    private bool useFadeOut = true;
+    private bool useFadeIn = true;
+    private bool moveWindowToFrontOnActivate = true;
+    private Screen? activeScreen;
+    private Screen? mouseScreen;
+    private Window? activeWindow;
+    private Window? mouseWindow;
+    private Gadget? activeGadget;
+    private Gadget? mouseGadget;
+    private Gadget? downGadget;
+    private Gadget? upGadget;
+    private Gadget? selectedGadget;
+    private bool selectMouseDown;
+    private int timerTick;
+    private int tickIntervall = 100;
 
-    public class GUISystem : SDLApplet, IGUISystem
+    private int sysGadgetWidth = 32;
+    private int sysGadgetHeight = 28;
+
+    private const int SYSGAD_DRAG = -1;
+    private const int SYSGAD_CLOSE = -2;
+    private const int SYSGAD_DEPTH = -3;
+    private const int SYSGAD_ZOOM = -4;
+    private const int SYSGAD_SIZE = -5;
+
+    public GUISystem() : base("GUI System")
     {
-        private readonly List<Screen> screens = new();
-        private IGUIRenderer guiRenderer = new DefaultGUIRenderer();
-        private int nextGadgetID;
-        private int nextWindowID;
-        private int prevMouseX;
-        private int prevMouseY;
-        private int mouseX;
-        private int mouseY;
-        private int diffMouseX;
-        private int diffMouseY;
-        private readonly Queue<Window> activationWindows = new();
-        private readonly Queue<Gadget> activationGadgets = new();
-        private readonly List<Window> fadingInWindows = new();
-        private readonly List<Window> fadingOutWindows = new();
-        private const int fadeOutSpeed = 22;
-        private const int fadeInSpeed = 27;
-        private bool useFadeOut = true;
-        private bool useFadeIn = true;
-        private bool moveWindowToFrontOnActivate = true;
-        private Screen? activeScreen;
-        private Screen? mouseScreen;
-        private Window? activeWindow;
-        private Window? mouseWindow;
-        private Gadget? activeGadget;
-        private Gadget? mouseGadget;
-        private Gadget? downGadget;
-        private Gadget? upGadget;
-        private Gadget? selectedGadget;
-        private bool selectMouseDown;
-        private int timerTick;
-        private int tickIntervall = 100;
+        RenderPrio = 1000;
+        InputPrio = -1000;
+    }
 
-        private int sysGadgetWidth = 32;
-        private int sysGadgetHeight = 28;
+    protected override void OnWindowLoad(SDLWindowLoadEventArgs e)
+    {
+        UpdateScreenSize(e.Renderer.Width, e.Renderer.Height);
 
-        private const int SYSGAD_DRAG = -1;
-        private const int SYSGAD_CLOSE = -2;
-        private const int SYSGAD_DEPTH = -3;
-        private const int SYSGAD_ZOOM = -4;
-        private const int SYSGAD_SIZE = -5;
+    }
+    protected internal override void OnWindowResized(SDLWindowSizeEventArgs e)
+    {
+        UpdateScreenSize(e.Width, e.Height);
+    }
 
-        public GUISystem() : base("GUI System")
+    protected override void OnWindowUpdate(SDLWindowUpdateEventArgs e)
+    {
+        CheckWindowActivationQueue();
+        CheckFadingOutWindows();
+        CheckFadingInWindows();
+        CheckGadgetActivationQueue();
+        CheckTimer(e.TotalTime);
+    }
+    protected override void OnWindowPaint(SDLWindowPaintEventArgs e)
+    {
+        foreach (Screen screen in screens)
         {
-            RenderPrio = 1000;
-            InputPrio = -1000;
+            screen.Render(e.Renderer, guiRenderer);
         }
+    }
 
-        protected override void OnWindowLoad(SDLWindowLoadEventArgs e)
+    protected override void OnDispose()
+    {
+        foreach (Screen screen in screens)
         {
-            UpdateScreenSize(e.Renderer.Width, e.Renderer.Height);
-
+            screen.Close();
         }
-        protected internal override void OnWindowResized(SDLWindowSizeEventArgs e)
+        screens.Clear();
+    }
+    private void UpdateScreenSize(int width, int height)
+    {
+        foreach (Screen screen in screens)
         {
-            UpdateScreenSize(e.Width, e.Height);
+            screen.Width = width;
+            screen.Height = height;
         }
-
-        protected override void OnWindowUpdate(SDLWindowUpdateEventArgs e)
+    }
+    private void SetMouseScreen(Screen? scr)
+    {
+        if (mouseScreen != scr)
         {
-            CheckWindowActivationQueue();
-            CheckFadingOutWindows();
-            CheckFadingInWindows();
-            CheckGadgetActivationQueue();
-            CheckTimer(e.TotalTime);
-        }
-        protected override void OnWindowPaint(SDLWindowPaintEventArgs e)
-        {
-            foreach (Screen screen in screens)
+            if (mouseScreen != null)
             {
-                screen.Render(e.Renderer, guiRenderer);
+                //mouseScreen.MouseHover = false;
+            }
+            mouseScreen = scr;
+            if (mouseScreen != null)
+            {
+                //mouseScreen.MouseHover = true;
             }
         }
+    }
+    private void SetActiveScreen(Screen? scr)
+    {
+        if (activeScreen != scr)
+        {
+            if (activeScreen != null)
+            {
+                SDLLog.Debug(LogCategory.APPLICATION, "Screen deactivated: {0}", activeScreen);
+            }
+            activeScreen = scr;
+            if (activeScreen != null)
+            {
+                SDLLog.Debug(LogCategory.APPLICATION, "Screen activated: {0}", activeScreen);
+            }
+        }
+    }
 
-        protected override void OnDispose()
+    private void SetMouseWindow(Window? win)
+    {
+        if (mouseWindow != win)
         {
-            foreach (Screen screen in screens)
+            if (mouseWindow != null)
             {
-                screen.Close();
+                mouseWindow.MouseHover = false;
             }
-            screens.Clear();
-        }
-        private void UpdateScreenSize(int width, int height)
-        {
-            foreach (Screen screen in screens)
+            mouseWindow = win;
+            if (mouseWindow != null)
             {
-                screen.Width = width;
-                screen.Height = height;
+                mouseWindow.MouseHover = true;
             }
         }
-        private void SetMouseScreen(Screen? scr)
+    }
+
+    private void SetActiveWindow(Window? win)
+    {
+        if (activeWindow != win)
         {
-            if (mouseScreen != scr)
+            if (activeWindow != null)
             {
-                if (mouseScreen != null)
-                {
-                    //mouseScreen.MouseHover = false;
-                }
-                mouseScreen = scr;
-                if (mouseScreen != null)
-                {
-                    //mouseScreen.MouseHover = true;
-                }
+                activeWindow.Active = false;
+                SDLLog.Debug(LogCategory.APPLICATION, "Window deactivated: {0}", activeWindow);
             }
-        }
-        private void SetActiveScreen(Screen? scr)
-        {
-            if (activeScreen != scr)
+            activeWindow = win;
+            if (activeWindow != null)
             {
-                if (activeScreen != null)
+                activeWindow.Active = true;
+                SDLLog.Debug(LogCategory.APPLICATION, "Window activated: {0}", activeWindow);
+                if (moveWindowToFrontOnActivate)
                 {
-                    SDLLog.Debug(LogCategory.APPLICATION, "Screen deactivated: {0}", activeScreen);
-                }
-                activeScreen = scr;
-                if (activeScreen != null)
-                {
-                    SDLLog.Debug(LogCategory.APPLICATION, "Screen activated: {0}", activeScreen);
+                    activeWindow.ToFront();
                 }
             }
         }
-
-        private void SetMouseWindow(Window? win)
+    }
+    private void SetMouseGadget(Gadget? gad)
+    {
+        if (mouseGadget != gad)
         {
-            if (mouseWindow != win)
+            if (mouseGadget != null)
             {
-                if (mouseWindow != null)
-                {
-                    mouseWindow.MouseHover = false;
-                }
-                mouseWindow = win;
-                if (mouseWindow != null)
-                {
-                    mouseWindow.MouseHover = true;
-                }
+                mouseGadget.MouseHover = false;
+            }
+            mouseGadget = gad;
+            if (mouseGadget != null)
+            {
+                mouseGadget.MouseHover = true;
             }
         }
+    }
 
-        private void SetActiveWindow(Window? win)
+    private void SetActiveGadget(Gadget? gad)
+    {
+        if (activeGadget != gad)
         {
-            if (activeWindow != win)
+            if (activeGadget != null)
             {
-                if (activeWindow != null)
-                {
-                    activeWindow.Active = false;
-                    SDLLog.Debug(LogCategory.APPLICATION, "Window deactivated: {0}", activeWindow);
-                }
-                activeWindow = win;
-                if (activeWindow != null)
-                {
-                    activeWindow.Active = true;
-                    SDLLog.Debug(LogCategory.APPLICATION, "Window activated: {0}", activeWindow);
-                    if (moveWindowToFrontOnActivate)
-                    {
-                        activeWindow.ToFront();
-                    }
-                }
+                activeGadget.Active = false;
+                SDLLog.Debug(LogCategory.APPLICATION, "Gadget deactivated: {0}", activeGadget);
+            }
+            activeGadget = gad;
+            if (activeGadget != null)
+            {
+                activeGadget.Active = true;
+                SDLLog.Debug(LogCategory.APPLICATION, "Gadget activated: {0}", activeGadget);
             }
         }
-        private void SetMouseGadget(Gadget? gad)
+    }
+    private void SetSelectedGadget(Gadget? gad)
+    {
+        if (selectedGadget != gad)
         {
-            if (mouseGadget != gad)
+            if (selectedGadget != null)
             {
-                if (mouseGadget != null)
-                {
-                    mouseGadget.MouseHover = false;
-                }
-                mouseGadget = gad;
-                if (mouseGadget != null)
-                {
-                    mouseGadget.MouseHover = true;
-                }
+                selectedGadget.HandleDeselection();
+                SDLLog.Debug(LogCategory.APPLICATION, "Gadget deselected: {0}", selectedGadget);
+            }
+            selectedGadget = gad;
+            if (selectedGadget != null)
+            {
+                selectedGadget.HandleSelection();
+                SDLLog.Debug(LogCategory.APPLICATION, "Gadget selected: {0}", selectedGadget);
             }
         }
+    }
 
-        private void SetActiveGadget(Gadget? gad)
+    private void AddSystemGadgets(Window win)
+    {
+        if ((win.WindowFlags & WindowFlags.DragBar) == WindowFlags.DragBar)
         {
-            if (activeGadget != gad)
+            _ = new Gadget(this, win)
             {
-                if (activeGadget != null)
-                {
-                    activeGadget.Active = false;
-                    SDLLog.Debug(LogCategory.APPLICATION, "Gadget deactivated: {0}", activeGadget);
-                }
-                activeGadget = gad;
-                if (activeGadget != null)
-                {
-                    activeGadget.Active = true;
-                    SDLLog.Debug(LogCategory.APPLICATION, "Gadget activated: {0}", activeGadget);
-                }
-            }
-        }
-        private void SetSelectedGadget(Gadget? gad)
-        {
-            if (selectedGadget != gad)
-            {
-                if (selectedGadget != null)
-                {
-                    selectedGadget.HandleDeselection();
-                    SDLLog.Debug(LogCategory.APPLICATION, "Gadget deselected: {0}", selectedGadget);
-                }
-                selectedGadget = gad;
-                if (selectedGadget != null)
-                {
-                    selectedGadget.HandleSelection();
-                    SDLLog.Debug(LogCategory.APPLICATION, "Gadget selected: {0}", selectedGadget);
-                }
-            }
+                LeftEdge = 0,
+                TopEdge = 0,
+                Width = 0,
+                Height = sysGadgetHeight,
+                Flags = GadgetFlags.RelWidth,
+                GadgetType = GadgetType.SysGadget | GadgetType.BoolGadget | GadgetType.WDragging,
+                TransparentBackground = true,
+                GadgetId = SYSGAD_DRAG,
+                Activation = GadgetActivation.TopBorder | GadgetActivation.RightBorder | GadgetActivation.LeftBorder
+            };
         }
 
-        private void AddSystemGadgets(Window win)
+        if ((win.WindowFlags & WindowFlags.CloseGadget) == WindowFlags.CloseGadget)
         {
-            if ((win.WindowFlags & WindowFlags.DragBar) == WindowFlags.DragBar)
+            Gadget closeGadget = new Gadget(this, win)
             {
-                _ = new Gadget(this, win)
-                {
-                    LeftEdge = 0,
-                    TopEdge = 0,
-                    Width = 0,
-                    Height = sysGadgetHeight,
-                    Flags = GadgetFlags.RelWidth,
-                    GadgetType = GadgetType.SysGadget | GadgetType.BoolGadget | GadgetType.WDragging,
-                    TransparentBackground = true,
-                    GadgetId = SYSGAD_DRAG,
-                    Activation = GadgetActivation.TopBorder | GadgetActivation.RightBorder | GadgetActivation.LeftBorder
-                };
-            }
-
-            if ((win.WindowFlags & WindowFlags.CloseGadget) == WindowFlags.CloseGadget)
-            {
-                Gadget closeGadget = new Gadget(this, win)
-                {
-                    LeftEdge = 0,
-                    TopEdge = 0,
-                    Width = sysGadgetWidth,
-                    Height = sysGadgetHeight,
-                    GadgetType = GadgetType.SysGadget | GadgetType.BoolGadget | GadgetType.Close,
-                    TransparentBackground = true,
-                    Icon = Icons.ENTYPO_ICON_CROSS,
-                    GadgetId = SYSGAD_CLOSE,
-                    Activation = GadgetActivation.RelVerify | GadgetActivation.TopBorder | GadgetActivation.LeftBorder
-                };
-                closeGadget.GadgetUp += CloseGadget_GadgetUp;
-            }
-
-            int gadX = 0;
-
-
-            if ((win.WindowFlags & WindowFlags.DepthGadget) == WindowFlags.DepthGadget)
-            {
-                gadX += sysGadgetWidth;
-                Gadget depthGadget = new Gadget(this, win)
-                {
-                    LeftEdge = -gadX,
-                    TopEdge = 0,
-                    Width = sysGadgetWidth,
-                    Height = sysGadgetHeight,
-                    Flags = GadgetFlags.RelRight,
-                    GadgetType = GadgetType.SysGadget | GadgetType.BoolGadget | GadgetType.WDepth,
-                    TransparentBackground = true,
-                    Icon = Icons.ENTYPO_ICON_DOCUMENTS,
-                    GadgetId = SYSGAD_DEPTH,
-                    Activation = GadgetActivation.RelVerify | GadgetActivation.TopBorder | GadgetActivation.RightBorder
-                };
-                depthGadget.GadgetUp += DepthGadget_GadgetUp;
-            }
-
-            if ((win.WindowFlags & WindowFlags.HasZoom) == WindowFlags.HasZoom)
-            {
-                gadX += sysGadgetWidth;
-                Gadget zoomGadget = new Gadget(this, win)
-                {
-                    LeftEdge = -gadX,
-                    TopEdge = 0,
-                    Width = sysGadgetWidth,
-                    Height = sysGadgetHeight,
-                    Flags = GadgetFlags.RelRight,
-                    GadgetType = GadgetType.SysGadget | GadgetType.BoolGadget | GadgetType.WZoom,
-                    TransparentBackground = true,
-                    Icon = Icons.ENTYPO_ICON_RESIZE_FULL_SCREEN,
-                    GadgetId = SYSGAD_ZOOM,
-                    Activation = GadgetActivation.RelVerify | GadgetActivation.TopBorder | GadgetActivation.RightBorder
-                };
-                zoomGadget.GadgetUp += ZoomGadget_GadgetUp;
-            }
-
-            if ((win.WindowFlags & WindowFlags.SizeGadget) == WindowFlags.SizeGadget)
-            {
-                if ((win.WindowFlags & WindowFlags.SizeBRight) == WindowFlags.SizeBRight)
-                {
-                    win.BorderRight = sysGadgetWidth;
-                }
-                if ((win.WindowFlags & WindowFlags.SizeBBottom) == WindowFlags.SizeBBottom)
-                {
-                    win.BorderBottom = sysGadgetHeight;
-                }
-                _ = new Gadget(this, win)
-                {
-                    LeftEdge = -sysGadgetWidth,
-                    TopEdge = -sysGadgetHeight,
-                    Width = sysGadgetWidth,
-                    Height = sysGadgetHeight,
-                    Flags = GadgetFlags.RelRight | GadgetFlags.RelBottom,
-                    GadgetType = GadgetType.SysGadget | GadgetType.BoolGadget | GadgetType.Sizing,
-                    TransparentBackground = true,
-                    Icon = Icons.ENTYPO_ICON_RETWEET,
-                    GadgetId = SYSGAD_SIZE,
-                    Activation = GadgetActivation.BottomBorder | GadgetActivation.RightBorder
-                };
-            }
+                LeftEdge = 0,
+                TopEdge = 0,
+                Width = sysGadgetWidth,
+                Height = sysGadgetHeight,
+                GadgetType = GadgetType.SysGadget | GadgetType.BoolGadget | GadgetType.Close,
+                TransparentBackground = true,
+                Icon = Icons.ENTYPO_ICON_CROSS,
+                GadgetId = SYSGAD_CLOSE,
+                Activation = GadgetActivation.RelVerify | GadgetActivation.TopBorder | GadgetActivation.LeftBorder
+            };
+            closeGadget.GadgetUp += CloseGadget_GadgetUp;
         }
 
-        private void CloseGadget_GadgetUp(object? sender, EventArgs e)
+        int gadX = 0;
+
+
+        if ((win.WindowFlags & WindowFlags.DepthGadget) == WindowFlags.DepthGadget)
         {
-            if (sender is Gadget gad)
+            gadX += sysGadgetWidth;
+            Gadget depthGadget = new Gadget(this, win)
             {
-                if (gad.Window is Window win)
+                LeftEdge = -gadX,
+                TopEdge = 0,
+                Width = sysGadgetWidth,
+                Height = sysGadgetHeight,
+                Flags = GadgetFlags.RelRight,
+                GadgetType = GadgetType.SysGadget | GadgetType.BoolGadget | GadgetType.WDepth,
+                TransparentBackground = true,
+                Icon = Icons.ENTYPO_ICON_DOCUMENTS,
+                GadgetId = SYSGAD_DEPTH,
+                Activation = GadgetActivation.RelVerify | GadgetActivation.TopBorder | GadgetActivation.RightBorder
+            };
+            depthGadget.GadgetUp += DepthGadget_GadgetUp;
+        }
+
+        if ((win.WindowFlags & WindowFlags.HasZoom) == WindowFlags.HasZoom)
+        {
+            gadX += sysGadgetWidth;
+            Gadget zoomGadget = new Gadget(this, win)
+            {
+                LeftEdge = -gadX,
+                TopEdge = 0,
+                Width = sysGadgetWidth,
+                Height = sysGadgetHeight,
+                Flags = GadgetFlags.RelRight,
+                GadgetType = GadgetType.SysGadget | GadgetType.BoolGadget | GadgetType.WZoom,
+                TransparentBackground = true,
+                Icon = Icons.ENTYPO_ICON_RESIZE_FULL_SCREEN,
+                GadgetId = SYSGAD_ZOOM,
+                Activation = GadgetActivation.RelVerify | GadgetActivation.TopBorder | GadgetActivation.RightBorder
+            };
+            zoomGadget.GadgetUp += ZoomGadget_GadgetUp;
+        }
+
+        if ((win.WindowFlags & WindowFlags.SizeGadget) == WindowFlags.SizeGadget)
+        {
+            if ((win.WindowFlags & WindowFlags.SizeBRight) == WindowFlags.SizeBRight)
+            {
+                win.BorderRight = sysGadgetWidth;
+            }
+            if ((win.WindowFlags & WindowFlags.SizeBBottom) == WindowFlags.SizeBBottom)
+            {
+                win.BorderBottom = sysGadgetHeight;
+            }
+            _ = new Gadget(this, win)
+            {
+                LeftEdge = -sysGadgetWidth,
+                TopEdge = -sysGadgetHeight,
+                Width = sysGadgetWidth,
+                Height = sysGadgetHeight,
+                Flags = GadgetFlags.RelRight | GadgetFlags.RelBottom,
+                GadgetType = GadgetType.SysGadget | GadgetType.BoolGadget | GadgetType.Sizing,
+                TransparentBackground = true,
+                Icon = Icons.ENTYPO_ICON_RETWEET,
+                GadgetId = SYSGAD_SIZE,
+                Activation = GadgetActivation.BottomBorder | GadgetActivation.RightBorder
+            };
+        }
+    }
+
+    private void CloseGadget_GadgetUp(object? sender, EventArgs e)
+    {
+        if (sender is Gadget gad)
+        {
+            if (gad.Window is Window win)
+            {
+                win.RaiseWindowClose();
+            }
+        }
+    }
+
+    private void ZoomGadget_GadgetUp(object? sender, EventArgs e)
+    {
+        if (sender is Gadget gad)
+        {
+            if (gad.Window is Window win)
+            {
+                win.Zip();
+                gad.Icon = win.Zoomed ? Icons.ENTYPO_ICON_RESIZE_100_PERCENT : Icons.ENTYPO_ICON_RESIZE_FULL_SCREEN;
+            }
+        }
+    }
+
+    private void DepthGadget_GadgetUp(object? sender, EventArgs e)
+    {
+        if (sender is Gadget gad)
+        {
+            if (gad.Window is Window win)
+            {
+                if (win.IsFrontWindow)
                 {
-                    win.RaiseWindowClose();
+                    win.ToBack();
+                }
+                else
+                {
+                    win.ToFront();
                 }
             }
         }
-
-        private void ZoomGadget_GadgetUp(object? sender, EventArgs e)
+    }
+    private static void CheckAndClear(ref Screen? screen, Screen test)
+    {
+        if (screen != null && screen == test)
         {
-            if (sender is Gadget gad)
-            {
-                if (gad.Window is Window win)
-                {
-                    win.Zip();
-                    gad.Icon = win.Zoomed ? Icons.ENTYPO_ICON_RESIZE_100_PERCENT : Icons.ENTYPO_ICON_RESIZE_FULL_SCREEN;
-                }
-            }
+            screen = null;
         }
+    }
 
-        private void DepthGadget_GadgetUp(object? sender, EventArgs e)
+    private static void CheckAndClear(ref Window? window, Window test)
+    {
+        if (window != null && window == test)
         {
-            if (sender is Gadget gad)
-            {
-                if (gad.Window is Window win)
-                {
-                    if (win.IsFrontWindow)
-                    {
-                        win.ToBack();
-                    }
-                    else
-                    {
-                        win.ToFront();
-                    }
-                }
-            }
+            window = null;
         }
-        private static void CheckAndClear(ref Screen? screen, Screen test)
-        {
-            if (screen != null && screen == test)
-            {
-                screen = null;
-            }
-        }
+    }
 
-        private static void CheckAndClear(ref Window? window, Window test)
+    private static void CheckAndClear(ref Gadget? gadget, Window test)
+    {
+        if (gadget != null && gadget.Window == test)
         {
-            if (window != null && window == test)
-            {
-                window = null;
-            }
+            gadget = null;
         }
+    }
 
-        private static void CheckAndClear(ref Gadget? gadget, Window test)
+    private static void CheckAndClear(ref Gadget? gadget, Gadget test)
+    {
+        if (gadget != null && gadget == test)
         {
-            if (gadget != null && gadget.Window == test)
-            {
-                gadget = null;
-            }
+            gadget = null;
+        }
+    }
+    private bool CheckWindowDragging(SDLMouseEventArgs e)
+    {
+        if (activeScreen != null &&
+            selectMouseDown &&
+            activeGadget != null &&
+            activeGadget.SysGadgetType == GadgetType.WDragging &&
+            activeGadget.GadgetId == SYSGAD_DRAG &&
+            activeWindow != null &&
+            activeGadget.Window == activeWindow)
+        {
+            activeWindow.MoveWindow(diffMouseX, diffMouseY);
+            e.Handled = true;
+            return true;
         }
 
-        private static void CheckAndClear(ref Gadget? gadget, Gadget test)
+        return false;
+    }
+    private bool CheckWindowSizing(SDLMouseEventArgs e)
+    {
+        if (activeScreen != null &&
+            selectMouseDown &&
+            activeGadget != null &&
+            activeGadget.SysGadgetType == GadgetType.Sizing &&
+            activeGadget.GadgetId == SYSGAD_SIZE &&
+            activeWindow != null &&
+            activeGadget.Window == activeWindow)
         {
-            if (gadget != null && gadget == test)
-            {
-                gadget = null;
-            }
+            activeWindow.SizeWindow(diffMouseX, diffMouseY);
+            return true;
         }
-        private bool CheckWindowDragging(SDLMouseEventArgs e)
+        return false;
+    }
+    private bool CheckGadgetMove(SDLMouseEventArgs e)
+    {
+        bool result = false;
+        if (downGadget == mouseGadget && downGadget != null)
         {
-            if (activeScreen != null &&
-                selectMouseDown &&
-                activeGadget != null &&
-                activeGadget.SysGadgetType == GadgetType.WDragging &&
-                activeGadget.GadgetId == SYSGAD_DRAG &&
-                activeWindow != null &&
-                activeGadget.Window == activeWindow)
-            {
-                activeWindow.MoveWindow(diffMouseX, diffMouseY);
-                e.Handled = true;
-                return true;
-            }
-
-            return false;
+            result |= downGadget.HandleMouseMove(e.X, e.Y);
         }
-        private bool CheckWindowSizing(SDLMouseEventArgs e)
+        else
         {
-            if (activeScreen != null &&
-                selectMouseDown &&
-                activeGadget != null &&
-                activeGadget.SysGadgetType == GadgetType.Sizing &&
-                activeGadget.GadgetId == SYSGAD_SIZE &&
-                activeWindow != null &&
-                activeGadget.Window == activeWindow)
-            {
-                activeWindow.SizeWindow(diffMouseX, diffMouseY);
-                return true;
-            }
-            return false;
-        }
-        private bool CheckGadgetMove(SDLMouseEventArgs e)
-        {
-            bool result = false;
-            if (downGadget == mouseGadget && downGadget != null)
+            if (downGadget != null)
             {
                 result |= downGadget.HandleMouseMove(e.X, e.Y);
             }
-            else
+            if (mouseGadget != null)
             {
-                if (downGadget != null)
-                {
-                    result |= downGadget.HandleMouseMove(e.X, e.Y);
-                }
-                if (mouseGadget != null)
-                {
-                    result |= mouseGadget.HandleMouseMove(e.X, e.Y);
-                }
-            }
-            return result;
-        }
-        private bool CheckGadgetDown(SDLMouseEventArgs e)
-        {
-            bool result = false;
-            if (e.Button == MouseButton.Left)
-            {
-                downGadget = mouseGadget;
-                if (downGadget != null)
-                {
-                    SetSelectedGadget(downGadget);
-                    result |= downGadget.HandleMouseDown(e.X, e.Y, isTimerRepeat: false);
-                }
-            }
-            return result;
-        }
-        private bool CheckGadgetUp(SDLMouseEventArgs e)
-        {
-            bool result = false;
-            if (e.Button == MouseButton.Left)
-            {
-                upGadget = mouseGadget;
-                if (upGadget != null && upGadget == downGadget)
-                {
-                    result |= upGadget.HandleMouseUp(e.X, e.Y);
-                }
-                SetSelectedGadget(null);
-            }
-            return result;
-        }
-
-        private bool CheckGadgetTimer(double time)
-        {
-            if (selectedGadget != null && downGadget != null && selectMouseDown)
-            {
-                if (downGadget.HandleMouseDown(mouseX, mouseY, isTimerRepeat: true))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private void CheckWindowActivationQueue()
-        {
-            if (activationWindows.Count > 0)
-            {
-                Window win = activationWindows.Dequeue();
-                SetActiveWindow(win);
+                result |= mouseGadget.HandleMouseMove(e.X, e.Y);
             }
         }
-
-        private void CheckGadgetActivationQueue()
+        return result;
+    }
+    private bool CheckGadgetDown(SDLMouseEventArgs e)
+    {
+        bool result = false;
+        if (e.Button == MouseButton.Left)
         {
-            if (activationGadgets.Count > 0)
+            downGadget = mouseGadget;
+            if (downGadget != null)
             {
-                Gadget gad = activationGadgets.Peek();
-                if (gad.Window == activeWindow)
-                {
-                    SetActiveGadget(activationGadgets.Dequeue());
-                }
+                SetSelectedGadget(downGadget);
+                result |= downGadget.HandleMouseDown(e.X, e.Y, isTimerRepeat: false);
             }
         }
-
-        private void CheckTimer(double time)
+        return result;
+    }
+    private bool CheckGadgetUp(SDLMouseEventArgs e)
+    {
+        bool result = false;
+        if (e.Button == MouseButton.Left)
         {
-            if (timerTick == 0)
+            upGadget = mouseGadget;
+            if (upGadget != null && upGadget == downGadget)
             {
-                timerTick = EventHelper.GetExpirationTime(time, tickIntervall);
+                result |= upGadget.HandleMouseUp(e.X, e.Y);
             }
-            if (EventHelper.HasExpired(time, timerTick))
+            SetSelectedGadget(null);
+        }
+        return result;
+    }
+
+    private bool CheckGadgetTimer(double time)
+    {
+        if (selectedGadget != null && downGadget != null && selectMouseDown)
+        {
+            if (downGadget.HandleMouseDown(mouseX, mouseY, isTimerRepeat: true))
             {
-                CheckGadgetTimer(time);
-                timerTick = 0;
-            }
-        }
-
-        private bool CheckGadgetKeyDown(SDLKeyEventArgs e)
-        {
-            ActionResult result = ActionResult.None;
-            if (activeGadget != null)
-            {
-                result |= activeGadget.HandleKeyDown(e);
-                if (result == ActionResult.NavigateNext)
-                {
-                    Gadget? next = activeGadget.FindNextGadget();
-                    if (next != null) { ActivateGadget(next); }
-                }
-                else if (result == ActionResult.NavigatePrevious)
-                {
-                    Gadget? prev = activeGadget.FindPrevGadget();
-                    if (prev != null) { ActivateGadget(prev); }
-                }
-                else if (result == ActionResult.GadgetUp)
-                {
-                    //activeGadget.Rai
-                }
-            }
-            return result != ActionResult.None;
-        }
-        private bool CheckGadgetKeyUp(SDLKeyEventArgs e)
-        {
-            ActionResult result = ActionResult.None;
-            if (activeGadget != null)
-            {
-                result |= activeGadget.HandleKeyUp(e);
-            }
-            return result != ActionResult.None;
-        }
-        private bool CheckGadgetTextInput(SDLTextInputEventArgs e)
-        {
-            if (activeGadget != null)
-            {
-                return activeGadget.HandleTextInput(e);
-            }
-            return false;
-        }
-
-        protected internal override void OnKeyDown(SDLKeyEventArgs e)
-        {
-            if (CheckGadgetKeyDown(e)) { e.Handled = true; }
-        }
-
-        protected internal override void OnKeyUp(SDLKeyEventArgs e)
-        {
-            if (CheckGadgetKeyUp(e)) { e.Handled = true; }
-        }
-
-        protected internal override void OnTextInput(SDLTextInputEventArgs e)
-        {
-            if (CheckGadgetTextInput(e)) { e.Handled = true; }
-        }
-
-        private bool CheckHandled(Screen? screen, Window? window, Gadget? gadget)
-        {
-            if (screen == null) return false;
-            if (gadget != null) return true;
-            if (window != null && !window.BackDrop) return true;
-            return false;
-        }
-
-        protected internal override void OnMouseMove(SDLMouseEventArgs e)
-        {
-            UpdateMouse(e.X, e.Y);
-            Screen? screen = FindScreen(mouseX, mouseY);
-            Window? window = screen?.FindWindow(mouseX, mouseY);
-            Gadget? gadget = window?.FindGadget(mouseX, mouseY);
-            SetMouseScreen(screen);
-            SetMouseWindow(window);
-            SetMouseGadget(gadget);
-            e.Handled = CheckHandled(screen, window, gadget);
-            if (CheckWindowDragging(e) || CheckWindowSizing(e) || CheckGadgetMove(e)) { e.Handled = true; }
-        }
-
-        protected internal override void OnMouseButtonDown(SDLMouseEventArgs e)
-        {
-            UpdateMouse(e.X, e.Y);
-            Screen? screen = FindScreen(mouseX, mouseY);
-            Window? window = screen?.FindWindow(mouseX, mouseY);
-            Gadget? gadget = window?.FindGadget(mouseX, mouseY);
-            SetMouseScreen(screen);
-            SetMouseWindow(window);
-            SetMouseGadget(gadget);
-            SetActiveScreen(screen);
-            SetActiveWindow(window);
-            SetActiveGadget(gadget);
-            e.Handled = CheckHandled(screen, window, gadget);
-            if (e.Button == MouseButton.Left) { selectMouseDown = true; }
-            if (CheckGadgetDown(e)) { e.Handled = true; }
-        }
-
-        protected internal override void OnMouseButtonUp(SDLMouseEventArgs e)
-        {
-            UpdateMouse(e.X, e.Y);
-            Screen? screen = FindScreen(mouseX, mouseY);
-            Window? window = screen?.FindWindow(mouseX, mouseY);
-            Gadget? gadget = window?.FindGadget(mouseX, mouseY);
-            SetMouseScreen(screen);
-            SetMouseWindow(window);
-            SetMouseGadget(gadget);
-            e.Handled = CheckHandled(screen, window, gadget);
-            if (e.Button == MouseButton.Left) { selectMouseDown = false; }
-            if (CheckGadgetUp(e)) { e.Handled = true; }
-        }
-
-        private bool UpdateMouse(int x, int y)
-        {
-            if (mouseX != x || mouseY != y)
-            {
-                prevMouseX = mouseX;
-                prevMouseY = mouseY;
-                mouseX = x;
-                mouseY = y;
-                diffMouseX = mouseX - prevMouseX;
-                diffMouseY = mouseY - prevMouseY;
                 return true;
             }
-            return false;
         }
-        private Screen? FindScreen(int mouseX, int mouseY)
+        return false;
+    }
+
+    private void CheckWindowActivationQueue()
+    {
+        if (activationWindows.Count > 0)
         {
-            foreach (Screen screen in screens)
-            {
-                if (screen.Contains(mouseX, mouseY)) { return screen; }
-            }
-            return null;
+            Window win = activationWindows.Dequeue();
+            SetActiveWindow(win);
         }
+    }
 
-        public Screen OpenScreen(bool keepOldScreens = false)
+    private void CheckGadgetActivationQueue()
+    {
+        if (activationGadgets.Count > 0)
         {
-            if (!keepOldScreens)
+            Gadget gad = activationGadgets.Peek();
+            if (gad.Window == activeWindow)
             {
-                while (screens.Count > 0)
-                {
-                    CloseScreen(screens[0]);
-                }
+                SetActiveGadget(activationGadgets.Dequeue());
             }
-            Screen screen = new Screen(this);
-            screen.Width = Width;
-            screen.Height = Height;
-            screens.Add(screen);
-            return screen;
         }
+    }
 
-        public void CloseScreen(Screen s)
+    private void CheckTimer(double time)
+    {
+        if (timerTick == 0)
         {
-            if (screens.Remove(s))
-            {
-                CheckAndClear(ref activeScreen, s);
-                CheckAndClear(ref mouseScreen, s);
-                s.Close();
-            }
+            timerTick = EventHelper.GetExpirationTime(time, tickIntervall);
         }
-
-        public Window OpenWindow(Screen s,
-            int leftEdge = 0,
-            int topEdge = 0,
-            int width = 256,
-            int height = 256,
-            string title = "",
-            int minWidth = 0,
-            int minHeight = 0,
-            bool borderless = false,
-            bool backdrop = false,
-            bool sizing = true,
-            bool dragging = true,
-            bool zooming = true,
-            bool closing = true,
-            bool depth = true)
+        if (EventHelper.HasExpired(time, timerTick))
         {
-            WindowFlags flags = Window.DefaultFlags;
-            if (borderless)
-            {
-                flags |= WindowFlags.Borderless;
-            }
-            if (!sizing)
-            {
-                flags &= ~WindowFlags.SizeGadget;
-                flags &= ~WindowFlags.SizeBBottom;
-                flags &= ~WindowFlags.SizeBRight;
-            }
-            if (!dragging)
-            {
-                flags &= ~WindowFlags.DragBar;
-            }
-            if (!zooming)
-            {
-                flags &= ~WindowFlags.HasZoom;
-            }
-            if (!closing)
-            {
-                flags &= ~WindowFlags.CloseGadget;
-            }
-            if (!depth)
-            {
-                flags &= ~WindowFlags.DepthGadget;
-            }
-            if (backdrop)
-            {
-                flags |= WindowFlags.BackDrop;
-            }
-            Window window = new Window(this, s, flags, title);
-            window.LeftEdge = leftEdge;
-            window.TopEdge = topEdge;
-            window.Width = width;
-            window.Height = height;
-            window.MinWidth = minWidth;
-            window.MinHeight = minHeight;
-            window.WindowId = nextWindowID++;
-            window.SetAlpha(0);
-            AddSystemGadgets(window);
-            if ((window.WindowFlags & WindowFlags.Activate) != 0)
-            {
-                activationWindows.Enqueue(window);
-            }
-            if (useFadeIn) { fadingInWindows.Add(window); }
-            return window;
+            CheckGadgetTimer(time);
+            timerTick = 0;
         }
+    }
 
-        public void CloseWindow(Window window)
+    private bool CheckGadgetKeyDown(SDLKeyEventArgs e)
+    {
+        ActionResult result = ActionResult.None;
+        if (activeGadget != null)
         {
-            if (useFadeOut)
+            result |= activeGadget.HandleKeyDown(e);
+            if (result == ActionResult.NavigateNext)
             {
-                FadeOutWindow(window);
+                Gadget? next = activeGadget.FindNextGadget();
+                if (next != null) { ActivateGadget(next); }
             }
-            else
+            else if (result == ActionResult.NavigatePrevious)
             {
-                ReallyCloseWindow(window);
+                Gadget? prev = activeGadget.FindPrevGadget();
+                if (prev != null) { ActivateGadget(prev); }
             }
-        }
-
-        private void ReallyCloseWindow(Window window)
-        {
-            Screen s = window.Screen;
-            Window? next = s.NextWindow(window);
-            s.RemoveWindow(window);
-            CheckAndClear(ref activeWindow, window);
-            CheckAndClear(ref mouseWindow, window);
-            CheckAndClear(ref activeGadget, window);
-            CheckAndClear(ref mouseGadget, window);
-            CheckAndClear(ref downGadget, window);
-            CheckAndClear(ref upGadget, window);
-            CheckAndClear(ref selectedGadget, window);
-            window.Close();
-            if (next != null) { ActivateWindow(next); }
-        }
-
-        private void FadeOutWindow(Window window)
-        {
-            if (!fadingOutWindows.Contains(window))
+            else if (result == ActionResult.GadgetUp)
             {
-                fadingOutWindows.Add(window);
+                //activeGadget.Rai
             }
         }
-
-        private void CheckFadingOutWindows()
+        return result != ActionResult.None;
+    }
+    private bool CheckGadgetKeyUp(SDLKeyEventArgs e)
+    {
+        ActionResult result = ActionResult.None;
+        if (activeGadget != null)
         {
-            foreach (Window window in fadingOutWindows)
+            result |= activeGadget.HandleKeyUp(e);
+        }
+        return result != ActionResult.None;
+    }
+    private bool CheckGadgetTextInput(SDLTextInputEventArgs e)
+    {
+        if (activeGadget != null)
+        {
+            return activeGadget.HandleTextInput(e);
+        }
+        return false;
+    }
+
+    protected internal override void OnKeyDown(SDLKeyEventArgs e)
+    {
+        if (CheckGadgetKeyDown(e)) { e.Handled = true; }
+    }
+
+    protected internal override void OnKeyUp(SDLKeyEventArgs e)
+    {
+        if (CheckGadgetKeyUp(e)) { e.Handled = true; }
+    }
+
+    protected internal override void OnTextInput(SDLTextInputEventArgs e)
+    {
+        if (CheckGadgetTextInput(e)) { e.Handled = true; }
+    }
+
+    private bool CheckHandled(Screen? screen, Window? window, Gadget? gadget)
+    {
+        if (screen == null) return false;
+        if (gadget != null) return true;
+        if (window != null && !window.BackDrop) return true;
+        return false;
+    }
+
+    protected internal override void OnMouseMove(SDLMouseEventArgs e)
+    {
+        UpdateMouse(e.X, e.Y);
+        Screen? screen = FindScreen(mouseX, mouseY);
+        Window? window = screen?.FindWindow(mouseX, mouseY);
+        Gadget? gadget = window?.FindGadget(mouseX, mouseY);
+        SetMouseScreen(screen);
+        SetMouseWindow(window);
+        SetMouseGadget(gadget);
+        e.Handled = CheckHandled(screen, window, gadget);
+        if (CheckWindowDragging(e) || CheckWindowSizing(e) || CheckGadgetMove(e)) { e.Handled = true; }
+    }
+
+    protected internal override void OnMouseButtonDown(SDLMouseEventArgs e)
+    {
+        UpdateMouse(e.X, e.Y);
+        Screen? screen = FindScreen(mouseX, mouseY);
+        Window? window = screen?.FindWindow(mouseX, mouseY);
+        Gadget? gadget = window?.FindGadget(mouseX, mouseY);
+        SetMouseScreen(screen);
+        SetMouseWindow(window);
+        SetMouseGadget(gadget);
+        SetActiveScreen(screen);
+        SetActiveWindow(window);
+        SetActiveGadget(gadget);
+        e.Handled = CheckHandled(screen, window, gadget);
+        if (e.Button == MouseButton.Left) { selectMouseDown = true; }
+        if (CheckGadgetDown(e)) { e.Handled = true; }
+    }
+
+    protected internal override void OnMouseButtonUp(SDLMouseEventArgs e)
+    {
+        UpdateMouse(e.X, e.Y);
+        Screen? screen = FindScreen(mouseX, mouseY);
+        Window? window = screen?.FindWindow(mouseX, mouseY);
+        Gadget? gadget = window?.FindGadget(mouseX, mouseY);
+        SetMouseScreen(screen);
+        SetMouseWindow(window);
+        SetMouseGadget(gadget);
+        e.Handled = CheckHandled(screen, window, gadget);
+        if (e.Button == MouseButton.Left) { selectMouseDown = false; }
+        if (CheckGadgetUp(e)) { e.Handled = true; }
+    }
+
+    private bool UpdateMouse(int x, int y)
+    {
+        if (mouseX != x || mouseY != y)
+        {
+            prevMouseX = mouseX;
+            prevMouseY = mouseY;
+            mouseX = x;
+            mouseY = y;
+            diffMouseX = mouseX - prevMouseX;
+            diffMouseY = mouseY - prevMouseY;
+            return true;
+        }
+        return false;
+    }
+    private Screen? FindScreen(int mouseX, int mouseY)
+    {
+        foreach (Screen screen in screens)
+        {
+            if (screen.Contains(mouseX, mouseY)) { return screen; }
+        }
+        return null;
+    }
+
+    public Screen OpenScreen(bool keepOldScreens = false)
+    {
+        if (!keepOldScreens)
+        {
+            while (screens.Count > 0)
             {
-                window.DecreaseAlpha(fadeOutSpeed);
-            }
-            int i = 0;
-            while (i < fadingOutWindows.Count)
-            {
-                Window window = fadingOutWindows[i];
-                if (window.Alpha > 0)
-                {
-                    i++;
-                }
-                else
-                {
-                    //SDLLog.Debug(LogCategory.APPLICATION, $"Removing {window} from fade out list ({fadingOutWindows.Count})");
-                    fadingOutWindows.RemoveAt(i);
-                    ReallyCloseWindow(window);
-                    //SDLLog.Debug(LogCategory.APPLICATION, $"Removed {window} from fade out list ({fadingOutWindows.Count})");
-                }
+                CloseScreen(screens[0]);
             }
         }
+        Screen screen = new Screen(this);
+        screen.Width = Width;
+        screen.Height = Height;
+        screens.Add(screen);
+        return screen;
+    }
 
-        private void CheckFadingInWindows()
+    public void CloseScreen(Screen s)
+    {
+        if (screens.Remove(s))
         {
-            foreach (Window window in fadingInWindows)
-            {
-                window.IncreaseAlpha(fadeInSpeed);
-            }
-            int i = 0;
-            while (i < fadingInWindows.Count)
-            {
-                Window window = fadingInWindows[i];
-                if (window.Alpha < 255)
-                {
-                    i++;
-                }
-                else
-                {
-                    fadingInWindows.RemoveAt(i);
-                }
-            }
+            CheckAndClear(ref activeScreen, s);
+            CheckAndClear(ref mouseScreen, s);
+            s.Close();
         }
-        public Gadget AddGadget(Window w,
-            int leftEdge = 0,
-            int topEdge = 0,
-            int width = 100,
-            int height = 50,
-            GadgetFlags flags = GadgetFlags.None,
-            GadgetActivation activation = GadgetActivation.Immediate | GadgetActivation.RelVerify,
-            GadgetType type = GadgetType.BoolGadget,
-            string? text = null,
-            Icons icon = Icons.NONE,
-            bool disabled = false,
-            bool selected = false,
-            bool toggleSelect = false,
-            Action? clickAction = null,
-            string? buffer = null,
-            int gadgetId = -1)
+    }
+
+    public Window OpenWindow(Screen s,
+        int leftEdge = 0,
+        int topEdge = 0,
+        int width = 256,
+        int height = 256,
+        string title = "",
+        int minWidth = 0,
+        int minHeight = 0,
+        bool borderless = false,
+        bool backdrop = false,
+        bool sizing = true,
+        bool dragging = true,
+        bool zooming = true,
+        bool closing = true,
+        bool depth = true)
+    {
+        WindowFlags flags = Window.DefaultFlags;
+        if (borderless)
         {
-            if (topEdge <= 0) { flags |= GadgetFlags.RelBottom; }
-            if (leftEdge <= 0) { flags |= GadgetFlags.RelRight; }
-            if (width <= 0) { flags |= GadgetFlags.RelWidth; }
-            if (height <= 0) { flags |= GadgetFlags.RelHeight; }
-            if (disabled) { flags |= GadgetFlags.Disabled; }
-
-            if (gadgetId < 0) { gadgetId = nextGadgetID++; }
-            else { nextGadgetID = Math.Max(nextGadgetID, gadgetId); }
-
-            if (toggleSelect) { activation |= GadgetActivation.ToggleSelect; }
-            if (selected) { flags |= GadgetFlags.Selected; }
-
-            Gadget gadget = new Gadget(this, w);
-            gadget.LeftEdge = leftEdge;
-            gadget.TopEdge = topEdge;
-            gadget.Width = width;
-            gadget.Height = height;
-            gadget.Flags = flags;
-            gadget.Activation = activation;
-            gadget.GadgetType = type;
-            gadget.GadgetId = gadgetId;
-            gadget.Text = text;
-            gadget.Icon = icon;
-            if (clickAction != null) { gadget.GadgetUp += (s, e) => { clickAction(); }; }
-            if (buffer != null && gadget.IsStrGadget && gadget.StrInfo != null)
-            {
-                gadget.StrInfo.Buffer = buffer;
-            }
-            return gadget;
+            flags |= WindowFlags.Borderless;
         }
-
-        public void RemoveGadget(Window window, Gadget gadget)
+        if (!sizing)
         {
+            flags &= ~WindowFlags.SizeGadget;
+            flags &= ~WindowFlags.SizeBBottom;
+            flags &= ~WindowFlags.SizeBRight;
         }
-
-        public void WindowToFront(Window window)
+        if (!dragging)
         {
-            window.ToFront();
+            flags &= ~WindowFlags.DragBar;
         }
-        public void WindowToBack(Window window)
+        if (!zooming)
         {
-            window.ToBack();
+            flags &= ~WindowFlags.HasZoom;
         }
-
-        public void ActivateWindow(Window window)
+        if (!closing)
+        {
+            flags &= ~WindowFlags.CloseGadget;
+        }
+        if (!depth)
+        {
+            flags &= ~WindowFlags.DepthGadget;
+        }
+        if (backdrop)
+        {
+            flags |= WindowFlags.BackDrop;
+        }
+        Window window = new Window(this, s, flags, title);
+        window.LeftEdge = leftEdge;
+        window.TopEdge = topEdge;
+        window.Width = width;
+        window.Height = height;
+        window.MinWidth = minWidth;
+        window.MinHeight = minHeight;
+        window.WindowId = nextWindowID++;
+        window.SetAlpha(0);
+        AddSystemGadgets(window);
+        if ((window.WindowFlags & WindowFlags.Activate) != 0)
         {
             activationWindows.Enqueue(window);
         }
+        if (useFadeIn) { fadingInWindows.Add(window); }
+        return window;
+    }
 
-        public void ActivateGadget(Gadget gadget)
+    public void CloseWindow(Window window)
+    {
+        if (useFadeOut)
         {
-            activationGadgets.Enqueue(gadget);
+            FadeOutWindow(window);
         }
+        else
+        {
+            ReallyCloseWindow(window);
+        }
+    }
 
-        public void ModifyProp(Gadget gadget, PropFlags flags, int horizPot, int vertPot, int horizBody, int vertBody)
+    private void ReallyCloseWindow(Window window)
+    {
+        Screen s = window.Screen;
+        Window? next = s.NextWindow(window);
+        s.RemoveWindow(window);
+        CheckAndClear(ref activeWindow, window);
+        CheckAndClear(ref mouseWindow, window);
+        CheckAndClear(ref activeGadget, window);
+        CheckAndClear(ref mouseGadget, window);
+        CheckAndClear(ref downGadget, window);
+        CheckAndClear(ref upGadget, window);
+        CheckAndClear(ref selectedGadget, window);
+        window.Close();
+        if (next != null) { ActivateWindow(next); }
+    }
+
+    private void FadeOutWindow(Window window)
+    {
+        if (!fadingOutWindows.Contains(window))
         {
-            gadget.ModifyProp(flags, horizPot, vertPot, horizBody, vertBody);
+            fadingOutWindows.Add(window);
         }
+    }
+
+    private void CheckFadingOutWindows()
+    {
+        foreach (Window window in fadingOutWindows)
+        {
+            window.DecreaseAlpha(fadeOutSpeed);
+        }
+        int i = 0;
+        while (i < fadingOutWindows.Count)
+        {
+            Window window = fadingOutWindows[i];
+            if (window.Alpha > 0)
+            {
+                i++;
+            }
+            else
+            {
+                //SDLLog.Debug(LogCategory.APPLICATION, $"Removing {window} from fade out list ({fadingOutWindows.Count})");
+                fadingOutWindows.RemoveAt(i);
+                ReallyCloseWindow(window);
+                //SDLLog.Debug(LogCategory.APPLICATION, $"Removed {window} from fade out list ({fadingOutWindows.Count})");
+            }
+        }
+    }
+
+    private void CheckFadingInWindows()
+    {
+        foreach (Window window in fadingInWindows)
+        {
+            window.IncreaseAlpha(fadeInSpeed);
+        }
+        int i = 0;
+        while (i < fadingInWindows.Count)
+        {
+            Window window = fadingInWindows[i];
+            if (window.Alpha < 255)
+            {
+                i++;
+            }
+            else
+            {
+                fadingInWindows.RemoveAt(i);
+            }
+        }
+    }
+    public Gadget AddGadget(Window w,
+        int leftEdge = 0,
+        int topEdge = 0,
+        int width = 100,
+        int height = 50,
+        GadgetFlags flags = GadgetFlags.None,
+        GadgetActivation activation = GadgetActivation.Immediate | GadgetActivation.RelVerify,
+        GadgetType type = GadgetType.BoolGadget,
+        string? text = null,
+        Icons icon = Icons.NONE,
+        bool disabled = false,
+        bool selected = false,
+        bool toggleSelect = false,
+        Action? clickAction = null,
+        string? buffer = null,
+        int gadgetId = -1)
+    {
+        if (topEdge <= 0) { flags |= GadgetFlags.RelBottom; }
+        if (leftEdge <= 0) { flags |= GadgetFlags.RelRight; }
+        if (width <= 0) { flags |= GadgetFlags.RelWidth; }
+        if (height <= 0) { flags |= GadgetFlags.RelHeight; }
+        if (disabled) { flags |= GadgetFlags.Disabled; }
+
+        if (gadgetId < 0) { gadgetId = nextGadgetID++; }
+        else { nextGadgetID = Math.Max(nextGadgetID, gadgetId); }
+
+        if (toggleSelect) { activation |= GadgetActivation.ToggleSelect; }
+        if (selected) { flags |= GadgetFlags.Selected; }
+
+        Gadget gadget = new Gadget(this, w);
+        gadget.LeftEdge = leftEdge;
+        gadget.TopEdge = topEdge;
+        gadget.Width = width;
+        gadget.Height = height;
+        gadget.Flags = flags;
+        gadget.Activation = activation;
+        gadget.GadgetType = type;
+        gadget.GadgetId = gadgetId;
+        gadget.Text = text;
+        gadget.Icon = icon;
+        if (clickAction != null) { gadget.GadgetUp += (s, e) => { clickAction(); }; }
+        if (buffer != null && gadget.IsStrGadget && gadget.StrInfo != null)
+        {
+            gadget.StrInfo.Buffer = buffer;
+        }
+        return gadget;
+    }
+
+    public void RemoveGadget(Window window, Gadget gadget)
+    {
+    }
+
+    public void WindowToFront(Window window)
+    {
+        window.ToFront();
+    }
+    public void WindowToBack(Window window)
+    {
+        window.ToBack();
+    }
+
+    public void ActivateWindow(Window window)
+    {
+        activationWindows.Enqueue(window);
+    }
+
+    public void ActivateGadget(Gadget gadget)
+    {
+        activationGadgets.Enqueue(gadget);
+    }
+
+    public void ModifyProp(Gadget gadget, PropFlags flags, int horizPot, int vertPot, int horizBody, int vertBody)
+    {
+        gadget.ModifyProp(flags, horizPot, vertPot, horizBody, vertBody);
     }
 }

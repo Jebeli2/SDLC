@@ -1,20 +1,18 @@
-﻿namespace SDLC
+﻿// Copyright © 2021 Jean Pascal Bellot. All Rights Reserved.
+// Licensed under the GNU General Public License.
+
+namespace SDLC;
+
+using System;
+
+public class SDLHandledEventArgs : EventArgs
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
+    private bool handled;
 
-    public class SDLHandledEventArgs : EventArgs
+    public bool Handled
     {
-        private bool handled;
-
-        public bool Handled
-        {
-            get => handled;
-            set => handled = value;
-        }
-
+        get => handled;
+        set => handled = value;
     }
+
 }

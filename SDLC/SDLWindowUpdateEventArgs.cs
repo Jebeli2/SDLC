@@ -1,32 +1,29 @@
-﻿namespace SDLC
+﻿// Copyright © 2021 Jean Pascal Bellot. All Rights Reserved.
+// Licensed under the GNU General Public License.
+
+namespace SDLC;
+
+using System;
+
+public class SDLWindowUpdateEventArgs : EventArgs
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
+    private double totalTime;
+    private double elapsedTime;
 
-    public class SDLWindowUpdateEventArgs : EventArgs
+    public SDLWindowUpdateEventArgs(double totalTime, double elapsedTime)
     {
-        private double totalTime;
-        private double elapsedTime;
-
-        public SDLWindowUpdateEventArgs(double totalTime, double elapsedTime)
-        {
-            this.totalTime = totalTime;
-            this.elapsedTime = elapsedTime;
-        }
-
-        public double TotalTime => totalTime;
-        public double ElapsedTime => elapsedTime;
-
-        internal void Update(double totalTime, double elapsedTime)
-        {
-            this.totalTime = totalTime;
-            this.elapsedTime = elapsedTime;
-        }
+        this.totalTime = totalTime;
+        this.elapsedTime = elapsedTime;
     }
 
-    public delegate void SDLWindowUpdateEventHandler(object sender, SDLWindowUpdateEventArgs e);
+    public double TotalTime => totalTime;
+    public double ElapsedTime => elapsedTime;
 
+    internal void Update(double totalTime, double elapsedTime)
+    {
+        this.totalTime = totalTime;
+        this.elapsedTime = elapsedTime;
+    }
 }
+
+public delegate void SDLWindowUpdateEventHandler(object sender, SDLWindowUpdateEventArgs e);

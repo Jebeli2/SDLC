@@ -1,41 +1,36 @@
-﻿namespace SDLC.Applets
+﻿// Copyright © 2021 Jean Pascal Bellot. All Rights Reserved.
+// Licensed under the GNU General Public License.
+
+namespace SDLC.Applets;
+public class BackgroundImage : SDLApplet
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-
-    public class BackgroundImage : SDLApplet
+    private SDLTexture? image;
+    public BackgroundImage() : base("Background Image")
     {
-        private SDLTexture? image;
-        public BackgroundImage() : base("Background Image")
-        {
-            RenderPrio = -1000;
-            noInput = true;
-        }
+        RenderPrio = -1000;
+        noInput = true;
+    }
 
-        public SDLTexture? Image
+    public SDLTexture? Image
+    {
+        get => image;
+        set
         {
-            get => image;
-            set
+            if (image != value)
             {
-                if (image != value)
-                {
-                    image?.Dispose();
-                    image = value;
-                }
+                image?.Dispose();
+                image = value;
             }
         }
+    }
 
-        protected override void OnWindowPaint(SDLWindowPaintEventArgs e)
-        {
-            e.Renderer.DrawTexture(image);
-        }
+    protected override void OnWindowPaint(SDLWindowPaintEventArgs e)
+    {
+        e.Renderer.DrawTexture(image);
+    }
 
-        protected override void OnDispose()
-        {
-            image?.Dispose();
-        }
+    protected override void OnDispose()
+    {
+        image?.Dispose();
     }
 }

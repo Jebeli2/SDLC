@@ -1,21 +1,17 @@
-﻿namespace SDLC
+﻿// Copyright © 2021 Jean Pascal Bellot. All Rights Reserved.
+// Licensed under the GNU General Public License.
+
+namespace SDLC;
+
+using System;
+
+public class SDLMusicEventArgs : EventArgs
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-
-    public class SDLMusicEventArgs : EventArgs
+    private readonly SDLMusic music;
+    public SDLMusicEventArgs(SDLMusic music)
     {
-        private readonly SDLMusic music;
-        public SDLMusicEventArgs(SDLMusic music)
-        {
-            this.music = music;
-        }
-
-        public SDLMusic Music => music;
+        this.music = music;
     }
 
-
+    public SDLMusic Music => music;
 }

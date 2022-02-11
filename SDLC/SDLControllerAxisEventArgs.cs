@@ -1,29 +1,25 @@
-﻿namespace SDLC
+﻿// Copyright © 2021 Jean Pascal Bellot. All Rights Reserved.
+// Licensed under the GNU General Public License.
+
+namespace SDLC;
+using System.Numerics;
+
+public class SDLControllerAxisEventArgs : SDLControllerEventArgs
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Numerics;
-    using System.Text;
-    using System.Threading.Tasks;
-
-    public class SDLControllerAxisEventArgs : SDLControllerEventArgs
+    private readonly ControllerAxis axis;
+    private readonly int axisValue;
+    private readonly Vector2 direction;
+    public SDLControllerAxisEventArgs(SDLController controller, ControllerAxis axis, int axisValue, Vector2 direction)
+        : base(controller)
     {
-        private readonly ControllerAxis axis;
-        private readonly int axisValue;
-        private readonly Vector2 direction;
-        public SDLControllerAxisEventArgs(SDLController controller, ControllerAxis axis, int axisValue, Vector2 direction)
-            : base(controller)
-        {
-            this.axis = axis;
-            this.axisValue = axisValue;
-            this.direction = direction;
-        }
-
-        public ControllerAxis Axis => axis;
-        public int AxisValue => axisValue;
-        public Vector2 Direction => direction;
+        this.axis = axis;
+        this.axisValue = axisValue;
+        this.direction = direction;
     }
 
-    public delegate void SDLControllerAxisEventHandler(object sender, SDLControllerAxisEventArgs e);
+    public ControllerAxis Axis => axis;
+    public int AxisValue => axisValue;
+    public Vector2 Direction => direction;
 }
+
+public delegate void SDLControllerAxisEventHandler(object sender, SDLControllerAxisEventArgs e);

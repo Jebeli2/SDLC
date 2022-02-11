@@ -1,247 +1,243 @@
-﻿namespace SDLC.GUI
+﻿// Copyright © 2021 Jean Pascal Bellot. All Rights Reserved.
+// Licensed under the GNU General Public License.
+
+namespace SDLC.GUI;
+using System.Drawing;
+
+public class GUIObject : IBox
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Drawing;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
+    protected readonly IGUISystem gui;
+    private int leftEdge;
+    private int topEdge;
+    private int width;
+    private int height;
+    private int borderTop;
+    private int borderLeft;
+    private int borderRight;
+    private int borderBottom;
+    private int minWidth;
+    private int minHeight;
+    private int maxWidth;
+    private int maxHeight;
+    private string? text;
 
-    public class GUIObject : IBox
+    protected GUIObject(IGUISystem gui)
     {
-        protected readonly IGUISystem gui;
-        private int leftEdge;
-        private int topEdge;
-        private int width;
-        private int height;
-        private int borderTop;
-        private int borderLeft;
-        private int borderRight;
-        private int borderBottom;
-        private int minWidth;
-        private int minHeight;
-        private int maxWidth;
-        private int maxHeight;
-        private string? text;
-
-        protected GUIObject(IGUISystem gui)
+        this.gui = gui;
+    }
+    public string? Text
+    {
+        get => text;
+        set
         {
-            this.gui = gui;
-        }
-        public string? Text
-        {
-            get => text;
-            set
+            if (!string.Equals(text, value))
             {
-                if (!string.Equals(text, value))
-                {
-                    SetText(value);
-                    Invalidate();
-                }
+                SetText(value);
+                Invalidate();
             }
         }
+    }
 
-        public virtual void SetText(string? text)
-        {
-            this.text = text;
-        }
+    public virtual void SetText(string? text)
+    {
+        this.text = text;
+    }
 
-        public int LeftEdge
+    public int LeftEdge
+    {
+        get => leftEdge;
+        set
         {
-            get => leftEdge;
-            set
+            if (leftEdge != value)
             {
-                if (leftEdge != value)
-                {
-                    SetDimensions(value, topEdge, width, height);
-                }
+                SetDimensions(value, topEdge, width, height);
             }
         }
+    }
 
-        public int TopEdge
+    public int TopEdge
+    {
+        get => topEdge;
+        set
         {
-            get => topEdge;
-            set
+            if (topEdge != value)
             {
-                if (topEdge != value)
-                {
-                    SetDimensions(leftEdge, value, width, height);
-                }
+                SetDimensions(leftEdge, value, width, height);
             }
         }
-        public int Width
+    }
+    public int Width
+    {
+        get => width;
+        set
         {
-            get => width;
-            set
+            if (width != value)
             {
-                if (width != value)
-                {
-                    SetDimensions(leftEdge, topEdge, value, height);
-                }
+                SetDimensions(leftEdge, topEdge, value, height);
             }
         }
+    }
 
-        public int Height
+    public int Height
+    {
+        get => height;
+        set
         {
-            get => height;
-            set
+            if (height != value)
             {
-                if (height != value)
-                {
-                    SetDimensions(leftEdge, topEdge, width, value);
-                }
+                SetDimensions(leftEdge, topEdge, width, value);
             }
         }
+    }
 
-        public int BorderLeft
+    public int BorderLeft
+    {
+        get => borderLeft;
+        set
         {
-            get => borderLeft;
-            set
+            if (borderLeft != value)
             {
-                if (borderLeft != value)
-                {
-                    SetBorders(value, borderTop, borderRight, borderBottom);
-                }
+                SetBorders(value, borderTop, borderRight, borderBottom);
             }
         }
-        public int BorderTop
+    }
+    public int BorderTop
+    {
+        get => borderTop;
+        set
         {
-            get => borderTop;
-            set
+            if (borderTop != value)
             {
-                if (borderTop != value)
-                {
-                    SetBorders(borderLeft, value, borderRight, borderBottom);
-                }
+                SetBorders(borderLeft, value, borderRight, borderBottom);
             }
         }
-        public int BorderRight
+    }
+    public int BorderRight
+    {
+        get => borderRight;
+        set
         {
-            get => borderRight;
-            set
+            if (borderRight != value)
             {
-                if (borderRight != value)
-                {
-                    SetBorders(borderLeft, borderTop, value, borderBottom);
-                }
+                SetBorders(borderLeft, borderTop, value, borderBottom);
             }
         }
-        public int BorderBottom
+    }
+    public int BorderBottom
+    {
+        get => borderBottom;
+        set
         {
-            get => borderBottom;
-            set
+            if (borderBottom != value)
             {
-                if (borderBottom != value)
-                {
-                    SetBorders(borderLeft, borderTop, borderRight, value);
-                }
+                SetBorders(borderLeft, borderTop, borderRight, value);
             }
         }
+    }
 
-        public int MinWidth
+    public int MinWidth
+    {
+        get => minWidth;
+        set
         {
-            get => minWidth;
-            set
+            if (minWidth != value)
             {
-                if (minWidth != value)
-                {
-                    SetMinSize(value, minHeight);
-                }
+                SetMinSize(value, minHeight);
             }
         }
+    }
 
-        public int MinHeight
+    public int MinHeight
+    {
+        get => minHeight;
+        set
         {
-            get => minHeight;
-            set
+            if (minHeight != value)
             {
-                if (minHeight != value)
-                {
-                    SetMinSize(minWidth, value);
-                }
+                SetMinSize(minWidth, value);
             }
         }
+    }
 
-        public int MaxWidth
+    public int MaxWidth
+    {
+        get => maxWidth;
+        set
         {
-            get => maxWidth;
-            set
+            if (maxWidth != value)
             {
-                if (maxWidth != value)
-                {
-                    SetMaxSize(value, maxHeight);
-                }
+                SetMaxSize(value, maxHeight);
             }
         }
+    }
 
-        public int MaxHeight
+    public int MaxHeight
+    {
+        get => maxHeight;
+        set
         {
-            get => maxHeight;
-            set
+            if (maxHeight != value)
             {
-                if (maxHeight != value)
-                {
-                    maxHeight = value;
-                }
+                maxHeight = value;
             }
         }
+    }
 
-        protected virtual void Invalidate()
-        {
-
-        }
-        public virtual Rectangle GetBounds()
-        {
-            return new Rectangle(leftEdge, topEdge, width, height);
-        }
-
-        public Rectangle GetInnerBounds()
-        {
-            Rectangle rect = GetBounds();
-            rect.X += borderLeft;
-            rect.Y += borderTop;
-            rect.Width -= (borderLeft + borderRight);
-            rect.Height -= (borderTop + borderBottom);
-            return rect;
-        }
-
-        public void SetDimensions(Rectangle rect)
-        {
-            SetDimensions(rect.X, rect.Y, rect.Width, rect.Height);
-        }
-
-        public virtual void SetDimensions(int x, int y, int w, int h)
-        {
-            leftEdge = x;
-            topEdge = y;
-            width = w;
-            height = h;
-        }
-
-        public virtual void SetBorders(int left, int top, int right, int bottom)
-        {
-            borderLeft = left;
-            borderTop = top;
-            borderRight = right;
-            borderBottom = bottom;
-        }
-
-        public virtual void SetMinSize(int minWidth, int minHeight)
-        {
-            this.minWidth = minWidth;
-            this.minHeight = minHeight;
-        }
-
-        public virtual void SetMaxSize(int maxWidth, int maxHeight)
-        {
-            this.maxWidth = maxWidth;
-            this.maxHeight = maxHeight;
-        }
-
-        public bool Contains(int x, int y)
-        {
-            return GetBounds().Contains(x, y);            
-        }
+    protected virtual void Invalidate()
+    {
 
     }
+    public virtual Rectangle GetBounds()
+    {
+        return new Rectangle(leftEdge, topEdge, width, height);
+    }
+
+    public Rectangle GetInnerBounds()
+    {
+        Rectangle rect = GetBounds();
+        rect.X += borderLeft;
+        rect.Y += borderTop;
+        rect.Width -= (borderLeft + borderRight);
+        rect.Height -= (borderTop + borderBottom);
+        return rect;
+    }
+
+    public void SetDimensions(Rectangle rect)
+    {
+        SetDimensions(rect.X, rect.Y, rect.Width, rect.Height);
+    }
+
+    public virtual void SetDimensions(int x, int y, int w, int h)
+    {
+        leftEdge = x;
+        topEdge = y;
+        width = w;
+        height = h;
+    }
+
+    public virtual void SetBorders(int left, int top, int right, int bottom)
+    {
+        borderLeft = left;
+        borderTop = top;
+        borderRight = right;
+        borderBottom = bottom;
+    }
+
+    public virtual void SetMinSize(int minWidth, int minHeight)
+    {
+        this.minWidth = minWidth;
+        this.minHeight = minHeight;
+    }
+
+    public virtual void SetMaxSize(int maxWidth, int maxHeight)
+    {
+        this.maxWidth = maxWidth;
+        this.maxHeight = maxHeight;
+    }
+
+    public bool Contains(int x, int y)
+    {
+        return GetBounds().Contains(x, y);
+    }
+
 }

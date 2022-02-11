@@ -1,23 +1,17 @@
-﻿namespace SDLC
+﻿// Copyright © 2021 Jean Pascal Bellot. All Rights Reserved.
+// Licensed under the GNU General Public License.
+
+namespace SDLC;
+public class SDLTextInputEventArgs : SDLHandledEventArgs
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-
-    public class SDLTextInputEventArgs : SDLHandledEventArgs
+    private readonly string text;
+    public SDLTextInputEventArgs(string text)
     {
-        private readonly string text;
-        public SDLTextInputEventArgs(string text)
-        {
-            this.text = text;
-        }
-
-        public string Text => text;
-
+        this.text = text;
     }
 
-    public delegate void SDLTextInputEventHandler(object sender, SDLTextInputEventArgs e);
+    public string Text => text;
 
 }
+
+public delegate void SDLTextInputEventHandler(object sender, SDLTextInputEventArgs e);
