@@ -11,6 +11,7 @@
     {
         private static readonly SDL_LogOutputFunction logFunc = LogOutputFunc;
         private static bool logToConsole = true;
+        private static LogPriority logPriority;
 
         public static bool LogToConsole
         {
@@ -20,6 +21,7 @@
 
         public static void InitializeLog(LogPriority prio)
         {
+            logPriority = prio;
             SDL_LogSetOutputFunction(logFunc, IntPtr.Zero);
             SDL_LogSetAllPriority(prio);
         }
@@ -29,38 +31,175 @@
             SDL_LogSetOutputFunction(IntPtr.Zero, IntPtr.Zero);
             SDL_LogResetPriorities();
         }
+
+        public static bool WillLog(LogCategory cat, LogPriority prio)
+        {
+            if (prio >= logPriority)
+            {
+                return true;
+            }
+            return false;
+        }
         public static void Log(LogCategory cat, LogPriority prio, string msg)
         {
+            if (!WillLog(cat, prio)) return;
             SDL_LogMessage((int)cat, prio, msg);
         }
-        public static void Log(LogPriority prio, string msg)
+        public static void Log(LogCategory cat, LogPriority prio, string format, object? arg0)
         {
-            SDL_LogMessage((int)LogCategory.SDLC, prio, msg);
+            if (!WillLog(cat, prio)) return;
+            SDL_LogMessage((int)cat, prio, string.Format(format, arg0));
+        }
+        public static void Log(LogCategory cat, LogPriority prio, string format, object? arg0, object? arg1)
+        {
+            if (!WillLog(cat, prio)) return;
+            SDL_LogMessage((int)cat, prio, string.Format(format, arg0, arg1));
+        }
+        public static void Log(LogCategory cat, LogPriority prio, string format, object? arg0, object? arg1, object? arg2)
+        {
+            if (!WillLog(cat, prio)) return;
+            SDL_LogMessage((int)cat, prio, string.Format(format, arg0, arg1, arg2));
+        }
+        public static void Log(LogCategory cat, LogPriority prio, string format, object? arg0, object? arg1, object? arg2, object? arg3)
+        {
+            if (!WillLog(cat, prio)) return;
+            SDL_LogMessage((int)cat, prio, string.Format(format, arg0, arg1, arg2, arg3));
+        }
+        public static void Log(LogCategory cat, LogPriority prio, string format, params object?[] args)
+        {
+            if (!WillLog(cat, prio)) return;
+            SDL_LogMessage((int)cat, prio, string.Format(format, args));
         }
         public static void Verbose(LogCategory cat, string msg)
         {
-            SDL_LogVerbose((int)cat, msg);
+            Log(cat, LogPriority.Verbose, msg);
         }
+        public static void Verbose(LogCategory cat, string format, object? arg0)
+        {
+            Log(cat, LogPriority.Verbose, format, arg0);
+        }
+        public static void Verbose(LogCategory cat, string format, object? arg0, object? arg1)
+        {
+            Log(cat, LogPriority.Verbose, format, arg0, arg1);
+        }
+        public static void Verbose(LogCategory cat, string format, object? arg0, object? arg1, object? arg2)
+        {
+            Log(cat, LogPriority.Verbose, format, arg0, arg1, arg2);
+        }
+        public static void Verbose(LogCategory cat, string format, object? arg0, object? arg1, object? arg2, object? arg3)
+        {
+            Log(cat, LogPriority.Verbose, format, arg0, arg1, arg2, arg3);
+        }
+        public static void Verbose(LogCategory cat, string format, params object?[] args)
+        {
+            Log(cat, LogPriority.Verbose, format, args);
+        }
+
         public static void Debug(LogCategory cat, string msg)
         {
-            SDL_LogDebug((int)cat, msg);
+            Log(cat, LogPriority.Debug, msg);
         }
+        public static void Debug(LogCategory cat, string format, object? arg0)
+        {
+            Log(cat, LogPriority.Debug, format, arg0);
+        }
+        public static void Debug(LogCategory cat, string format, object? arg0, object? arg1)
+        {
+            Log(cat, LogPriority.Debug, format, arg0, arg1);
+        }
+        public static void Debug(LogCategory cat, string format, object? arg0, object? arg1, object? arg2)
+        {
+            Log(cat, LogPriority.Debug, format, arg0, arg1, arg2);
+        }
+        public static void Debug(LogCategory cat, string format, params object?[] args)
+        {
+            Log(cat, LogPriority.Debug, format, args);
+        }
+
         public static void Info(LogCategory cat, string msg)
         {
-            SDL_LogInfo((int)cat, msg);
+            Log(cat, LogPriority.Info, msg);
         }
+        public static void Info(LogCategory cat, string format, object? arg0)
+        {
+            Log(cat, LogPriority.Info, format, arg0);
+        }
+        public static void Info(LogCategory cat, string format, object? arg0, object? arg1)
+        {
+            Log(cat, LogPriority.Info, format, arg0, arg1);
+        }
+        public static void Info(LogCategory cat, string format, object? arg0, object? arg1, object? arg2)
+        {
+            Log(cat, LogPriority.Info, format, arg0, arg1, arg2);
+        }
+        public static void Info(LogCategory cat, string format, params object?[] args)
+        {
+            Log(cat, LogPriority.Info, format, args);
+        }
+
         public static void Warn(LogCategory cat, string msg)
         {
-            SDL_LogWarn((int)cat, msg);
+            Log(cat, LogPriority.Warn, msg);
         }
+        public static void Warn(LogCategory cat, string format, object? arg0)
+        {
+            Log(cat, LogPriority.Warn, format, arg0);
+        }
+        public static void Warn(LogCategory cat, string format, object? arg0, object? arg1)
+        {
+            Log(cat, LogPriority.Warn, format, arg0, arg1);
+        }
+        public static void Warn(LogCategory cat, string format, object? arg0, object? arg1, object? arg2)
+        {
+            Log(cat, LogPriority.Warn, format, arg0, arg1, arg2);
+        }
+        public static void Warn(LogCategory cat, string format, params object?[] args)
+        {
+            Log(cat, LogPriority.Warn, format, args);
+        }
+
         public static void Error(LogCategory cat, string msg)
         {
-            SDL_LogError((int)cat, msg);
+            Log(cat, LogPriority.Error, msg);
         }
+        public static void Error(LogCategory cat, string format, object? arg0)
+        {
+            Log(cat, LogPriority.Error, format, arg0);
+        }
+        public static void Error(LogCategory cat, string format, object? arg0, object? arg1)
+        {
+            Log(cat, LogPriority.Error, format, arg0, arg1);
+        }
+        public static void Error(LogCategory cat, string format, object? arg0, object? arg1, object? arg2)
+        {
+            Log(cat, LogPriority.Error, format, arg0, arg1, arg2);
+        }
+        public static void Error(LogCategory cat, string format, params object?[] args)
+        {
+            Log(cat, LogPriority.Error, format, args);
+        }
+
         public static void Critical(LogCategory cat, string msg)
         {
-            SDL_LogCritical((int)cat, msg);
+            Log(cat, LogPriority.Critical, msg);
         }
+        public static void Critical(LogCategory cat, string format, object? arg0)
+        {
+            Log(cat, LogPriority.Critical, format, arg0);
+        }
+        public static void Critical(LogCategory cat, string format, object? arg0, object? arg1)
+        {
+            Log(cat, LogPriority.Critical, format, arg0, arg1);
+        }
+        public static void Critical(LogCategory cat, string format, object? arg0, object? arg1, object? arg2)
+        {
+            Log(cat, LogPriority.Critical, format, arg0, arg1, arg2);
+        }
+        public static void Critical(LogCategory cat, string format, params object?[] args)
+        {
+            Log(cat, LogPriority.Critical, format, args);
+        }
+
         private static void LogOutputFunc(IntPtr userData, int category, LogPriority priority, IntPtr message)
         {
             if (logToConsole)

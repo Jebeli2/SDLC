@@ -110,10 +110,10 @@
                 case SDL_WindowEventID.MAXIMIZED: window.RaiseWindowMaximized(); break;
                 case SDL_WindowEventID.MINIMIZED: window.RaiseWindowMinimized(); break;
                 case SDL_WindowEventID.MOVED: window.RaiseWindowMoved(evt.data1, evt.data2); break;
-                case SDL_WindowEventID.RESIZED: window.RaiseWindowResized(evt.data1, evt.data2); break;
+                case SDL_WindowEventID.RESIZED: window.RaiseWindowResized(evt.data1, evt.data2, WindowResizeSource.Resized); break;
                 case SDL_WindowEventID.RESTORED: window.RaiseWindowRestored(); break;
                 case SDL_WindowEventID.SHOWN: window.RaiseWindowShown(); break;
-                case SDL_WindowEventID.SIZE_CHANGED: window.RaiseWindowSizeChanged(evt.data1, evt.data2); break;
+                case SDL_WindowEventID.SIZE_CHANGED: window.RaiseWindowResized(evt.data1, evt.data2, WindowResizeSource.SizeChanged); break;
                 case SDL_WindowEventID.TAKE_FOCUS: window.RaiseWindowTakeFocus(); break;
             }
         }
@@ -221,7 +221,7 @@
                     controller.Window = SDLApplication.MainWindow;
                     controller.Name = Marshal.PtrToStringUTF8(SDL_GameControllerName(handle));
                     controllers.Add(controller);
-                    SDLLog.Info(LogCategory.INPUT, $"SDLController {which} ({controller.Name}) added");
+                    SDLLog.Info(LogCategory.INPUT, "SDLController {0} ({1}) added", which, controller.Name);
                 }
             }
         }
@@ -235,11 +235,11 @@
                 if (controller.Handle != IntPtr.Zero)
                 {
                     SDL_GameControllerClose(controller.Handle);
-                    SDLLog.Info(LogCategory.INPUT, $"SDLController {which} removed");
+                    SDLLog.Info(LogCategory.INPUT, "SDLController {0} removed", which);
                     return;
                 }
             }
-            SDLLog.Warn(LogCategory.INPUT, $"Previously unknown SDLController {which} removed");
+            SDLLog.Warn(LogCategory.INPUT, "Previously unknown SDLController {0} removed", which);
         }
 
         private static SDLController? GetController(int which)

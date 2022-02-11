@@ -61,11 +61,6 @@
             UpdateScreenSize(e.Renderer.Width, e.Renderer.Height);
 
         }
-        protected internal override void OnWindowSizeChanged(SDLWindowSizeEventArgs e)
-        {
-            UpdateScreenSize(e.Width, e.Height);
-        }
-
         protected internal override void OnWindowResized(SDLWindowSizeEventArgs e)
         {
             UpdateScreenSize(e.Width, e.Height);
@@ -124,14 +119,12 @@
             {
                 if (activeScreen != null)
                 {
-                    //activeScreen.Active = false;
-                    SDLLog.Debug(LogCategory.APPLICATION, $"Screen deactivated: {activeScreen}");
+                    SDLLog.Debug(LogCategory.APPLICATION, "Screen deactivated: {0}", activeScreen);
                 }
                 activeScreen = scr;
                 if (activeScreen != null)
                 {
-                    //activeScreen.Active = true;
-                    SDLLog.Debug(LogCategory.APPLICATION, $"Screen activated: {activeScreen}");
+                    SDLLog.Debug(LogCategory.APPLICATION, "Screen activated: {0}", activeScreen);
                 }
             }
         }
@@ -159,13 +152,13 @@
                 if (activeWindow != null)
                 {
                     activeWindow.Active = false;
-                    SDLLog.Debug(LogCategory.APPLICATION, $"Window deactivated: {activeWindow}");
+                    SDLLog.Debug(LogCategory.APPLICATION, "Window deactivated: {0}", activeWindow);
                 }
                 activeWindow = win;
                 if (activeWindow != null)
                 {
                     activeWindow.Active = true;
-                    SDLLog.Debug(LogCategory.APPLICATION, $"Window activated: {activeWindow}");
+                    SDLLog.Debug(LogCategory.APPLICATION, "Window activated: {0}", activeWindow);
                     if (moveWindowToFrontOnActivate)
                     {
                         activeWindow.ToFront();
@@ -196,13 +189,13 @@
                 if (activeGadget != null)
                 {
                     activeGadget.Active = false;
-                    SDLLog.Debug(LogCategory.APPLICATION, $"Gadget deactivated: {activeGadget}");
+                    SDLLog.Debug(LogCategory.APPLICATION, "Gadget deactivated: {0}", activeGadget);
                 }
                 activeGadget = gad;
                 if (activeGadget != null)
                 {
                     activeGadget.Active = true;
-                    SDLLog.Debug(LogCategory.APPLICATION, $"Gadget activated: {activeGadget}");
+                    SDLLog.Debug(LogCategory.APPLICATION, "Gadget activated: {0}", activeGadget);
                 }
             }
         }
@@ -213,13 +206,13 @@
                 if (selectedGadget != null)
                 {
                     selectedGadget.HandleDeselection();
-                    SDLLog.Debug(LogCategory.APPLICATION, $"Gadget deselected: {selectedGadget}");
+                    SDLLog.Debug(LogCategory.APPLICATION, "Gadget deselected: {0}", selectedGadget);
                 }
                 selectedGadget = gad;
                 if (selectedGadget != null)
                 {
                     selectedGadget.HandleSelection();
-                    SDLLog.Debug(LogCategory.APPLICATION, $"Gadget selected: {selectedGadget}");
+                    SDLLog.Debug(LogCategory.APPLICATION, "Gadget selected: {0}", selectedGadget);
                 }
             }
         }
@@ -835,7 +828,7 @@
             GadgetActivation activation = GadgetActivation.Immediate | GadgetActivation.RelVerify,
             GadgetType type = GadgetType.BoolGadget,
             string? text = null,
-            Icons icon= Icons.NONE,
+            Icons icon = Icons.NONE,
             bool disabled = false,
             bool selected = false,
             bool toggleSelect = false,

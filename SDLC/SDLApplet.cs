@@ -133,7 +133,6 @@
         protected virtual void OnWindowPaint(SDLWindowPaintEventArgs e) { }
         protected virtual void OnWindowLoad(SDLWindowLoadEventArgs e) { }
         internal protected virtual void OnWindowMoved(SDLWindowPositionEventArgs e) { }
-        internal protected virtual void OnWindowSizeChanged(SDLWindowSizeEventArgs e) { }
         internal protected virtual void OnWindowResized(SDLWindowSizeEventArgs e) { }
         internal protected virtual void OnMouseButtonDown(SDLMouseEventArgs e) { }
         internal protected virtual void OnMouseButtonUp(SDLMouseEventArgs e) { }

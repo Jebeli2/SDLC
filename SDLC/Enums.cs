@@ -163,12 +163,13 @@
 
     public enum LogPriority
     {
+        None = 0,
         Verbose = 1,
-        Debug,
-        Info,
-        Warn,
-        Error,
-        Critical
+        Debug = 2,
+        Info = 3,
+        Warn = 4,
+        Error = 5,
+        Critical = 6
     }
 
     public enum LogCategory
@@ -201,5 +202,12 @@
     {
         Finished,
         Interrupted
+    }
+
+    public enum WindowResizeSource
+    {
+        SizeChanged,
+        Resized,
+        Detected
     }
 }

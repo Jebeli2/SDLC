@@ -64,7 +64,6 @@
         private static readonly object windowExposedEventKey = new();
         private static readonly object windowMovedEventKey = new();
         private static readonly object windowResizedEventKey = new();
-        private static readonly object windowSizeChangedEventKey = new();
         private static readonly object windowMinimizedEventKey = new();
         private static readonly object windowMaximizedEventKey = new();
         private static readonly object windowRestoredEventKey = new();
@@ -231,10 +230,6 @@
             add => eventHandlerList.AddHandler(windowResizedEventKey, value); remove => eventHandlerList.RemoveHandler(windowResizedEventKey, value);
         }
 
-        public event SDLWindowSizeEventHandler WindowSizeChanged
-        {
-            add => eventHandlerList.AddHandler(windowSizeChangedEventKey, value); remove => eventHandlerList.RemoveHandler(windowSizeChangedEventKey, value);
-        }
         public event SDLWindowUpdateEventHandler WindowUpdate
         {
             add => eventHandlerList.AddHandler(windowUpdateEventKey, value); remove => eventHandlerList.RemoveHandler(windowUpdateEventKey, value);
@@ -901,80 +896,90 @@
                 {
                     SDL_DestroyWindow(handle);
                     handle = IntPtr.Zero;
-                    SDLLog.Info(LogCategory.VIDEO, $"SDLWindow {windowId} destroyed");
+                    SDLLog.Info(LogCategory.VIDEO, "SDLWindow {0} destroyed", windowId);
                 }
                 disposedValue = true;
             }
         }
+
+        private void DetectWindowResized()
+        {
+            SDL_GetWindowSize(handle, out int w, out int h);
+            if (w != width || h != height)
+            {
+                RaiseWindowResized(w, h, WindowResizeSource.Detected);
+            }
+        }
         internal void RaiseWindowShown()
         {
-            SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Shown");
+            SDLLog.Debug(LogCategory.VIDEO, "Window {0} Shown", windowId);
             ForEachEnabledApplet(a => a.OnWindowShown(EventArgs.Empty));
             if (enableEventHandlers) { ((EventHandler?)eventHandlerList[windowShownEventKey])?.Invoke(this, EventArgs.Empty); }
         }
         internal void RaiseWindowHidden()
         {
-            SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Hidden");
+            SDLLog.Debug(LogCategory.VIDEO, "Window {0} Hidden", windowId);
             ForEachEnabledApplet(a => a.OnWindowHidden(EventArgs.Empty));
             if (enableEventHandlers) { ((EventHandler?)eventHandlerList[windowHiddenEventKey])?.Invoke(this, EventArgs.Empty); }
         }
         internal void RaiseWindowExposed()
         {
-            SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Exposed");
+            SDLLog.Debug(LogCategory.VIDEO, "Window {0} Exposed", windowId);
             ForEachEnabledApplet(a => a.OnWindowExposed(EventArgs.Empty));
             if (enableEventHandlers) { ((EventHandler?)eventHandlerList[windowExposedEventKey])?.Invoke(this, EventArgs.Empty); }
+            DetectWindowResized();
         }
         internal void RaiseWindowMinimized()
         {
-            SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Minimized");
+            SDLLog.Debug(LogCategory.VIDEO, "Window {0} Minimized", windowId);
             ForEachEnabledApplet(a => a.OnWindowMinimized(EventArgs.Empty));
             if (enableEventHandlers) { ((EventHandler?)eventHandlerList[windowMinimizedEventKey])?.Invoke(this, EventArgs.Empty); }
         }
         internal void RaiseWindowMaximized()
         {
-            SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Maximized");
+            SDLLog.Debug(LogCategory.VIDEO, "Window {0} Maximized", windowId);
             ForEachEnabledApplet(a => a.OnWindowMaximized(EventArgs.Empty));
             if (enableEventHandlers) { ((EventHandler?)eventHandlerList[windowMaximizedEventKey])?.Invoke(this, EventArgs.Empty); }
         }
         internal void RaiseWindowRestored()
         {
-            SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Restored");
+            SDLLog.Debug(LogCategory.VIDEO, "Window {0} Restored", windowId);
             ForEachEnabledApplet(a => a.OnWindowRestored(EventArgs.Empty));
             if (enableEventHandlers) { ((EventHandler?)eventHandlerList[windowRestoredEventKey])?.Invoke(this, EventArgs.Empty); }
         }
         internal void RaiseWindowEnter()
         {
-            SDLLog.Debug(LogCategory.INPUT, $"Window {windowId} Enter");
+            SDLLog.Debug(LogCategory.INPUT, "Window {0} Enter", windowId);
             ForEachEnabledApplet(a => a.OnWindowEnter(EventArgs.Empty));
             if (enableEventHandlers) { ((EventHandler?)eventHandlerList[windowEnterEventKey])?.Invoke(this, EventArgs.Empty); }
         }
         internal void RaiseWindowLeave()
         {
-            SDLLog.Debug(LogCategory.INPUT, $"Window {windowId} Leave");
+            SDLLog.Debug(LogCategory.INPUT, "Window {0} Leave", windowId);
             ForEachEnabledApplet(a => a.OnWindowLeave(EventArgs.Empty));
             if (enableEventHandlers) { ((EventHandler?)eventHandlerList[windowLeaveEventKey])?.Invoke(this, EventArgs.Empty); }
         }
         internal void RaiseWindowFocusGained()
         {
-            SDLLog.Debug(LogCategory.INPUT, $"Window {windowId} Focus Gained");
+            SDLLog.Debug(LogCategory.INPUT, "Window {0} Focus Gained", windowId);
             ForEachEnabledApplet(a => a.OnWindowFocusGained(EventArgs.Empty));
             if (enableEventHandlers) { ((EventHandler?)eventHandlerList[windowFocusGainedEventKey])?.Invoke(this, EventArgs.Empty); }
         }
         internal void RaiseWindowFocusLost()
         {
-            SDLLog.Debug(LogCategory.INPUT, $"Window {windowId} Focus Lost");
+            SDLLog.Debug(LogCategory.INPUT, "Window {0} Focus Lost", windowId);
             ForEachEnabledApplet(a => a.OnWindowFocusLost(EventArgs.Empty));
             if (enableEventHandlers) { ((EventHandler?)eventHandlerList[windowFocusLostEventKey])?.Invoke(this, EventArgs.Empty); }
         }
         internal void RaiseWindowTakeFocus()
         {
-            SDLLog.Debug(LogCategory.INPUT, $"Window {windowId} Take Focus");
+            SDLLog.Debug(LogCategory.INPUT, "Window {0} Take Focus", windowId);
             ForEachEnabledApplet(a => a.OnWindowTakeFocus(EventArgs.Empty));
             if (enableEventHandlers) { ((EventHandler?)eventHandlerList[windowTakeFocusEventKey])?.Invoke(this, EventArgs.Empty); }
         }
         internal void RaiseWindowClose()
         {
-            SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Close");
+            SDLLog.Debug(LogCategory.VIDEO, "Window {0} Close", windowId);
             ForEachEnabledApplet(a => a.OnWindowClose(EventArgs.Empty));
             if (enableEventHandlers) { ((EventHandler?)eventHandlerList[windowCloseEventKey])?.Invoke(this, EventArgs.Empty); }
             switch (closeOperation)
@@ -991,39 +996,27 @@
         }
         internal void RaiseWindowMoved(int x, int y)
         {
-            SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Moved {x} {y}");
+            SDLLog.Debug(LogCategory.VIDEO, "Window {0} Moved {1} {2}", windowId, x, y);
             this.x = x;
             this.y = y;
-            SDLWindowPositionEventArgs e = new SDLWindowPositionEventArgs(x, y);
+            SDLWindowPositionEventArgs e = new(x, y);
             ForEachEnabledApplet(a => a.OnWindowMoved(e));
             if (enableEventHandlers) { ((SDLWindowPositionEventHandler?)eventHandlerList[windowMovedEventKey])?.Invoke(this, e); }
         }
-        internal void RaiseWindowResized(int width, int height)
+        internal void RaiseWindowResized(int width, int height, WindowResizeSource source)
         {
-            SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Resized {width} {height}");
+            SDLLog.Debug(LogCategory.VIDEO, "Window {0} Resized {1} {2} ({3})", windowId, width, height, source);
             this.width = width;
             this.height = height;
-            SDLWindowSizeEventArgs e = new SDLWindowSizeEventArgs(width, height);
-            renderer.WindowResized(width, height);
+            SDLWindowSizeEventArgs e = new(width, height, source);
+            renderer.WindowResized(width, height, source);
             ForEachEnabledApplet(a => a.OnWindowResized(e));
             if (enableEventHandlers) { ((SDLWindowSizeEventHandler?)eventHandlerList[windowResizedEventKey])?.Invoke(this, e); }
         }
-        internal void RaiseWindowSizeChanged(int width, int height)
-        {
-            SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Size Changed {width} {height}");
-            this.width = width;
-            this.height = height;
-            SDLWindowSizeEventArgs e = new SDLWindowSizeEventArgs(width, height);
-            renderer.WindowResized(width, height);
-            ForEachEnabledApplet(a => a.OnWindowSizeChanged(e));
-            if (enableEventHandlers) { ((SDLWindowSizeEventHandler?)eventHandlerList[windowSizeChangedEventKey])?.Invoke(this, e); }
-        }
-
         internal void RaiseWindowLoad()
         {
-            SDLLog.Debug(LogCategory.VIDEO, $"Window {windowId} Load");
-            SDLWindowLoadEventArgs e = new SDLWindowLoadEventArgs(renderer);
-            //ForEachEnabledApplet(a => a.InternalOnLoad(e));
+            SDLLog.Debug(LogCategory.VIDEO, "Window {0} Load", windowId);
+            SDLWindowLoadEventArgs e = new(renderer);
             if (enableEventHandlers) { ((SDLWindowLoadEventHandler?)eventHandlerList[windowLoadEventKey])?.Invoke(this, e); }
         }
         internal void RaiseWindowUpdate(double totalTime, double elapsedTime)
@@ -1044,10 +1037,10 @@
         internal void RaiseMouseButtonDown(int which, int x, int y, MouseButton button, int clicks, KeyButtonState state)
         {
             ScaleMouse(ref x, ref y);
-            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} Mouse {which} {button} {state} {x} {y}");
+            SDLLog.Verbose(LogCategory.INPUT, $"Window {0} Mouse {1} {2} {3} {4} {5}", windowId, which, button, state, x, y);
             lastButton = button;
             lastState = state;
-            SDLMouseEventArgs e = new SDLMouseEventArgs(which, x, y, button, clicks, state, 0, 0);
+            SDLMouseEventArgs e = new(which, x, y, button, clicks, state, 0, 0);
             InputForEachEnabledApplet(e, a => a.OnMouseButtonDown(e));
             if (enableEventHandlers && !e.Handled) { ((SDLMouseEventHandler?)eventHandlerList[mouseButtonDownEventKey])?.Invoke(this, e); }
         }
@@ -1055,10 +1048,10 @@
         internal void RaiseMouseButtonUp(int which, int x, int y, MouseButton button, int clicks, KeyButtonState state)
         {
             ScaleMouse(ref x, ref y);
-            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} Mouse {which} {button} {state} {x} {y}");
+            SDLLog.Verbose(LogCategory.INPUT, "Window {0} Mouse {1} {2} {3} {4} {5}", windowId, which, button, state, x, y);
             lastButton = button;
             lastState = state;
-            SDLMouseEventArgs e = new SDLMouseEventArgs(which, x, y, button, clicks, state, 0, 0);
+            SDLMouseEventArgs e = new(which, x, y, button, clicks, state, 0, 0);
             InputForEachEnabledApplet(e, a => a.OnMouseButtonUp(e));
             if (enableEventHandlers && !e.Handled) { ((SDLMouseEventHandler?)eventHandlerList[mouseButtonUpEventKey])?.Invoke(this, e); }
         }
@@ -1066,80 +1059,80 @@
         internal void RaiseMouseMove(int which, int x, int y, int relX, int relY)
         {
             ScaleMouse(ref x, ref y);
-            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} Mouse {which} Moved {x} {y} {relX} {relY}");
-            SDLMouseEventArgs e = new SDLMouseEventArgs(which, x, y, lastButton, 0, lastState, relX, relY);
+            SDLLog.Verbose(LogCategory.INPUT, "Window {0} Mouse {1} Moved {2} {3} {4} {5}", windowId, which, x, y, relX, relY);
+            SDLMouseEventArgs e = new(which, x, y, lastButton, 0, lastState, relX, relY);
             InputForEachEnabledApplet(e, a => a.OnMouseMove(e));
             if (enableEventHandlers && !e.Handled) { ((SDLMouseEventHandler?)eventHandlerList[mouseMoveEventKey])?.Invoke(this, e); }
         }
 
         internal void RaiseMouseWheel(int which, int x, int y, float preciseX, float preciseY, MouseWheelDirection direction)
         {
-            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} Mouse {which} Wheel {x} {y} {preciseX} {preciseY} {direction}");
-            SDLMouseWheelEventArgs e = new SDLMouseWheelEventArgs(which, x, y, preciseX, preciseY, direction);
+            SDLLog.Verbose(LogCategory.INPUT, "Window {0} Mouse {1} Wheel {2} {3} {4} {5} {6}", windowId, which, x, y, preciseX, preciseY, direction);
+            SDLMouseWheelEventArgs e = new(which, x, y, preciseX, preciseY, direction);
             InputForEachEnabledApplet(e, a => a.OnMouseWheel(e));
             if (enableEventHandlers && !e.Handled) { ((SDLMouseWheelEventHandler?)eventHandlerList[mouseWheelEventKey])?.Invoke(this, e); }
         }
 
         internal void RaiseKeyDown(ScanCode scanCode, KeyCode keyCode, KeyMod keyMod, KeyButtonState state, bool repeat)
         {
-            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} {scanCode} {keyCode} {keyMod} {state}");
-            SDLKeyEventArgs e = new SDLKeyEventArgs(scanCode, keyCode, keyMod, state, repeat);
+            SDLLog.Verbose(LogCategory.INPUT, "Window {0} {1} {2} {3} {4}", windowId, scanCode, keyCode, keyMod, state);
+            SDLKeyEventArgs e = new(scanCode, keyCode, keyMod, state, repeat);
             InputForEachEnabledApplet(e, a => a.OnKeyDown(e));
             if (enableEventHandlers && !e.Handled) { ((SDLKeyEventHandler?)eventHandlerList[keyDownEventKey])?.Invoke(this, e); }
         }
         internal void RaiseKeyUp(ScanCode scanCode, KeyCode keyCode, KeyMod keyMod, KeyButtonState state, bool repeat)
         {
-            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} {scanCode} {keyCode} {keyMod} {state}");
-            SDLKeyEventArgs e = new SDLKeyEventArgs(scanCode, keyCode, keyMod, state, repeat);
+            SDLLog.Verbose(LogCategory.INPUT, "Window {0} {1} {2} {3} {4}", windowId, scanCode, keyCode, keyMod, state);
+            SDLKeyEventArgs e = new(scanCode, keyCode, keyMod, state, repeat);
             InputForEachEnabledApplet(e, a => a.OnKeyUp(e));
             if (enableEventHandlers && !e.Handled) { ((SDLKeyEventHandler?)eventHandlerList[keyUpEventKey])?.Invoke(this, e); }
         }
         internal void RaiseTextInput(string text)
         {
-            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} Text Input '{text}'");
-            SDLTextInputEventArgs e = new SDLTextInputEventArgs(text);
+            SDLLog.Verbose(LogCategory.INPUT, "Window {0} Text Input '{1}'", windowId, text);
+            SDLTextInputEventArgs e = new(text);
             InputForEachEnabledApplet(e, a => a.OnTextInput(e));
             if (enableEventHandlers && !e.Handled) { ((SDLTextInputEventHandler?)eventHandlerList[textInputEventKey])?.Invoke(this, e); }
         }
         internal void RaiseControllerButtonDown(SDLController controller, ControllerButton button, KeyButtonState state)
         {
-            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} Controller {controller.Which} {button} {state}");
-            SDLControllerButtonEventArgs e = new SDLControllerButtonEventArgs(controller, button, state);
+            SDLLog.Verbose(LogCategory.INPUT, "Window {0} Controller {1} {2} {3}", windowId, controller.Which, button, state);
+            SDLControllerButtonEventArgs e = new(controller, button, state);
             InputForEachEnabledApplet(e, a => a.OnControllerButtonDown(e));
             if (enableEventHandlers && !e.Handled) { ((SDLControllerButtonEventHandler?)eventHandlerList[controllerButtonDownEventKey])?.Invoke(this, e); }
         }
         internal void RaiseControllerButtonUp(SDLController controller, ControllerButton button, KeyButtonState state)
         {
-            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} Controller {controller.Which} {button} {state}");
-            SDLControllerButtonEventArgs e = new SDLControllerButtonEventArgs(controller, button, state);
+            SDLLog.Verbose(LogCategory.INPUT, "Window {0} Controller {1} {2} {3}", windowId, controller.Which, button, state);
+            SDLControllerButtonEventArgs e = new(controller, button, state);
             InputForEachEnabledApplet(e, a => a.OnControllerButtonUp(e));
             if (enableEventHandlers && !e.Handled) { ((SDLControllerButtonEventHandler?)eventHandlerList[controllerButtonUpEventKey])?.Invoke(this, e); }
         }
         internal void RaiseControllerAxisEvent(SDLController controller, ControllerAxis axis, int axisValue, Vector2 direction)
         {
-            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} Controller {controller.Which} {axis} {axisValue} {direction}");
-            SDLControllerAxisEventArgs e = new SDLControllerAxisEventArgs(controller, axis, axisValue, direction);
+            SDLLog.Verbose(LogCategory.INPUT, "Window {0} Controller {1} {2} {3} {4}", windowId, controller.Which, axis, axisValue, direction);
+            SDLControllerAxisEventArgs e = new(controller, axis, axisValue, direction);
             InputForEachEnabledApplet(e, a => a.OnControllerAxis(e));
             if (enableEventHandlers && !e.Handled) { ((SDLControllerAxisEventHandler?)eventHandlerList[controllerAxisEventKey])?.Invoke(this, e); }
         }
         internal void RaiseControllerTouchpadDownEvent(SDLController controller, int touchpad, int finger, float x, float y, float pressure)
         {
-            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} Controller {controller.Which} {touchpad} down {finger} {x} {y} {pressure}");
-            SDLControllerTouchpadEventArgs e = new SDLControllerTouchpadEventArgs(controller, touchpad, finger, x, y, pressure);
+            SDLLog.Verbose(LogCategory.INPUT, "Window {0} Controller {1} {2} {3} down {4} {5} {6}", windowId, controller.Which, touchpad, finger, x, y, pressure);
+            SDLControllerTouchpadEventArgs e = new(controller, touchpad, finger, x, y, pressure);
             InputForEachEnabledApplet(e, a => a.OnControllerTouchpadDown(e));
             if (enableEventHandlers && !e.Handled) { ((SDLControllerTouchpadEventHandler?)eventHandlerList[controllerTouchpadDownEventKey])?.Invoke(this, e); }
         }
         internal void RaiseControllerTouchpadUpEvent(SDLController controller, int touchpad, int finger, float x, float y, float pressure)
         {
-            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} Controller {controller.Which} {touchpad} up {finger} {x} {y} {pressure}");
-            SDLControllerTouchpadEventArgs e = new SDLControllerTouchpadEventArgs(controller, touchpad, finger, x, y, pressure);
+            SDLLog.Verbose(LogCategory.INPUT, "Window {0} Controller {1} {2} {3} up {4} {5} {6}", windowId, controller.Which, touchpad, finger, x, y, pressure);
+            SDLControllerTouchpadEventArgs e = new(controller, touchpad, finger, x, y, pressure);
             InputForEachEnabledApplet(e, a => a.OnControllerTouchpadUp(e));
             if (enableEventHandlers && !e.Handled) { ((SDLControllerTouchpadEventHandler?)eventHandlerList[controllerTouchpadUpEventKey])?.Invoke(this, e); }
         }
         internal void RaiseControllerTouchpadMotionEvent(SDLController controller, int touchpad, int finger, float x, float y, float pressure)
         {
-            SDLLog.Verbose(LogCategory.INPUT, $"Window {windowId} Controller {controller.Which} {touchpad} move {finger} {x} {y} {pressure}");
-            SDLControllerTouchpadEventArgs e = new SDLControllerTouchpadEventArgs(controller, touchpad, finger, x, y, pressure);
+            SDLLog.Verbose(LogCategory.INPUT, "Window {0} Controller {1} {2} {3} move {4} {5} {6}", windowId, controller.Which, touchpad, finger, x, y, pressure);
+            SDLControllerTouchpadEventArgs e = new(controller, touchpad, finger, x, y, pressure);
             InputForEachEnabledApplet(e, a => a.OnControllerTouchpadMove(e));
             if (enableEventHandlers && !e.Handled) { ((SDLControllerTouchpadEventHandler?)eventHandlerList[controllerTouchpadMotionEventKey])?.Invoke(this, e); }
         }
@@ -1164,7 +1157,7 @@
             if (handle != IntPtr.Zero)
             {
                 windowId = SDL_GetWindowID(handle);
-                SDLLog.Info(LogCategory.VIDEO, $"SDLWindow {windowId} created");
+                SDLLog.Info(LogCategory.VIDEO, "SDLWindow {0} created", windowId);
                 renderer.SetBackBufferSize(backBufferWidth, backBufferHeight);
                 renderer.CreateHandle();
                 if (renderer.HandleCreated)
@@ -1178,7 +1171,7 @@
             }
             else
             {
-                SDLLog.Critical(LogCategory.VIDEO, $"Could not create SDLWindow: {SDLApplication.GetError()}");
+                SDLLog.Critical(LogCategory.VIDEO, "Could not create SDLWindow: {0}", SDLApplication.GetError());
             }
         }
 
@@ -1208,10 +1201,6 @@
                 window.screen.Resized(window, e.Width, e.Height);
             }
 
-            protected internal override void OnWindowSizeChanged(SDLWindowSizeEventArgs e)
-            {
-                window.screen.Resized(window, e.Width, e.Height);
-            }
         }
 
 

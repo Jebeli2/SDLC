@@ -34,19 +34,19 @@
 
         public virtual void Hide(IWindow window)
         {
-            SDLLog.Info(LogCategory.APPLICATION, $"Hide Screen {name}");
+            SDLLog.Info(LogCategory.APPLICATION, "Hide Screen {0}", name);
             SetWindow(window);
         }
 
         public virtual void Initialize(IWindow window)
         {
-            SDLLog.Info(LogCategory.APPLICATION, $"Initialize Screen {name}");
+            SDLLog.Info(LogCategory.APPLICATION, "Initialize Screen {0}", name);
             SetWindow(window);
         }
 
         public virtual void Pause(IWindow window)
         {
-            SDLLog.Info(LogCategory.APPLICATION, $"Pause Screen {name}");
+            SDLLog.Info(LogCategory.APPLICATION, "Pause Screen {0}", name);
             SetWindow(window);
         }
 
@@ -56,25 +56,25 @@
 
         public virtual void Resized(IWindow window, int width, int height)
         {
-            SDLLog.Info(LogCategory.APPLICATION, $"Resized Screen {name} ({width}x{height})");
+            SDLLog.Info(LogCategory.APPLICATION, "Resized Screen {0} ({1}x{2})", name, width, height);
             SetWindow(window);
         }
 
         public virtual void Resume(IWindow window)
         {
-            SDLLog.Info(LogCategory.APPLICATION, $"Resume Screen {name}");
+            SDLLog.Info(LogCategory.APPLICATION, "Resume Screen {0}", name);
             SetWindow(window);
         }
 
         public virtual void Show(IWindow window)
         {
-            SDLLog.Info(LogCategory.APPLICATION, $"Show Screen {name}");
+            SDLLog.Info(LogCategory.APPLICATION, "Show Screen {0}", name);
             SetWindow(window);
         }
 
         public virtual void Shutdown(IWindow window)
         {
-            SDLLog.Info(LogCategory.APPLICATION, $"Shutdown Screen {name}");
+            SDLLog.Info(LogCategory.APPLICATION, "Shutdown Screen {0}", name);
             SetWindow(window);
         }
 

@@ -122,7 +122,7 @@
             if (handle != IntPtr.Zero)
             {
                 _ = SDL_GetRendererInfo(handle, out SDL_RendererInfo info);
-                SDLLog.Info(LogCategory.RENDER, $"SDLRenderer {window.WindowId} created: {Marshal.PtrToStringUTF8(info.name)} ({info.max_texture_width}x{info.max_texture_height} max texture size)");
+                SDLLog.Info(LogCategory.RENDER, "SDLRenderer {0} created: {1} ({2}x{3} max texture size)", window.WindowId, Marshal.PtrToStringUTF8(info.name), info.max_texture_width, info.max_texture_height);
                 backBufferWidth = window.BackBufferWidth;
                 backBufferHeight = window.BackBufferHeight;
                 windowWidth = window.Width;
@@ -131,7 +131,7 @@
             }
             else
             {
-                SDLLog.Critical(LogCategory.RENDER, $"Could not create SDLRenderer: {SDLApplication.GetError()}");
+                SDLLog.Critical(LogCategory.RENDER, "Could not create SDLRenderer: {0}", SDLApplication.GetError());
             }
         }
 
@@ -162,7 +162,7 @@
             }
         }
 
-        internal void WindowResized(int width, int height)
+        internal void WindowResized(int width, int height, WindowResizeSource source)
         {
             windowWidth = width;
             windowHeight = height;
@@ -194,7 +194,7 @@
                 textureTracker.Dispose();
                 SDL_DestroyRenderer(handle);
                 handle = IntPtr.Zero;
-                SDLLog.Info(LogCategory.RENDER, $"SDLRenderer {window.WindowId} destroyed");
+                SDLLog.Info(LogCategory.RENDER, "SDLRenderer {0} destroyed", window.WindowId);
             }
         }
         internal void BeginPaint()
@@ -472,7 +472,7 @@
                 if (tex != IntPtr.Zero)
                 {
                     texture = new SDLTexture(this, tex, fileName);
-                    SDLLog.Info(LogCategory.RENDER, $"Texture loaded from file '{fileName}'");
+                    SDLLog.Info(LogCategory.RENDER, "Texture loaded from file '{0}'", fileName);
                 }
             }
             return texture;
@@ -491,7 +491,7 @@
                     if (tex != IntPtr.Zero)
                     {
                         texture = new SDLTexture(this, tex, name);
-                        SDLLog.Info(LogCategory.RENDER, $"Texture loaded from resource '{name}'");
+                        SDLLog.Info(LogCategory.RENDER, "Texture loaded from resource '{0}'", name);
                     }
                 }
             }
@@ -507,7 +507,7 @@
                 if (tex != IntPtr.Zero)
                 {
                     texture = new SDLTexture(this, tex, name);
-                    SDLLog.Info(LogCategory.RENDER, $"Texture created from scratch '{name}'");
+                    SDLLog.Info(LogCategory.RENDER, "Texture created from scratch '{0}'", name);
                 }
             }
             return texture;
@@ -779,7 +779,7 @@
                 int len = textCacheKeys.Count / 2;
                 var halfKeys = textCacheKeys.GetRange(0, len);
                 textCacheKeys.RemoveRange(0, len);
-                SDLLog.Verbose(LogCategory.RENDER, $"Text cache limit {textCacheLimit} reached. Cleaning up...");
+                SDLLog.Verbose(LogCategory.RENDER, "Text cache limit {0} reached. Cleaning up...", textCacheLimit);
                 ClearTextCache(halfKeys);
             }
         }
@@ -791,7 +791,7 @@
                 int len = iconCacheKeys.Count / 2;
                 var halfKeys = iconCacheKeys.GetRange(0, len);
                 iconCacheKeys.RemoveRange(0, len);
-                SDLLog.Verbose(LogCategory.RENDER, $"Icon cache limit {iconCacheLimit} reached. Cleaning up...");
+                SDLLog.Verbose(LogCategory.RENDER, "Icon cache limit {0} reached. Cleaning up...", iconCacheLimit);
                 ClearIconCache(halfKeys);
             }
         }

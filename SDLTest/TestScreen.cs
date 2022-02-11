@@ -26,6 +26,7 @@
         public TestScreen()
             : base("Test Screen")
         {
+            //Configuration.Driver = "opengl";
             Configuration.WindowTitle = "Test Window";
             Configuration.MaxFramesPerSecond = 120;
             Configuration.ShowFPS = true;

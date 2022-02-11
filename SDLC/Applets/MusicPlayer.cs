@@ -119,13 +119,13 @@
         }
         private void SDLAudio_MusicFinished(object? sender, SDLMusicFinishedEventArgs e)
         {
-            SDLLog.Debug(LogCategory.AUDIO, $"Music {e.Music.Name} stopped ({e.Reason})");
+            SDLLog.Debug(LogCategory.AUDIO, "Music {0} stopped ({1})", e.Music.Name, e.Reason);
             if (e.Music == currentMusic)
             {
                 currentMusic.Dispose();
                 currentMusic = null;
             }
-            else if(e.Music == lastMusic)
+            else if (e.Music == lastMusic)
             {
                 lastMusic.Dispose();
                 lastMusic = null;
