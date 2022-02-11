@@ -22,6 +22,11 @@
         private bool rinv;
         private bool ginv;
         private bool binv;
+        private string text1 = "";
+        private string text2 = "";
+        private float scrollX = 0;
+        private float scrollSpeed = 0.1f;
+        private double lastScrollTime;
 
         public TestScreen()
             : base("Test Screen")
@@ -64,6 +69,8 @@
             Gadget gad3 = gui.AddGadget(window1, leftEdge: 10, topEdge: 110, width: -20, height: 40, text: "Gadget 3");
 
             img2 = LoadTexture(nameof(Properties.Resources.badlands));
+            text1 = $"{Width}x{Height}";
+            text2 = "Test Scroll Text";
         }
 
         public override void Hide(IWindow window)
@@ -95,6 +102,10 @@
             b = ShiftColor(b, ref binv);
             angle += (elapsedTime / 10);
             if (angle > 360) { angle -= 360; }
+            double dT = totalTime - lastScrollTime;
+            scrollX += (float)(dT * scrollSpeed);
+            if (scrollX > Width) { scrollX = -200; }
+            lastScrollTime = totalTime;
         }
 
         public override void Render(IRenderer renderer, double totalTime, double elapsedTime)
@@ -114,9 +125,16 @@
             renderer.AACircle(midX, midY, 100);
             renderer.AACircle(midX, midY, 110);
 
-            string t1 = $"{width}x{height}";
-            Size tsize = renderer.MeasureText(null, t1);
-            renderer.DrawText(null, t1, midX - tsize.Width / 2, 10);
+
+            Size tsize = renderer.MeasureText(null, text1);
+            renderer.DrawText(null, text1, midX - tsize.Width / 2, 10);
+            renderer.DrawText(null, text2, scrollX, midX, Color.White);
+        }
+
+        public override void Resized(IWindow window, int width, int height)
+        {
+            base.Resized(window, width, height);
+            text1 = $"{width}x{height}";
         }
 
         private static byte ShiftColor(byte b, ref bool inv)

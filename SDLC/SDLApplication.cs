@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Runtime.InteropServices;
     using System.Text;
@@ -12,7 +13,9 @@
         private static readonly List<SDLDriverInfo> driverInfos = new();
         private static readonly List<SDLWindow> windows = new();
         private static bool quitRequested;
-        private static ulong frequency = 1;
+        private static bool useStopwatch = true;
+        private static long frequency = 10000000;
+        private static double ticksToMs = 0.0001;
         private static bool limitFps = true;
         private static double totalElapsedTime;
         private static double elapsedTime;
@@ -50,6 +53,18 @@
         }
 
         //public static SDLWindow? MainWindow => mainWindow;
+
+        public static bool UseStopwatch
+        {
+            get => useStopwatch;
+            set
+            {
+                if (useStopwatch != value)
+                {
+                    useStopwatch = value;
+                }
+            }
+        }
 
         public static int GetDriverIndex(string name)
         {
@@ -260,7 +275,8 @@
             _ = SDL_SetHint(SDL_HINT_ALLOW_ALT_TAB_WHILE_GRABBED, "1");
             _ = SDL_SetHint(SDL_BORDERLESS_WINDOWED_STYLE, "1");
             _ = SDL_SetHint(SDL_BORDERLESS_RESIZABLE_STYLE, "1");
-            frequency = SDL_GetPerformanceFrequency();
+
+            InitTimer();
             //_ = SDL_SetHint(SDL_HINT_RENDER_LOGICAL_SIZE_MODE, "0");
             //_ = SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_SCALING, "1");
             GetDriverInfos();
@@ -301,10 +317,36 @@
                 }
             }
         }
+
+        private static void InitTimer()
+        {
+            long swfreq = Stopwatch.Frequency;
+            ulong sdlfreq = SDL_GetPerformanceFrequency();
+            if ((ulong)swfreq != sdlfreq)
+            {
+                useStopwatch = true;
+                SDLLog.Critical(LogCategory.SYSTEM, "Timer Frequency mismatch: {0} (System) vs {1} (SDL)", swfreq, sdlfreq);
+            }
+            ticksToMs = 1000.0 / swfreq;
+            frequency = swfreq;
+            SDLLog.Info(LogCategory.SYSTEM, "Timer Initialized. Frequency = {0}, Ticks to Milliseconds = {1}", frequency, ticksToMs);
+        }
+
+        public static long GetCurrentTicks()
+        {
+            if (useStopwatch)
+            {
+                return Stopwatch.GetTimestamp();
+            }
+            else
+            {
+                return (long)SDL_GetPerformanceCounter();
+            }
+
+        }
         public static double GetCurrentTime()
         {
-            ulong counter = SDL_GetPerformanceCounter();
-            return 1000.0 * counter / frequency;
+            return ticksToMs * GetCurrentTicks();
         }
 
         internal static string? IntPtr2String(IntPtr ptr, bool freePtr = false)
