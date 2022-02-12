@@ -345,11 +345,11 @@ public class Gadget : GUIObject
     {
         return window.FindPrevGadget(this);
     }
-    private void RaiseGadgetDown()
+    internal void RaiseGadgetDown()
     {
         EventHelper.Raise(this, GadgetDown, EventArgs.Empty);
     }
-    private void RaiseGadgetUp()
+    internal void RaiseGadgetUp()
     {
         EventHelper.Raise(this, GadgetUp, EventArgs.Empty);
     }
@@ -426,7 +426,6 @@ public class Gadget : GUIObject
         Rectangle bounds = GetBounds();
         result |= propInfo?.HandleMouseMove(bounds, x, y) ?? false;
         result |= strInfo?.HandleMouseMove(bounds, x, y) ?? false;
-
         if (result) { window.InvalidateFromGadget(); }
         return result;
     }

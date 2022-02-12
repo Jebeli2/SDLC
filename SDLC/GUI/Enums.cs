@@ -135,3 +135,14 @@ public enum PropFreedom
     Vertical,
     Horizontal,
 }
+
+[Flags]
+public enum PlaceText
+{
+    Left = 1,
+    Right = 2,
+    Above = 4,
+    Below = 8,
+    In = 16,
+    HighLabel = 32
+}

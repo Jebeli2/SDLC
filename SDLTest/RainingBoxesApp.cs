@@ -4,10 +4,10 @@
     using System;
     using System.Collections.Generic;
     using System.Drawing;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
 
+    /// <summary>
+    /// C# Port of SDL2 - Lesson 08 by Maxwell Slater, found here: "https://thenumbat.github.io/cpp-course/sdl2/08/08.html".
+    /// </summary>
     internal class RainingBoxesApp : SDLApplet
     {
         private static readonly Random random = new();

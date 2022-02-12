@@ -13,6 +13,7 @@
     internal class GUITest : SDLScreen
     {
         private const string SONG2 = @"D:\Users\jebel\Music\iTunes\iTunes Media\Music\Blur\Blur\02 Song 2.mp3";
+        private const string DC = @"D:\Users\jebel\Music\iTunes\iTunes Media\Music\Alt-J\Relaxer\05 Deadcrush.mp3";
         private Screen? screen1;
         private Window? window1;
 
@@ -33,6 +34,7 @@
             GetApplet<MusicPlayer>().AddToPlayList(nameof(Properties.Resources.jesu_joy));
             GetApplet<MusicPlayer>().AddToPlayList(nameof(Properties.Resources.jesters_of_the_moon));
             GetApplet<MusicPlayer>().AddToPlayList(SONG2);
+            GetApplet<MusicPlayer>().AddToPlayList(DC);
             IGUISystem gui = GUI;
             screen1 = gui.OpenScreen();
             window1 = gui.OpenWindow(screen1, leftEdge: 66, topEdge: 66, width: 400, height: 400, title: "Test GUI", minWidth: 200, minHeight: 220);
@@ -138,8 +140,12 @@
                     var cb = GadTools.CreateGadget(GadgetKind.Checkbox, leftEdge: 10, topEdge: 290, width: 200, height: 30, text: "Checkbox", _checked: true, disabled: true);
                     _ = GadTools.CreateGadget(GadgetKind.Checkbox, leftEdge: 210, topEdge: 290, width: 200, height: 30, text: "Fullscreen", _checked: IsFullScreen, checkedStateChangedAction:
                         (b) => { IsFullScreen = b; });
+                    var mx = GadTools.CreateGadget(GadgetKind.Mx, leftEdge: 210, topEdge: 320, width: 200, height: 30,
+                        options: new FullScreenMode[] { FullScreenMode.Desktop, FullScreenMode.FullSize, FullScreenMode.MultiMonitor },
+                        selectedIndex: (int)FullScreenMode,
+                        valueChangedAction: (index) => { FullScreenMode = (FullScreenMode)index; });
                     _ = GadTools.CreateGadget(GadgetKind.Checkbox, leftEdge: 10, topEdge: 320, width: 200, height: 30, text: "Disabled", _checked: true, disabled: false, checkedStateChangedAction:
-                        (b) => { cb.Enabled = !b; });
+                        (b) => { cb.Enabled = !b; mx.Enabled = b; });
                 }
                 else
                 {

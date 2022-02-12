@@ -3,6 +3,7 @@
 
 namespace SDLC.GUI;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -15,8 +16,8 @@ public static class GadTools
     private static Window? windowContext;
     private const int CHECKBOX_WIDTH = 28;
     private const int CHECKBOX_HEIGHT = 22;
-    private const int MX_WIDTH = 32;
-    private const int MX_HEIGHT = 28;
+    private const int MX_WIDTH = 20;
+    private const int MX_HEIGHT = 20;
     private const int INTERWIDTH = 8;
     private const int INTERHEIGHT = 4;
     public static void CreateContext(IGUISystem gui, Window window)
@@ -31,10 +32,12 @@ public static class GadTools
         int width = 100,
         int height = 50,
         string? text = null,
+        IList? options = null,
         Icons icon = Icons.NONE,
         Color? bgColor = null,
         string? buffer = null,
         long intValue = 0,
+        int selectedIndex = 0,
         bool disabled = false,
         bool selected = false,
         bool toggleSelect = false,
@@ -53,6 +56,7 @@ public static class GadTools
         bool scaled = false,
         HorizontalAlignment htAlign = HorizontalAlignment.Center,
         VerticalAlignment vtAlign = VerticalAlignment.Center,
+        PlaceText placeText = 0,
         int gadgetId = -1)
     {
         if (gui == null) { gui = guiContext; }
@@ -62,10 +66,11 @@ public static class GadTools
         {
             case GadgetKind.Button: return CreateButton(gui, window, requester, leftEdge, topEdge, width, height, text, icon, bgColor, disabled, selected, toggleSelect, endGadget, clickAction, gadgetId);
             case GadgetKind.Checkbox: return CreateCheckbox(gui, window, requester, leftEdge, topEdge, width, height, text, _checked, disabled, scaled, checkedStateChangedAction, gadgetId);
+            case GadgetKind.Mx: return CreateMx(gui, window, requester, leftEdge, topEdge, width, height, options, selectedIndex, valueChangedAction, scaled, gadgetId);
             case GadgetKind.String: return CreateString(gui, window, requester, leftEdge, topEdge, width, height, buffer, disabled, clickAction, gadgetId);
             case GadgetKind.Integer: return CreateInteger(gui, window, requester, leftEdge, topEdge, width, height, intValue, disabled, clickAction, gadgetId);
             case GadgetKind.Text: return CreateText(gui, window, requester, leftEdge, topEdge, width, height, text, htAlign, vtAlign, disabled, gadgetId);
-            case GadgetKind.Slider: return CreateSlider(gui, window, requester, leftEdge, topEdge, width, height, min, max, level, freedom, valueChangedAction, gadgetId);
+            case GadgetKind.Slider: return CreateSlider(gui, window, requester, leftEdge, topEdge, width, height, min, max, level, freedom, placeText, valueChangedAction, gadgetId);
             case GadgetKind.Scroller: return CreateScroller(gui, window, requester, leftEdge, topEdge, width, height, top, total, visible, freedom, valueChangedAction, gadgetId);
         }
         throw new NotSupportedException($"GadgetKind {kind} not supported");
@@ -112,9 +117,60 @@ public static class GadTools
             gad.GadInfo.CheckboxChecked = _checked;
             gad.GadInfo.CheckedStateChangedAction = checkedStateChangedAction;
             gad.GadInfo.TextGadget = CreateText(gui, window, req, leftEdge + boxWidth + INTERWIDTH, topEdge, width - (boxWidth + INTERWIDTH), boxHeight, text, HorizontalAlignment.Left, VerticalAlignment.Center, disabled, gadgetId);
+            LinkTextGadget(gad, gad.GadInfo.TextGadget);
         }
         gad.GadgetUp += CheckboxGadgetUp;
         return gad;
+    }
+
+    private static Gadget CreateMx(IGUISystem gui, Window window, Requester? req, int leftEdge, int topEdge, int width, int height,
+        IList? options,
+        int selectedIndex,
+        Action<int>? valueChangedAction,
+        bool scaled,
+        int gadgetId)
+    {
+        if (options != null && options.Count > 0)
+        {
+            int boxWidth = scaled ? width : MX_WIDTH;
+            int boxHeight = scaled ? height : MX_HEIGHT;
+            int numOptions = options.Count;
+            if (selectedIndex >= numOptions) { selectedIndex = numOptions - 1; }
+            if (selectedIndex < 0) { selectedIndex = 0; }
+            Gadget? firstGad = null;
+            List<Gadget> mxButtons = new List<Gadget>();
+            int y = topEdge;
+            for (int index = 0; index < numOptions; index++)
+            {
+                object? obj = options[index];
+                string text = obj?.ToString() ?? "";
+                Icons icon = Icons.NONE;
+                if (index == selectedIndex) { icon = Icons.ENTYPO_ICON_CHECK; }
+                Gadget gad = gui.AddGadget(window, req, leftEdge, y, boxWidth, boxHeight, type: GadgetType.BoolGadget | GadgetType.GadToolsGadget,
+                    //flags:GadgetFlags.HNone,
+                    icon: icon,
+                    gadgetId: gadgetId);
+                gad.TransparentBackground = true;
+                mxButtons.Add(gad);
+                gad.GadgetUp += MxGadgetUp;
+                if (firstGad == null) { firstGad = gad; }
+                if (gad.GadInfo != null)
+                {
+                    gad.GadInfo.MxGadgets = mxButtons;
+                    gad.GadInfo.ValueChangedAction = valueChangedAction;
+                    gad.GadInfo.TextGadget = CreateText(gui, window, req, leftEdge + boxWidth + INTERWIDTH, y, width - (boxWidth + INTERWIDTH), boxHeight, text, HorizontalAlignment.Left, VerticalAlignment.Center, false, gadgetId);
+                    LinkTextGadget(gad, gad.GadInfo.TextGadget);
+                }
+                y += boxHeight;
+                y += 1;
+            }
+            if (firstGad != null)
+            {
+                return firstGad;
+            }
+        }
+        throw new InvalidOperationException("Mx Gadget needs at least one option");
+
     }
 
 
@@ -165,9 +221,11 @@ public static class GadTools
 
     private static Gadget CreateSlider(IGUISystem gui, Window window, Requester? req, int leftEdge, int topEdge, int width, int height,
         int min, int max, int level, PropFreedom freedom,
+        PlaceText levelPlace,
         Action<int>? valueChangedAction,
         int gadgetId)
     {
+        if (levelPlace == 0) { levelPlace = PlaceText.Left; }
         Gadget gad = gui.AddGadget(window, req, leftEdge, topEdge, width, height, type: GadgetType.PropGadget | GadgetType.GadToolsGadget,
             gadgetId: gadgetId);
         PropFlags flags = 0;
@@ -227,6 +285,24 @@ public static class GadTools
         return gad;
     }
 
+    private static void LinkTextGadget(Gadget gadget, Gadget textGadget)
+    {
+        if (gadget.GadInfo != null && textGadget.GadInfo != null)
+        {
+            textGadget.GadInfo.LinkedGadget = gadget;
+            textGadget.Activation |= GadgetActivation.RelVerify;
+            textGadget.GadgetUp += TextGadgetGadgetUp;
+        }
+    }
+
+    private static void TextGadgetGadgetUp(object? sender, EventArgs e)
+    {
+        if (sender is Gadget gadget)
+        {
+            gadget.GadInfo?.LinkedGadget?.RaiseGadgetUp();
+        }
+    }
+
     private static void SliderGadgetUp(object? sender, EventArgs e)
     {
         SliderPotChanged(sender as Gadget);
@@ -254,6 +330,34 @@ public static class GadTools
             gadget.GadInfo.CheckboxChecked = check;
             gadget.Icon = check ? Icons.ENTYPO_ICON_CHECK : Icons.NONE;
             gadget.GadInfo.CheckedStateChangedAction?.Invoke(check);
+        }
+    }
+    private static void MxGadgetUp(object? sender, EventArgs e)
+    {
+        if (sender is Gadget gadget && gadget.GadInfo != null)
+        {
+            List<Gadget>? mxButtons = gadget.GadInfo.MxGadgets;
+            if (mxButtons != null)
+            {
+                int index = mxButtons.IndexOf(gadget);
+                if (index >= 0)
+                {
+                    foreach (Gadget gad in mxButtons)
+                    {
+                        if (gad == gadget)
+                        {
+                            gad.Icon = Icons.ENTYPO_ICON_CHECK;
+                            gad.Selected = true;
+                        }
+                        else
+                        {
+                            gad.Icon = Icons.NONE;
+                            gad.Selected = false;
+                        }
+                    }
+                }
+                gadget.GadInfo.ValueChangedAction?.Invoke(index);
+            }
         }
     }
     private static void SliderPotChanged(Gadget? gadget)

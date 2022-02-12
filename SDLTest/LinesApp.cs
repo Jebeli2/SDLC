@@ -4,10 +4,11 @@
     using System;
     using System.Collections.Generic;
     using System.Drawing;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
 
+    /// <summary>
+    /// C# Port of lcabrini's code here: "https://github.com/lcabrini/sdl-bach-demo", itself a port
+    /// of an old Amiga Basic Demo. Slightly changed during porting.
+    /// </summary>
     internal class LinesApp : SDLApplet
     {
         private class Line

@@ -6,15 +6,17 @@ namespace SDLC.Applets;
 using System;
 using System.Drawing;
 
+/// <summary>
+/// C# Port of Kartik Thakore's Perl Code from here: "https://www.perl.com/pub/2011/01/visualizing-music-with-sdl-and-perl.html/"
+/// Slightly changed during porting.
+/// </summary>
 public class MusicVisualizer : SDLApplet
 {
-    private int lines = 400;
     private short[] audioData = Array.Empty<short>();
-    private bool musicPaused;
-    private readonly Color leftColor1 = Color.FromArgb(128, Color.AliceBlue);
-    private readonly Color rightColor1 = Color.FromArgb(128, Color.Azure);
-    private readonly Color leftColor2 = Color.FromArgb(128, Color.Red);
-    private readonly Color rightColor2 = Color.FromArgb(128, Color.Orange);
+    private readonly Color leftColor1 = Color.FromArgb(156, 40, 0, 255);
+    private readonly Color leftColor2 = Color.FromArgb(10, Color.BlanchedAlmond);
+    private readonly Color rightColor1 = Color.FromArgb(96, 255, 40, 128);
+    private readonly Color rightColor2 = Color.FromArgb(10, Color.BlanchedAlmond);
 
     public MusicVisualizer() : base("Music Visualizer")
     {
@@ -23,14 +25,9 @@ public class MusicVisualizer : SDLApplet
 
     protected override void OnWindowLoad(SDLWindowLoadEventArgs e)
     {
-        lines = (Width / 2) & (0xFFFF - 1);
         SDLAudio.MusicDataReceived += SDLAudio_MusicDataReceived;
     }
 
-    protected internal override void OnWindowResized(SDLWindowSizeEventArgs e)
-    {
-        lines = (Width / 2) & (0xFFFF - 1);
-    }
 
 
     protected override void OnDispose()
@@ -40,13 +37,43 @@ public class MusicVisualizer : SDLApplet
 
     protected override void OnWindowPaint(SDLWindowPaintEventArgs e)
     {
-        PaintMusicArray(e.Renderer, audioData, lines, true, true);
+        int lines = (Width / 4) & (0xFFFF - 1);
+        PaintMusicArrayI(e.Renderer, audioData, lines);
     }
     private void SDLAudio_MusicDataReceived(object? sender, SDLMusicDataEventArgs e)
     {
         audioData = e.Data;
     }
 
+    private void PaintMusicArrayI(IRenderer gfx, short[] data, int lines)
+    {
+        if (data.Length > 0)
+        {
+            int w = gfx.Width;
+            int h = gfx.Height;
+            int len = data.Length;
+
+            int cut = len / lines;
+            float offsetX = 10;
+            float dW = w - offsetX * 2;
+            float lineWidth = dW / lines;
+            float drawWidth = lineWidth * 1.2f;
+            float midY = h / 2.0f;
+            float facY = h / 3.0f / 32000.0f;
+            float endW = w - 2 * offsetX;
+            float pX = offsetX;
+            int index = 0;
+            while (pX < endW && index < data.Length - 1)
+            {
+                float left = data[index];
+                float right = data[index + 1];
+                PaintSample(gfx, pX, midY, drawWidth, left * facY, leftColor1, leftColor2);
+                PaintSample(gfx, pX + drawWidth / 2, midY, drawWidth, right * facY, rightColor1, rightColor2);
+                pX += lineWidth;
+                index += cut;
+            }
+        }
+    }
     private void PaintMusicArray(IRenderer gfx, short[] data, int lines, bool drawLeft, bool drawRight)
     {
         if (data.Length > 0)
@@ -60,6 +87,7 @@ public class MusicVisualizer : SDLApplet
             float offsetX = 10;
             float dW = w - offsetX * 2;
             float lineWidth = dW / lines;
+            float drawWidth = lineWidth * 1.2f;
             float midY = h / 2.0f;
             float facY = h / 3.0f / 32000.0f;
             float endW = w - 2 * offsetX;
@@ -73,7 +101,7 @@ public class MusicVisualizer : SDLApplet
                     {
                         countNonZero++;
                         float sample = data[index];
-                        PaintSample(gfx, pX, midY, lineWidth, sample * facY, leftColor1, leftColor2);
+                        PaintSample(gfx, pX, midY, drawWidth, sample * facY, leftColor1, leftColor2);
                     }
                     pX += lineWidth;
                     index += cut;
@@ -81,7 +109,7 @@ public class MusicVisualizer : SDLApplet
             }
             if (drawRight)
             {
-                float pX = offsetX + lineWidth / 2;
+                float pX = offsetX + drawWidth;
                 int index = 1;
                 while (pX < endW && index < data.Length)
                 {
@@ -89,7 +117,7 @@ public class MusicVisualizer : SDLApplet
                     {
                         countNonZero++;
                         float sample = data[index];
-                        PaintSample(gfx, pX, midY, lineWidth, sample * facY, rightColor1, rightColor2);
+                        PaintSample(gfx, pX, midY, drawWidth, sample * facY, rightColor1, rightColor2);
                     }
                     pX += lineWidth;
                     index += cut;
@@ -97,12 +125,14 @@ public class MusicVisualizer : SDLApplet
             }
             if (countNonZero == 0)
             {
+                // With MIDI Files and no TIMIDITY you get sound + the PostMix callback, but it's
+                // always full of zeroes (on Windows...)
                 //SDLLog.Debug(LogCategory.AUDIO, "All Music is zero...");
             }
         }
     }
 
-    private void PaintSample(IRenderer gfx, float xPos, float yMid, float lineWidth, float sample, Color mid, Color peak)
+    private static void PaintSample(IRenderer gfx, float xPos, float yMid, float lineWidth, float sample, Color mid, Color peak)
     {
         RectangleF dst = new RectangleF(xPos, yMid, lineWidth, sample);
         if (sample < 0)

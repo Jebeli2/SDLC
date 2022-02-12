@@ -48,6 +48,7 @@ internal sealed class SDLWindow : IWindow, IDisposable
     private bool keyboardGrab;
     private WindowCloseOperation closeOperation;
     private FullScreenMode fullScreenMode;
+    private FullScreenMode fullScreenModeWhenGoingFullScreen;
     private int oldX;
     private int oldY;
     private int oldWidth;
@@ -788,6 +789,7 @@ internal sealed class SDLWindow : IWindow, IDisposable
     }
     private void GoFullScreen()
     {
+        fullScreenModeWhenGoingFullScreen = fullScreenMode;
         switch (fullScreenMode)
         {
             case FullScreenMode.Desktop:
@@ -804,7 +806,7 @@ internal sealed class SDLWindow : IWindow, IDisposable
 
     private void GoWindowed()
     {
-        if (fullScreenMode == FullScreenMode.Desktop)
+        if (fullScreenModeWhenGoingFullScreen == FullScreenMode.Desktop)
         {
             if (SDL_SetWindowFullscreen(Handle, 0) == 0)
             {

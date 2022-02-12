@@ -18,6 +18,7 @@ public interface IWindow
     int Width { get; }
     int Height { get; }
     bool FullScreen { get; set; }
+    FullScreenMode FullScreenMode { get; set; }
 
     T GetApplet<T>() where T : SDLApplet, new();
     void AddApplet(SDLApplet applet);

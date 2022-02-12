@@ -127,6 +127,18 @@ public class SDLScreen : IScreen
     #region Convenience Methods for inheritors
     protected int Width => width;
     protected int Height => height;
+
+    protected FullScreenMode FullScreenMode 
+    {
+        get => window?.FullScreenMode ?? 0;
+        set
+        {
+            if (window != null)
+            {
+                window.FullScreenMode = value;
+            }
+        } 
+    }
     protected bool IsFullScreen
     {
         get => window?.FullScreen ?? false;

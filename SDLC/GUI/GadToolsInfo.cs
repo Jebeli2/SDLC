@@ -25,13 +25,27 @@ internal class GadToolsInfo
     internal int ScrollerVisible { get; set; }
     internal int ScrollerTop { get; set; }
     internal bool CheckboxChecked { get; set; }
+    internal Gadget? LinkedGadget { get; set; }
     internal Gadget? TextGadget { get; set; }
+    internal List<Gadget>? MxGadgets { get; set; }
 
     internal void Invalidate()
     {
         if (TextGadget != null)
         {
             TextGadget.Enabled = gadget.Enabled;
+        }
+        if (MxGadgets != null && MxGadgets.Count > 1)
+        {
+            Gadget first = MxGadgets[0];
+            Gadget second = MxGadgets[1];
+            if (first.Enabled != second.Enabled)
+            {
+                for (int i = 1; i < MxGadgets.Count; i++)
+                {
+                    MxGadgets[i].Enabled = first.Enabled;
+                }
+            }
         }
     }
 
