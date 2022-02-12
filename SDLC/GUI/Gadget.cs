@@ -20,14 +20,17 @@ public class Gadget : GUIObject
     private Icons icon;
     private PropInfo? propInfo;
     private StringInfo? strInfo;
+    private GadToolsInfo? gadInfo;
+    private VerticalAlignment verticalTextAlignment;
+    private HorizontalAlignment horizontalTextAlignment;
     internal Gadget(IGUISystem gui, Window window, Requester? req = null)
         : base(gui)
     {
         this.window = window;
         requester = req;
         SetBorders(1, 1, 1, 1);
-
-        //gadgetType = GadgetType.BoolGadget;
+        verticalTextAlignment = VerticalAlignment.Center;
+        horizontalTextAlignment = HorizontalAlignment.Center;
         activation = GadgetActivation.RelVerify | GadgetActivation.Immediate;
         if (req != null)
         {
@@ -71,18 +74,38 @@ public class Gadget : GUIObject
             }
         }
     }
+
+    public VerticalAlignment VerticalTextAlignment
+    {
+        get => verticalTextAlignment;
+        set
+        {
+            if (verticalTextAlignment != value)
+            {
+                verticalTextAlignment = value;
+                Invalidate();
+            }
+        }
+    }
+
+    public HorizontalAlignment HorizontalTextAlignment
+    {
+        get => horizontalTextAlignment;
+        set
+        {
+            if (horizontalTextAlignment != value)
+            {
+                horizontalTextAlignment = value;
+                Invalidate();
+            }
+        }
+    }
+
     internal Requester? Requester => requester;
     internal PropInfo? PropInfo => propInfo;
     internal StringInfo? StrInfo => strInfo;
+    internal GadToolsInfo? GadInfo => gadInfo;
 
-    internal Action<int>? ValueChangedAction { get; set; }
-    internal int SliderMin { get; set; }
-    internal int SliderMax { get; set; }
-    internal int SliderLevel { get; set; }
-
-    internal int ScrollerTotal { get; set; }
-    internal int ScrollerVisible { get; set; }
-    internal int ScrollerTop { get; set; }
     public bool Selected
     {
         get => (flags & GadgetFlags.Selected) == GadgetFlags.Selected;
@@ -194,6 +217,22 @@ public class Gadget : GUIObject
         }
     }
 
+    public bool IsIntegerGadget
+    {
+        get => (activation & GadgetActivation.LongInt) == GadgetActivation.LongInt;
+        set
+        {
+            if (value)
+            {
+                Activation |= GadgetActivation.LongInt;
+            }
+            else
+            {
+                Activation &= ~GadgetActivation.LongInt;
+            }
+        }
+    }
+
     public GadgetFlags Flags
     {
         get => flags;
@@ -235,6 +274,10 @@ public class Gadget : GUIObject
                 {
                     flags |= GadgetFlags.TabCycle;
                     strInfo = new StringInfo(this);
+                }
+                if ((gadgetType & GadgetType.GadToolsGadget) == GadgetType.GadToolsGadget)
+                {
+                    gadInfo = new GadToolsInfo(this);
                 }
             }
         }
@@ -431,6 +474,7 @@ public class Gadget : GUIObject
     {
         propInfo?.Invalidate();
         strInfo?.Invalidate();
+        gadInfo?.Invalidate();
         window.InvalidateFromGadget();
     }
 
@@ -439,6 +483,7 @@ public class Gadget : GUIObject
         bounds = null;
         propInfo?.Invalidate();
         strInfo?.Invalidate();
+        gadInfo?.Invalidate();
         window.InvalidateFromGadget();
     }
 

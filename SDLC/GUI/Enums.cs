@@ -31,6 +31,7 @@ public enum GadgetActivation
     LeftBorder = 0x0020,
     TopBorder = 0x0040,
     BottomBorder = 0x0080,
+    LongInt = 0x0800,
     ToggleSelect = 0x01000,
     ActiveGadget = 0x4000
 }
@@ -57,7 +58,8 @@ public enum GadgetType
     Gadget0002 = 0x2,
     PropGadget = 0x3,
     StrGadget = 0x4,
-    CustomGadget = 0x5
+    CustomGadget = 0x5,
+    GadToolsGadget = 0x0100
 }
 
 

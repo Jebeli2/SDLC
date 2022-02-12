@@ -17,7 +17,6 @@
         private Window? window1;
 
         private Window? winButTest;
-        private Gadget? fullScreenGadget;
         private Window? winPropTest;
         private Requester? requester;
 
@@ -49,16 +48,6 @@
         {
             ChangeScreen(new TestScreen());
         }
-
-        private void ToggleFullScreen()
-        {
-            IsFullScreen = !IsFullScreen;
-            if (fullScreenGadget != null)
-            {
-                fullScreenGadget.Text = IsFullScreen ? "Windowed" : "Fullscreen";
-            }
-        }
-
         private void ShowPropTest()
         {
             if (screen1 != null)
@@ -90,6 +79,7 @@
                         {
                             SDLLog.Info(LogCategory.APPLICATION, "Scroller Top changed to {0}", top);
                         });
+                    _ = GadTools.CreateGadget(GadgetKind.Integer, leftEdge: 10, topEdge: 270, width: -20, height: 22, intValue: 1234);
                 }
                 else
                 {
@@ -117,7 +107,8 @@
                     requester.Height = 200;
                     _ = GadTools.CreateGadget(GadgetKind.Text, requester: requester, leftEdge: 10, topEdge: 10, width: -20, height: 20, text: "Question?");
                     _ = GadTools.CreateGadget(GadgetKind.Button, requester: requester, leftEdge: 10, topEdge: -30, width: -20, height: 20, endGadget: true, text: "OK");
-                    fullScreenGadget = GadTools.CreateGadget(GadgetKind.Button, leftEdge: 10, topEdge: 10, width: -20, height: 30, text: IsFullScreen ? "Windowed" : "Fullscreen", clickAction: ToggleFullScreen);
+
+                    _ = GadTools.CreateGadget(GadgetKind.Text, leftEdge: 10, topEdge: 10, width: -20, height: 30, text: "Button Demo");
                     _ = GadTools.CreateGadget(GadgetKind.Button, leftEdge: 10, topEdge: 50, width: -20, height: 30, text: "Toggle Button", toggleSelect: true);
                     _ = GadTools.CreateGadget(GadgetKind.Button, leftEdge: 10, topEdge: 90, width: -20, height: 30, text: "Icon Button", icon: Icons.ENTYPO_ICON_YOUKO);
                     _ = GadTools.CreateGadget(GadgetKind.Button, leftEdge: 10, topEdge: 130, width: -20, height: 30, text: "Disabled Button", disabled: true);
@@ -144,6 +135,11 @@
                                 GUI.MoveWindowInFrontOf(winPropTest, winButTest);
                             }
                         });
+                    var cb = GadTools.CreateGadget(GadgetKind.Checkbox, leftEdge: 10, topEdge: 290, width: 200, height: 30, text: "Checkbox", _checked: true, disabled: true);
+                    _ = GadTools.CreateGadget(GadgetKind.Checkbox, leftEdge: 210, topEdge: 290, width: 200, height: 30, text: "Fullscreen", _checked: IsFullScreen, checkedStateChangedAction:
+                        (b) => { IsFullScreen = b; });
+                    _ = GadTools.CreateGadget(GadgetKind.Checkbox, leftEdge: 10, topEdge: 320, width: 200, height: 30, text: "Disabled", _checked: true, disabled: false, checkedStateChangedAction:
+                        (b) => { cb.Enabled = !b; });
                 }
                 else
                 {
@@ -167,7 +163,6 @@
             {
                 GUI.CloseWindow(winButTest);
                 winButTest = null;
-                fullScreenGadget = null;
             }
         }
 

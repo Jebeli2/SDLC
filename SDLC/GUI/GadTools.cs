@@ -13,7 +13,12 @@ public static class GadTools
 {
     private static IGUISystem? guiContext;
     private static Window? windowContext;
-
+    private const int CHECKBOX_WIDTH = 28;
+    private const int CHECKBOX_HEIGHT = 22;
+    private const int MX_WIDTH = 32;
+    private const int MX_HEIGHT = 28;
+    private const int INTERWIDTH = 8;
+    private const int INTERHEIGHT = 4;
     public static void CreateContext(IGUISystem gui, Window window)
     {
         guiContext = gui;
@@ -29,12 +34,15 @@ public static class GadTools
         Icons icon = Icons.NONE,
         Color? bgColor = null,
         string? buffer = null,
+        long intValue = 0,
         bool disabled = false,
         bool selected = false,
         bool toggleSelect = false,
         bool endGadget = false,
+        bool _checked = false,
         Action? clickAction = null,
         Action<int>? valueChangedAction = null,
+        Action<bool>? checkedStateChangedAction = null,
         int min = 0,
         int max = 15,
         int level = 0,
@@ -42,6 +50,9 @@ public static class GadTools
         int total = 0,
         int visible = 2,
         PropFreedom freedom = PropFreedom.Horizontal,
+        bool scaled = false,
+        HorizontalAlignment htAlign = HorizontalAlignment.Center,
+        VerticalAlignment vtAlign = VerticalAlignment.Center,
         int gadgetId = -1)
     {
         if (gui == null) { gui = guiContext; }
@@ -50,15 +61,19 @@ public static class GadTools
         switch (kind)
         {
             case GadgetKind.Button: return CreateButton(gui, window, requester, leftEdge, topEdge, width, height, text, icon, bgColor, disabled, selected, toggleSelect, endGadget, clickAction, gadgetId);
+            case GadgetKind.Checkbox: return CreateCheckbox(gui, window, requester, leftEdge, topEdge, width, height, text, _checked, disabled, scaled, checkedStateChangedAction, gadgetId);
             case GadgetKind.String: return CreateString(gui, window, requester, leftEdge, topEdge, width, height, buffer, disabled, clickAction, gadgetId);
-            case GadgetKind.Text: return CreateText(gui, window, requester, leftEdge, topEdge, width, height, text, disabled, gadgetId);
+            case GadgetKind.Integer: return CreateInteger(gui, window, requester, leftEdge, topEdge, width, height, intValue, disabled, clickAction, gadgetId);
+            case GadgetKind.Text: return CreateText(gui, window, requester, leftEdge, topEdge, width, height, text, htAlign, vtAlign, disabled, gadgetId);
             case GadgetKind.Slider: return CreateSlider(gui, window, requester, leftEdge, topEdge, width, height, min, max, level, freedom, valueChangedAction, gadgetId);
             case GadgetKind.Scroller: return CreateScroller(gui, window, requester, leftEdge, topEdge, width, height, top, total, visible, freedom, valueChangedAction, gadgetId);
         }
         throw new NotSupportedException($"GadgetKind {kind} not supported");
     }
 
-    private static Gadget CreateButton(IGUISystem gui, Window window, Requester? req, int leftEdge, int topEdge, int width, int height, string? text, Icons icon,
+    private static Gadget CreateButton(IGUISystem gui, Window window, Requester? req, int leftEdge, int topEdge, int width, int height,
+        string? text,
+        Icons icon,
         Color? bgColor,
         bool disabled,
         bool selected,
@@ -67,7 +82,7 @@ public static class GadTools
         Action? clickAction,
         int gadgetId)
     {
-        Gadget gad = gui.AddGadget(window, req, leftEdge, topEdge, width, height, text: text, icon: icon, type: GadgetType.BoolGadget,
+        Gadget gad = gui.AddGadget(window, req, leftEdge, topEdge, width, height, text: text, icon: icon, type: GadgetType.BoolGadget | GadgetType.GadToolsGadget,
             bgColor: bgColor,
             disabled: disabled,
             selected: selected,
@@ -76,28 +91,74 @@ public static class GadTools
             clickAction: clickAction, gadgetId: gadgetId);
         return gad;
     }
+
+    private static Gadget CreateCheckbox(IGUISystem gui, Window window, Requester? req, int leftEdge, int topEdge, int width, int height,
+        string? text,
+        bool _checked,
+        bool disabled,
+        bool scaled,
+        Action<bool>? checkedStateChangedAction,
+        int gadgetId)
+    {
+        int boxWidth = scaled ? width : CHECKBOX_WIDTH;
+        int boxHeight = scaled ? height : CHECKBOX_HEIGHT;
+        Icons icon = _checked ? Icons.ENTYPO_ICON_CHECK : Icons.NONE;
+        Gadget gad = gui.AddGadget(window, req, leftEdge, topEdge, boxWidth, boxHeight, type: GadgetType.BoolGadget | GadgetType.GadToolsGadget,
+            icon: icon,
+            disabled: disabled,
+            gadgetId: gadgetId);
+        if (gad.GadInfo != null)
+        {
+            gad.GadInfo.CheckboxChecked = _checked;
+            gad.GadInfo.CheckedStateChangedAction = checkedStateChangedAction;
+            gad.GadInfo.TextGadget = CreateText(gui, window, req, leftEdge + boxWidth + INTERWIDTH, topEdge, width - (boxWidth + INTERWIDTH), boxHeight, text, HorizontalAlignment.Left, VerticalAlignment.Center, disabled, gadgetId);
+        }
+        gad.GadgetUp += CheckboxGadgetUp;
+        return gad;
+    }
+
+
     private static Gadget CreateString(IGUISystem gui, Window window, Requester? req, int leftEdge, int topEdge, int width, int height,
         string? buffer,
         bool disabled,
         Action? clickAction,
         int gadgetId)
     {
-        Gadget gad = gui.AddGadget(window, req, leftEdge, topEdge, width, height, type: GadgetType.StrGadget,
+        Gadget gad = gui.AddGadget(window, req, leftEdge, topEdge, width, height, type: GadgetType.StrGadget | GadgetType.GadToolsGadget,
             disabled: disabled,
             buffer: buffer,
             clickAction: clickAction,
             gadgetId: gadgetId);
         return gad;
     }
+    private static Gadget CreateInteger(IGUISystem gui, Window window, Requester? req, int leftEdge, int topEdge, int width, int height,
+        long intValue,
+        bool disabled,
+        Action? clickAction,
+        int gadgetId)
+    {
+        Gadget gad = gui.AddGadget(window, req, leftEdge, topEdge, width, height, type: GadgetType.StrGadget | GadgetType.GadToolsGadget,
+            activation: GadgetActivation.Immediate | GadgetActivation.RelVerify | GadgetActivation.LongInt,
+            disabled: disabled,
+            buffer: intValue.ToString(),
+            clickAction: clickAction,
+            gadgetId: gadgetId);
+        return gad;
+    }
 
     private static Gadget CreateText(IGUISystem gui, Window window, Requester? req, int leftEdge, int topEdge, int width, int height, string? text,
+        HorizontalAlignment htAlign,
+        VerticalAlignment vtAlign,
         bool disabled,
         int gadgetId)
     {
-        Gadget gad = gui.AddGadget(window, req, leftEdge, topEdge, width, height, text: text, type: GadgetType.BoolGadget,
+        Gadget gad = gui.AddGadget(window, req, leftEdge, topEdge, width, height, text: text, type: GadgetType.BoolGadget | GadgetType.GadToolsGadget,
             flags: GadgetFlags.HNone,
             activation: GadgetActivation.None,
+            disabled: disabled,
             gadgetId: gadgetId);
+        gad.VerticalTextAlignment = vtAlign;
+        gad.HorizontalTextAlignment = htAlign;
         gad.TransparentBackground = true;
         return gad;
     }
@@ -107,7 +168,7 @@ public static class GadTools
         Action<int>? valueChangedAction,
         int gadgetId)
     {
-        Gadget gad = gui.AddGadget(window, req, leftEdge, topEdge, width, height, type: GadgetType.PropGadget,
+        Gadget gad = gui.AddGadget(window, req, leftEdge, topEdge, width, height, type: GadgetType.PropGadget | GadgetType.GadToolsGadget,
             gadgetId: gadgetId);
         PropFlags flags = 0;
         if (freedom == PropFreedom.Horizontal)
@@ -120,10 +181,13 @@ public static class GadTools
         }
         if (level > max) { level = max; }
         if (level < min) { level = min; }
-        gad.SliderMin = min;
-        gad.SliderMax = max;
-        gad.SliderLevel = level;
-        gad.ValueChangedAction = valueChangedAction;
+        if (gad.GadInfo != null)
+        {
+            gad.GadInfo.SliderMin = min;
+            gad.GadInfo.SliderMax = max;
+            gad.GadInfo.SliderLevel = level;
+            gad.GadInfo.ValueChangedAction = valueChangedAction;
+        }
         FindSliderValues(max + 1 - min, level - min, out int body, out int pot);
         gui.ModifyProp(gad, flags, pot, pot, body, body);
 
@@ -138,7 +202,7 @@ public static class GadTools
         Action<int>? valueChangedAction,
         int gadgetId)
     {
-        Gadget gad = gui.AddGadget(window, req, leftEdge, topEdge, width, height, type: GadgetType.PropGadget,
+        Gadget gad = gui.AddGadget(window, req, leftEdge, topEdge, width, height, type: GadgetType.PropGadget | GadgetType.GadToolsGadget,
             gadgetId: gadgetId);
         PropFlags flags = 0;
         if (freedom == PropFreedom.Horizontal)
@@ -150,40 +214,17 @@ public static class GadTools
             flags |= PropFlags.FreeVert;
         }
         FindScrollerValues(total, visible, top, 0, out int body, out int pot);
-        gad.ScrollerTop = top;
-        gad.ScrollerTotal = total;
-        gad.ScrollerVisible = visible;
-        gad.ValueChangedAction = valueChangedAction;
+        if (gad.GadInfo != null)
+        {
+            gad.GadInfo.ScrollerTop = top;
+            gad.GadInfo.ScrollerTotal = total;
+            gad.GadInfo.ScrollerVisible = visible;
+            gad.GadInfo.ValueChangedAction = valueChangedAction;
+        }
         gui.ModifyProp(gad, flags, pot, pot, body, body);
         gad.GadgetDown += ScrollerGadgetDown;
         gad.GadgetUp += ScrollerGadgetUp;
         return gad;
-    }
-
-    private static void SliderPotChanged(Gadget? gadget)
-    {
-        if (gadget != null && GetPot(gadget, out int pot))
-        {
-            int level = FindSliderLevel(gadget.SliderMax + 1 - gadget.SliderMin, pot) + gadget.SliderMin;
-            if (level != gadget.SliderLevel)
-            {
-                gadget.SliderLevel = level;
-                gadget.ValueChangedAction?.Invoke(level);
-            }
-        }
-    }
-
-    private static void ScrollerPotChanged(Gadget? gadget)
-    {
-        if (gadget != null && GetPot(gadget, out int pot))
-        {
-            int top = FindScrollerTop(gadget.ScrollerTotal, gadget.ScrollerVisible, pot);
-            if (top != gadget.ScrollerTop)
-            {
-                gadget.ScrollerTop = top;
-                gadget.ValueChangedAction?.Invoke(top);
-            }
-        }
     }
 
     private static void SliderGadgetUp(object? sender, EventArgs e)
@@ -205,6 +246,49 @@ public static class GadTools
     {
         ScrollerPotChanged(sender as Gadget);
     }
+    private static void CheckboxGadgetUp(object? sender, EventArgs e)
+    {
+        if (sender is Gadget gadget && gadget.GadInfo != null)
+        {
+            bool check = !gadget.GadInfo.CheckboxChecked;
+            gadget.GadInfo.CheckboxChecked = check;
+            gadget.Icon = check ? Icons.ENTYPO_ICON_CHECK : Icons.NONE;
+            gadget.GadInfo.CheckedStateChangedAction?.Invoke(check);
+        }
+    }
+    private static void SliderPotChanged(Gadget? gadget)
+    {
+        if (gadget != null && GetPot(gadget, out int pot))
+        {
+            if (gadget.GadInfo != null)
+            {
+                int level = FindSliderLevel(gadget.GadInfo.SliderMax + 1 - gadget.GadInfo.SliderMin, pot) + gadget.GadInfo.SliderMin;
+                if (level != gadget.GadInfo.SliderLevel)
+                {
+                    gadget.GadInfo.SliderLevel = level;
+                    gadget.GadInfo.ValueChangedAction?.Invoke(level);
+                }
+            }
+        }
+    }
+
+    private static void ScrollerPotChanged(Gadget? gadget)
+    {
+        if (gadget != null && GetPot(gadget, out int pot))
+        {
+            if (gadget.GadInfo != null)
+            {
+                int top = FindScrollerTop(gadget.GadInfo.ScrollerTotal, gadget.GadInfo.ScrollerVisible, pot);
+                if (top != gadget.GadInfo.ScrollerTop)
+                {
+                    gadget.GadInfo.ScrollerTop = top;
+                    gadget.GadInfo.ValueChangedAction?.Invoke(top);
+                }
+            }
+        }
+    }
+
+
     private static bool GetPot(Gadget gadget, out int pot)
     {
         pot = 0;

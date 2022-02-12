@@ -69,7 +69,7 @@ public class DefaultGUIRenderer : IGUIRenderer
         StrGradientTop = MkColor(255, 32);
         StrGradientBot = MkColor(32, 32);
 
-        DisabledGhost = MkColor(128, 22);
+        DisabledGhost = MkColor(255, 22);
     }
 
     private static Color MkColor(int gray, int alpha)
@@ -297,6 +297,7 @@ public class DefaultGUIRenderer : IGUIRenderer
         bool hasIcon = gadget.Icon != Icons.NONE;
         bool hasText = !string.IsNullOrEmpty(gadget.Text);
         Color tc = gadget.Enabled ? TextColor : DisabledTextColor;
+
         if (hasIcon && hasText)
         {
             Size textSize = gfx.MeasureText(null, gadget.Text);
@@ -306,13 +307,13 @@ public class DefaultGUIRenderer : IGUIRenderer
         }
         else if (hasIcon)
         {
-            gfx.DrawIcon(gadget.Icon, inner.X, inner.Y, inner.Width, inner.Height, tc, HorizontalAlignment.Center, VerticalAlignment.Center, offset, offset);
+            gfx.DrawIcon(gadget.Icon, inner.X, inner.Y, inner.Width, inner.Height, tc, gadget.HorizontalTextAlignment, gadget.VerticalTextAlignment, offset, offset);
         }
         else if (hasText)
         {
-            gfx.DrawText(null, gadget.Text, inner.X, inner.Y, inner.Width, inner.Height, tc, HorizontalAlignment.Center, VerticalAlignment.Center, offset, offset);
+            gfx.DrawText(null, gadget.Text, inner.X, inner.Y, inner.Width, inner.Height, tc, gadget.HorizontalTextAlignment, gadget.VerticalTextAlignment, offset, offset);
         }
-        if (!gadget.Enabled)
+        if (!gadget.Enabled && !gadget.NoHighlight)
         {
             gfx.FillRect(bounds, DisabledGhost);
         }

@@ -38,6 +38,19 @@ internal class StringInfo
         }
     }
 
+    public long LongInt
+    {
+        get => longInt;
+        set
+        {
+            if (longInt != value)
+            {
+                longInt = value;
+                Buffer = value.ToString();
+            }
+        }
+    }
+
     public int BufferPos
     {
         get => bufferPos;
@@ -100,7 +113,13 @@ internal class StringInfo
     }
     internal void Invalidate()
     {
-
+        if (gadget.IsIntegerGadget)
+        {
+            if (long.TryParse(buffer, out long result))
+            {
+                longInt = result;
+            }
+        }
     }
 
     private void AdjustDispPos()
@@ -258,8 +277,10 @@ internal class StringInfo
         switch (e.ScanCode)
         {
             case ScanCode.SCANCODE_ESCAPE:
-                Buffer = undoBuffer;
-                BufferPos = undoPos;
+                if (MaybeChangeBuffer(undoBuffer))
+                {
+                    BufferPos = undoPos;
+                }
                 break;
         }
         return result;
@@ -284,25 +305,28 @@ internal class StringInfo
         {
             int start = bufferSelStart;
             int len = bufferSelEnd - start;
-
-            Buffer = buffer.Remove(start, len);
-            bufferSelStart = 0;
-            bufferSelEnd = 0;
-            BufferPos = start;
+            if (MaybeChangeBuffer(buffer.Remove(start, len)))
+            {
+                bufferSelStart = 0;
+                bufferSelEnd = 0;
+                BufferPos = start;
+            }
         }
         else if (backSpace)
         {
             if (bufferPos > 0)
             {
-                Buffer = buffer.Remove(bufferPos - 1, 1);
-                BufferPos--;
+                if (MaybeChangeBuffer(buffer.Remove(bufferPos - 1, 1)))
+                {
+                    BufferPos--;
+                }
             }
         }
         else
         {
             if (bufferPos < buffer.Length)
             {
-                Buffer = buffer.Remove(bufferPos, 1);
+                MaybeChangeBuffer(buffer.Remove(bufferPos, 1));
             }
         }
     }
@@ -314,14 +338,41 @@ internal class StringInfo
             int len = bufferSelEnd - start;
             string temp = buffer.Remove(start, len);
             temp = temp.Insert(start, text);
-            Buffer = temp;
-            BufferPos = start + text.Length;
+            if (MaybeChangeBuffer(temp))
+            {
+                Buffer = temp;
+                BufferPos = start + text.Length;
+            }
         }
         else
         {
-            Buffer = buffer.Insert(bufferPos, text);
-            BufferPos += text.Length;
+            string temp = buffer.Insert(bufferPos, text);
+            if (MaybeChangeBuffer(temp))
+            {
+                BufferPos += text.Length;
+            }
         }
+    }
+
+    private bool MaybeChangeBuffer(string newBuffer)
+    {
+        if (!string.Equals(buffer, newBuffer))
+        {
+            if (gadget.IsIntegerGadget)
+            {
+                if (!long.TryParse(newBuffer, out long result))
+                {
+                    return false;
+                }
+                else
+                {
+                    longInt = result;
+                }
+            }
+            Buffer = newBuffer;
+            return true;
+        }
+        return false;
     }
 
 }
