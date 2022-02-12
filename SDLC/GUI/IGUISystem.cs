@@ -4,6 +4,7 @@
 namespace SDLC.GUI;
 
 using System;
+using System.Drawing;
 
 public interface IGUISystem
 {
@@ -29,6 +30,7 @@ public interface IGUISystem
     void CloseWindow(Window window);
 
     Gadget AddGadget(Window window,
+        Requester? requester = null,
         int leftEdge = 0,
         int topEdge = 0,
         int width = 100,
@@ -38,18 +40,28 @@ public interface IGUISystem
         GadgetType type = GadgetType.BoolGadget,
         string? text = null,
         Icons icon = Icons.NONE,
+        Color? bgColor = null,
         bool disabled = false,
         bool selected = false,
         bool toggleSelect = false,
+        bool endGadget = false,
         Action? clickAction = null,
         string? buffer = null,
         int gadgetId = -1);
 
     void RemoveGadget(Window window, Gadget gadget);
-
+    Requester InitRequester(Window window);
+    bool Request(Requester req, Window window);
+    void EndRequest(Requester req, Window window);
     void WindowToFront(Window window);
     void WindowToBack(Window window);
     void ActivateWindow(Window window);
-
+    void ActivateGadget(Gadget gadget);
+    void ChangeWindowBox(Window window, int left, int top, int width, int height);
+    void MoveWindow(Window window, int deltaX, int deltaY);
+    void SizeWindow(Window window, int deltaX, int deltaY);
+    void OffGadget(Gadget gadget);
+    void OnGadget(Gadget gadget);
+    void ZipWindow(Window window);
     void ModifyProp(Gadget gadget, PropFlags flags, int horizPot, int vertPot, int horizBody, int vertBody);
 }

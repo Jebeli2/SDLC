@@ -6,6 +6,7 @@ namespace SDLC.Applets;
 using SDLC.GUI;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 
 public class GUISystem : SDLApplet, IGUISystem
 {
@@ -400,7 +401,7 @@ public class GUISystem : SDLApplet, IGUISystem
             activeWindow != null &&
             activeGadget.Window == activeWindow)
         {
-            activeWindow.MoveWindow(diffMouseX, diffMouseY);
+            activeWindow.MoveWindow(diffMouseX, diffMouseY, true);
             e.Handled = true;
             return true;
         }
@@ -417,7 +418,7 @@ public class GUISystem : SDLApplet, IGUISystem
             activeWindow != null &&
             activeGadget.Window == activeWindow)
         {
-            activeWindow.SizeWindow(diffMouseX, diffMouseY);
+            activeWindow.SizeWindow(diffMouseX, diffMouseY, true);
             return true;
         }
         return false;
@@ -465,6 +466,10 @@ public class GUISystem : SDLApplet, IGUISystem
             if (upGadget != null && upGadget == downGadget)
             {
                 result |= upGadget.HandleMouseUp(e.X, e.Y);
+                if (upGadget.IsEndGadget && upGadget.IsReqGadget && upGadget.Requester != null)
+                {
+                    EndRequest(upGadget.Requester, upGadget.Window);
+                }
             }
             SetSelectedGadget(null);
         }
@@ -535,7 +540,7 @@ public class GUISystem : SDLApplet, IGUISystem
             }
             else if (result == ActionResult.GadgetUp)
             {
-                
+
             }
         }
         return result != ActionResult.None;
@@ -818,6 +823,7 @@ public class GUISystem : SDLApplet, IGUISystem
         }
     }
     public Gadget AddGadget(Window w,
+        Requester? requester = null,
         int leftEdge = 0,
         int topEdge = 0,
         int width = 100,
@@ -827,9 +833,11 @@ public class GUISystem : SDLApplet, IGUISystem
         GadgetType type = GadgetType.BoolGadget,
         string? text = null,
         Icons icon = Icons.NONE,
+        Color? bgColor = null,
         bool disabled = false,
         bool selected = false,
         bool toggleSelect = false,
+        bool endGadget = false,
         Action? clickAction = null,
         string? buffer = null,
         int gadgetId = -1)
@@ -844,19 +852,21 @@ public class GUISystem : SDLApplet, IGUISystem
         else { nextGadgetID = Math.Max(nextGadgetID, gadgetId); }
 
         if (toggleSelect) { activation |= GadgetActivation.ToggleSelect; }
+        if (endGadget) { activation |= GadgetActivation.EndGadget; }
         if (selected) { flags |= GadgetFlags.Selected; }
 
-        Gadget gadget = new Gadget(this, w);
+        Gadget gadget = new(this, w, requester);
         gadget.LeftEdge = leftEdge;
         gadget.TopEdge = topEdge;
         gadget.Width = width;
         gadget.Height = height;
         gadget.Flags = flags;
         gadget.Activation = activation;
-        gadget.GadgetType = type;
+        gadget.GadgetType |= type;
         gadget.GadgetId = gadgetId;
         gadget.Text = text;
         gadget.Icon = icon;
+        if (bgColor != null) { gadget.BackgroundColor = bgColor.Value; }
         if (clickAction != null) { gadget.GadgetUp += (s, e) => { clickAction(); }; }
         if (buffer != null && gadget.IsStrGadget && gadget.StrInfo != null)
         {
@@ -867,6 +877,35 @@ public class GUISystem : SDLApplet, IGUISystem
 
     public void RemoveGadget(Window window, Gadget gadget)
     {
+    }
+    public Requester InitRequester(Window window)
+    {
+        Requester req = new Requester(this, window);
+        return req;
+    }
+    public bool Request(Requester req, Window window)
+    {
+        if (window.Request(req))
+        {
+            if (window == activeGadget?.Window)
+            {
+                SetActiveGadget(null);
+            }
+            if (window == selectedGadget?.Window)
+            {
+                SetSelectedGadget(null);
+            }
+            if (window == mouseGadget?.Window)
+            {
+                SetMouseGadget(null);
+            }
+            return true;
+        }
+        return false;
+    }
+    public void EndRequest(Requester req, Window window)
+    {
+        window.EndRequest(req);
     }
 
     public void WindowToFront(Window window)
@@ -886,6 +925,32 @@ public class GUISystem : SDLApplet, IGUISystem
     public void ActivateGadget(Gadget gadget)
     {
         activationGadgets.Enqueue(gadget);
+    }
+    public void ChangeWindowBox(Window window, int left, int top, int width, int height)
+    {
+        window.ChangeWindowBox(left, top, width, height);
+    }
+
+    public void MoveWindow(Window window, int deltaX, int deltaY)
+    {
+        window.MoveWindow(deltaX, deltaY);
+    }
+
+    public void SizeWindow(Window window, int deltaX, int deltaY)
+    {
+        window.SizeWindow(deltaX, deltaY);
+    }
+    public void ZipWindow(Window window)
+    {
+        window.Zip();
+    }
+    public void OffGadget(Gadget gadget)
+    {
+        gadget.Enabled = false;
+    }
+    public void OnGadget(Gadget gadget)
+    {
+        gadget.Enabled = true;
     }
 
     public void ModifyProp(Gadget gadget, PropFlags flags, int horizPot, int vertPot, int horizBody, int vertBody)

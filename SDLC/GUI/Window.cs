@@ -14,6 +14,7 @@ public class Window : GUIObject
 {
     private readonly Screen screen;
     private readonly List<Gadget> gadgets = new();
+    private readonly List<Requester> requests = new();
     private WindowFlags windowFlags;
     private int zoomX = -1;
     private int zoomY = -1;
@@ -160,6 +161,10 @@ public class Window : GUIObject
     {
         get => (windowFlags & WindowFlags.Zoomed) == WindowFlags.Zoomed;
     }
+    public bool InRequest
+    {
+        get => (windowFlags & WindowFlags.InRequest) == WindowFlags.InRequest;
+    }
 
     public bool HasTitleBar
     {
@@ -171,6 +176,30 @@ public class Window : GUIObject
     internal void AddGadget(Gadget gadget)
     {
         gadgets.Add(gadget);
+    }
+
+    internal bool Request(Requester req)
+    {
+        if (req.Window == this)
+        {
+            requests.Add(req);
+            windowFlags |= WindowFlags.InRequest;
+            Invalidate();
+            return true;
+        }
+        return false;
+    }
+
+    internal void EndRequest(Requester req)
+    {
+        if (req.Window == this && requests.Remove(req))
+        {
+            if (requests.Count == 0)
+            {
+                windowFlags &= ~WindowFlags.InRequest;
+            }
+            Invalidate();
+        }
     }
 
     internal bool IsFrontWindow
@@ -196,6 +225,13 @@ public class Window : GUIObject
     internal void ToBack()
     {
         screen.WindowToBack(this);
+    }
+
+    internal void ChangeWindowBox(int left, int top, int width, int height)
+    {
+        Rectangle newDim = CheckDimensions(left, top, width, height);
+        SetDimensions(newDim);
+        InvalidateBounds();
     }
 
     internal Gadget? FindNextGadget(Gadget gadget)
@@ -337,23 +373,52 @@ public class Window : GUIObject
         return new Rectangle(x, y, w, h);
     }
 
-    internal void MoveWindow(int dX, int dY)
+    internal void MoveWindow(int dX, int dY, bool dragging = false)
     {
         Rectangle newDim = CheckDimensions(LeftEdge + dX, TopEdge + dY, Width, Height);
         SetDimensions(newDim);
-        windowFlags |= WindowFlags.MouseHover;
+        if (dragging) { windowFlags |= WindowFlags.MouseHover; }
         InvalidateBounds();
     }
 
-    internal void SizeWindow(int dX, int dY)
+    internal void SizeWindow(int dX, int dY, bool sizing = false)
     {
         Rectangle newDim = CheckDimensions(LeftEdge, TopEdge, Width + dX, Height + dY);
         SetDimensions(newDim);
-        windowFlags |= WindowFlags.MouseHover;
+        if (sizing) { windowFlags |= WindowFlags.MouseHover; }
         InvalidateBounds();
     }
 
     public Gadget? FindGadget(int x, int y)
+    {
+        if (InRequest && requests.Count > 0)
+        {
+            Requester req = requests[^1];
+            if (req.Contains(x, y))
+            {
+                return req.FindGadget(x, y);
+            }
+            return InReqFindGadget(x, y);
+        }
+        else
+        {
+            return NormalFindGadget(x, y);
+        }
+        return null;
+    }
+    private Gadget? InReqFindGadget(int x, int y)
+    {
+        for (int i = gadgets.Count - 1; i >= 0; i--)
+        {
+            Gadget gad = gadgets[i];
+            if (gad.Enabled && gad.IsBorderGadget && gad.IsSysGadget && gad.Contains(x, y))
+            {
+                return gad;
+            }
+        }
+        return null;
+    }
+    private Gadget? NormalFindGadget(int x, int y)
     {
         for (int i = gadgets.Count - 1; i >= 0; i--)
         {
@@ -388,6 +453,10 @@ public class Window : GUIObject
         foreach (Gadget gadget in gadgets)
         {
             gadget.InvalidateBounds();
+        }
+        foreach(Requester req in requests)
+        {
+            req.InvalidateBounds();
         }
     }
 
@@ -450,6 +519,10 @@ public class Window : GUIObject
         foreach (var gad in gadgets.Where(g => !g.IsBorderGadget))
         {
             gad.Render(gfx, ren);
+        }
+        foreach (Requester req in requests)
+        {
+            req.Render(gfx, ren);
         }
         gfx.PopClip();
     }

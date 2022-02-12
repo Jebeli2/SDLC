@@ -202,12 +202,12 @@ public class GUIObject : IBox
         return rect;
     }
 
-    public void SetDimensions(Rectangle rect)
+    protected void SetDimensions(Rectangle rect)
     {
         SetDimensions(rect.X, rect.Y, rect.Width, rect.Height);
     }
 
-    public virtual void SetDimensions(int x, int y, int w, int h)
+    protected virtual void SetDimensions(int x, int y, int w, int h)
     {
         leftEdge = x;
         topEdge = y;
@@ -215,7 +215,7 @@ public class GUIObject : IBox
         height = h;
     }
 
-    public virtual void SetBorders(int left, int top, int right, int bottom)
+    protected virtual void SetBorders(int left, int top, int right, int bottom)
     {
         borderLeft = left;
         borderTop = top;

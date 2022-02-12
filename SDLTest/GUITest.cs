@@ -20,6 +20,7 @@
         private Window? winButTest;
         private Gadget? fullScreenGadget;
         private Window? winPropTest;
+        private Requester? requester;
 
         public GUITest() : base("GUI Test")
         {
@@ -74,14 +75,14 @@
                 {
                     winPropTest = gui.OpenWindow(screen1, 400, 10, 500, 500, "Props & Strings");
                     winPropTest.WindowClose += WinPropTest_WindowClose;
-                    Gadget prop1 = gui.AddGadget(winPropTest, 10, 10, -20, 20, type: GadgetType.PropGadget);
+                    Gadget prop1 = gui.AddGadget(winPropTest, leftEdge: 10, topEdge: 10, width: -20, height: 20, type: GadgetType.PropGadget);
                     gui.ModifyProp(prop1, PropFlags.FreeHoriz, 0x1000, 0, 0x5555, 0);
-                    Gadget prop2 = gui.AddGadget(winPropTest, 10, 40, -20, 20, type: GadgetType.PropGadget);
+                    Gadget prop2 = gui.AddGadget(winPropTest, leftEdge: 10, topEdge: 40, width: -20, height: 20, type: GadgetType.PropGadget);
                     gui.ModifyProp(prop2, PropFlags.FreeHoriz, 0x5000, 0, 0x1000, 0);
-                    Gadget prop3 = gui.AddGadget(winPropTest, 10, 70, -20, 100, type: GadgetType.PropGadget);
+                    Gadget prop3 = gui.AddGadget(winPropTest, leftEdge: 10, topEdge: 70, width: -20, height: 100, type: GadgetType.PropGadget);
                     gui.ModifyProp(prop3, PropFlags.FreeHoriz | PropFlags.FreeVert, 0x5000, 0x4000, 0x2000, 0x8000);
-                    Gadget str1 = gui.AddGadget(winPropTest, 10, 180, -20, 22, type: GadgetType.StrGadget, buffer: "Hello World");
-                    Gadget str2 = gui.AddGadget(winPropTest, 10, 210, -20, 22, type: GadgetType.StrGadget, buffer: "Example Text");
+                    Gadget str1 = gui.AddGadget(winPropTest, leftEdge: 10, topEdge: 180, width: -20, height: 22, type: GadgetType.StrGadget, buffer: "Hello World");
+                    Gadget str2 = gui.AddGadget(winPropTest, leftEdge: 10, topEdge: 210, width: -20, height: 22, type: GadgetType.StrGadget, buffer: "Example Text");
 
                 }
                 else
@@ -101,23 +102,31 @@
                 if (winButTest == null)
                 {
                     winButTest = gui.OpenWindow(screen1, 400, 10, 500, 500, "Buttons");
+                    //winButTest.Superbitmap = false;
                     winButTest.WindowClose += WinButTest_WindowClose;
-                    fullScreenGadget = gui.AddGadget(winButTest, 10, 10, -20, 30, text: IsFullScreen ? "Windowed" : "Fullscreen", clickAction: ToggleFullScreen);
-                    _ = gui.AddGadget(winButTest, 10, 50, -20, 30, text: "Toggle Button", toggleSelect: true);
-                    _ = gui.AddGadget(winButTest, 10, 90, -20, 30, text: "Icon Button", icon: Icons.ENTYPO_ICON_YOUKO);
-                    _ = gui.AddGadget(winButTest, 10, 130, -20, 30, text: "Disabled Button", disabled: true);
-                    var colorGad = gui.AddGadget(winButTest, 10, 170, -20, 30, text: "Color Button");
-                    colorGad.BackgroundColor = Color.Blue;
-                    _ = gui.AddGadget(winButTest, 10, 210, -262, 30, text: "Play Next", clickAction:
+                    requester = gui.InitRequester(winButTest);
+                    requester.Flags = ReqFlags.PointRel;
+                    requester.Width = 200;
+                    requester.Height = 200;
+                    _ = gui.AddGadget(winButTest, requester, leftEdge: 10, topEdge: -30, width: -20, height: 20, endGadget: true, text: "OK");
+
+                    fullScreenGadget = gui.AddGadget(winButTest, leftEdge: 10, topEdge: 10, width: -20, height: 30, text: IsFullScreen ? "Windowed" : "Fullscreen", clickAction: ToggleFullScreen);
+                    _ = gui.AddGadget(winButTest, leftEdge: 10, topEdge: 50, width: -20, height: 30, text: "Toggle Button", toggleSelect: true);
+                    _ = gui.AddGadget(winButTest, leftEdge: 10, topEdge: 90, width: -20, height: 30, text: "Icon Button", icon: Icons.ENTYPO_ICON_YOUKO);
+                    _ = gui.AddGadget(winButTest, leftEdge: 10, topEdge: 130, width: -20, height: 30, text: "Disabled Button", disabled: true);
+                    _ = gui.AddGadget(winButTest, leftEdge: 10, topEdge: 170, width: -20, height: 30, text: "Color Button", bgColor: Color.Blue);
+                    _ = gui.AddGadget(winButTest, leftEdge: 10, topEdge: 210, width: -262, height: 30, text: "Play Next", clickAction:
                         () => { GetApplet<MusicPlayer>().NextMusic(); });
-                    _ = gui.AddGadget(winButTest, -248, 210, 240, 30, text: "Play Prev", clickAction:
+                    _ = gui.AddGadget(winButTest, leftEdge: -248, topEdge: 210, width: 240, height: 30, text: "Play Prev", clickAction:
                         () => { GetApplet<MusicPlayer>().PrevMusic(); });
-                    _ = gui.AddGadget(winButTest, 10, 250, 30, 30, icon: Icons.ENTYPO_ICON_MUSIC, toggleSelect: true,
+                    _ = gui.AddGadget(winButTest, leftEdge: 10, topEdge: 250, width: 30, height: 30, icon: Icons.ENTYPO_ICON_MUSIC, toggleSelect: true,
                         selected: GetApplet<MusicVisualizer>().Enabled, clickAction: () => { GetApplet<MusicVisualizer>().Enabled ^= true; });
-                    _ = gui.AddGadget(winButTest, 50, 250, 30, 30, icon: Icons.ENTYPO_ICON_LINE_GRAPH, toggleSelect: true,
+                    _ = gui.AddGadget(winButTest, leftEdge: 50, topEdge: 250, width: 30, height: 30, icon: Icons.ENTYPO_ICON_LINE_GRAPH, toggleSelect: true,
                         selected: GetApplet<LinesApp>().Enabled, clickAction: () => { GetApplet<LinesApp>().Enabled ^= true; });
-                    _ = gui.AddGadget(winButTest, 90, 250, 30, 30, icon: Icons.ENTYPO_ICON_BOX, toggleSelect: true,
+                    _ = gui.AddGadget(winButTest, leftEdge: 90, topEdge: 250, width: 30, height: 30, icon: Icons.ENTYPO_ICON_BOX, toggleSelect: true,
                         selected: GetApplet<RainingBoxesApp>().Enabled, clickAction: () => { GetApplet<RainingBoxesApp>().Enabled ^= true; });
+                    _ = gui.AddGadget(winButTest, leftEdge: 130, topEdge: 250, width: 30, height: 30, icon: Icons.ENTYPO_ICON_ADDRESS, clickAction:
+                        () => { gui.Request(requester, winButTest); });
                 }
                 else
                 {

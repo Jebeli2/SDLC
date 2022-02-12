@@ -10,6 +10,7 @@ using System.Drawing;
 public class Gadget : GUIObject
 {
     private readonly Window window;
+    private readonly Requester? requester;
     private GadgetFlags flags;
     private GadgetActivation activation;
     private GadgetType gadgetType;
@@ -19,14 +20,24 @@ public class Gadget : GUIObject
     private Icons icon;
     private PropInfo? propInfo;
     private StringInfo? strInfo;
-    internal Gadget(IGUISystem gui, Window window)
+    internal Gadget(IGUISystem gui, Window window, Requester? req = null)
         : base(gui)
     {
         this.window = window;
+        requester = req;
         SetBorders(1, 1, 1, 1);
-        gadgetType = GadgetType.BoolGadget;
+
+        //gadgetType = GadgetType.BoolGadget;
         activation = GadgetActivation.RelVerify | GadgetActivation.Immediate;
-        window.AddGadget(this);
+        if (req != null)
+        {
+            gadgetType |= GadgetType.ReqGadget;
+            req.AddGadget(this);
+        }
+        else
+        {
+            window.AddGadget(this);
+        }
     }
 
     public event EventHandler<EventArgs>? GadgetDown;
@@ -60,7 +71,7 @@ public class Gadget : GUIObject
             }
         }
     }
-
+    internal Requester? Requester => requester;
     internal PropInfo? PropInfo => propInfo;
     internal StringInfo? StrInfo => strInfo;
 
@@ -224,6 +235,10 @@ public class Gadget : GUIObject
     {
         get => (gadgetType & GadgetType.SysGadget) != 0;
     }
+    public bool IsReqGadget
+    {
+        get => (gadgetType & GadgetType.ReqGadget) != 0;
+    }
 
     public GadgetType SysGadgetType
     {
@@ -237,6 +252,11 @@ public class Gadget : GUIObject
     public bool Immediate
     {
         get => (activation & GadgetActivation.Immediate) == GadgetActivation.Immediate;
+    }
+
+    public bool IsEndGadget
+    {
+        get => (activation & GadgetActivation.EndGadget) == GadgetActivation.EndGadget;
     }
 
     public bool IsBorderGadget
@@ -409,57 +429,89 @@ public class Gadget : GUIObject
 
     private int GetWindowX()
     {
-        int x = window.LeftEdge;
+        int x = requester?.LeftEdge ?? window.LeftEdge;
         if ((activation & GadgetActivation.LeftBorder) == 0)
         {
-            x += window.BorderLeft;
+            x += requester?.BorderLeft ?? window.BorderLeft;
         }
         return x;
     }
 
     private int GetWindowY()
     {
-        int y = window.TopEdge;
+        int y = requester?.TopEdge ?? window.TopEdge;
         if ((activation & GadgetActivation.TopBorder) == 0)
         {
-            y += window.BorderTop;
+            y += requester?.BorderTop ?? window.BorderTop;
         }
         return y;
     }
 
     private int GetWindowW()
     {
-        int w = window.Width;
+        int w = requester?.Width ?? window.Width;
         if ((activation & GadgetActivation.LeftBorder) == 0)
         {
-            w -= window.BorderLeft;
+            w -= requester?.BorderLeft ?? window.BorderLeft;
         }
         if ((activation & GadgetActivation.RightBorder) == 0)
         {
-            w -= window.BorderRight;
+            w -= requester?.BorderRight ?? window.BorderRight;
         }
         return w;
     }
     private int GetWindowH()
     {
-        int h = window.Height;
+        int h = requester?.Height ?? window.Height;
         if ((activation & GadgetActivation.TopBorder) == 0)
         {
-            h -= window.BorderTop;
+            h -= requester?.BorderTop ?? window.BorderTop;
         }
         if ((activation & GadgetActivation.BottomBorder) == 0)
         {
-            h -= window.BorderBottom;
+            h -= requester?.BorderBottom ?? window.BorderBottom;
         }
         return h;
     }
 
+    private Rectangle GetParentBounds()
+    {
+        Rectangle bounds = window.GetBounds();
+        if ((activation & GadgetActivation.LeftBorder) == 0)
+        {
+            bounds.X += window.BorderLeft;
+            bounds.Width-= window.BorderLeft;
+        }
+        if ((activation & GadgetActivation.TopBorder) == 0)
+        {
+            bounds.Y += window.BorderTop;
+            bounds.Height -= window.BorderTop;
+        }
+        if ((activation & GadgetActivation.RightBorder) == 0)
+        {
+            bounds.Width -= window.BorderRight;
+        }
+        if ((activation & GadgetActivation.BottomBorder) == 0)
+        {
+            bounds.Height -= window.BorderBottom;
+        }
+        if (requester != null)
+        {
+            bounds.X += requester.LeftEdge;
+            bounds.Y += requester.TopEdge;
+            bounds.Width = requester.Width;
+            bounds.Height = requester.Height;
+        }
+        return bounds;
+    }
+
     private Rectangle CalculateBounds()
     {
-        int x = GetWindowX();
-        int y = GetWindowY();
-        int w = GetWindowW();
-        int h = GetWindowH();
+        Rectangle pBounds = GetParentBounds();
+        int x = pBounds.X;
+        int y = pBounds.Y;
+        int w = pBounds.Width;
+        int h = pBounds.Height;
         int bx = AddRel(GadgetFlags.RelRight, w) + LeftEdge;
         int by = AddRel(GadgetFlags.RelBottom, h) + TopEdge;
         int bw = AddRel(GadgetFlags.RelWidth, w) + Width;

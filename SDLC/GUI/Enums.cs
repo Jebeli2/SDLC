@@ -24,6 +24,7 @@ public enum GadgetActivation
     None = 0x0000,
     RelVerify = 0x0001,
     Immediate = 0x0002,
+    EndGadget = 0x0004,
     MouseHover = 0x0008,
     RightBorder = 0x0010,
     LeftBorder = 0x0020,
@@ -75,6 +76,7 @@ public enum WindowFlags
     Borderless = 0x0400,
     Activate = 0x0800,
     WindowActive = 0x2000,
+    InRequest = 0x4000,
     MouseHover = 0x40000,
     Zoomed = 0x10000000,
     HasZoom = 0x20000000
@@ -87,6 +89,14 @@ public enum PropFlags
     FreeVert = 0x0004,
     PropBorderless = 0x0008,
     KnobHit = 0x0100
+}
+
+[Flags]
+public enum ReqFlags
+{
+    None = 0x0000,
+    PointRel = 0x0001,
+    ReqActive = 0x2000
 }
 
 [Flags]

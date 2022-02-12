@@ -149,6 +149,10 @@ public class DefaultGUIRenderer : IGUIRenderer
     {
         DrawGadget(gfx, gadget, offsetX, offsetY);
     }
+    public void RenderRequester(IRenderer gfx, Requester req, int offsetX, int offsetY)
+    {
+        DrawRequester(gfx, req, offsetX, offsetY);
+    }
 
     private void DrawScreen(IRenderer gfx, Screen screen, int offsetX, int offsetY)
     {
@@ -206,6 +210,37 @@ public class DefaultGUIRenderer : IGUIRenderer
             DrawStrGadget(gfx, gadget, gadget.StrInfo, offsetX, offsetY);
         }
     }
+
+    private void DrawRequester(IRenderer gfx, Requester req, int offsetX, int offsetY)
+    {
+        Rectangle bounds = req.GetBounds();
+        Rectangle inner = req.GetInnerBounds();
+        bounds.Offset(offsetX, offsetY);
+        inner.Offset(offsetX, offsetY);
+        bool selected = true;
+        bool active = req.Window.Active;
+        bool hover = req.Window.MouseHover;
+        Color gradTop = ButtonGradientTopUnFocused;
+        Color gradBottom = ButtonGradientBotUnFocused;
+        if (selected)
+        {
+            gradTop = ButtonGradientTopPushed;
+            gradBottom = ButtonGradientBotPushed;
+        }
+        else if (active)
+        {
+            gradTop = ButtonGradientTopFocused;
+            gradBottom = ButtonGradientBotFocused;
+        }
+        else if (hover)
+        {
+            gradTop = ButtonGradientTopHover;
+            gradBottom = ButtonGradientBotHover;
+        }
+        gfx.FillVertGradient(bounds, gradTop, gradBottom);
+        DrawBox(gfx, bounds, BorderLight, BorderDark);
+    }
+
     private void DrawBoolGadget(IRenderer gfx, Gadget gadget, int offsetX, int offsetY)
     {
         Rectangle bounds = gadget.GetBounds();
