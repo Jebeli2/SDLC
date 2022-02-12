@@ -250,6 +250,12 @@ public class DefaultGUIRenderer : IGUIRenderer
         bool active = gadget.Active;
         bool hover = gadget.MouseHover;
         bool selected = gadget.Selected;
+        if (gadget.NoHighlight)
+        {
+            active = false;
+            hover = false;
+            selected = false;
+        }
         if (!gadget.TransparentBackground)
         {
             Color gradTop = ButtonGradientTopUnFocused;
@@ -283,7 +289,7 @@ public class DefaultGUIRenderer : IGUIRenderer
                 DrawBox(gfx, bounds, BorderLight, BorderDark);
             }
         }
-        else
+        else if (!gadget.NoHighlight)
         {
             DrawBox(gfx, bounds, BorderLight, BorderDark);
         }

@@ -52,7 +52,7 @@
             lines.RenderPrio = -750;
             music.RenderPrio = -800;
 
-            var gui = GetApplet<GUISystem>();
+            IGUISystem gui = GUI;
 
             Screen screen1 = gui.OpenScreen();
             Window window1 = gui.OpenWindow(screen1, leftEdge: 50, topEdge: 50, width: 300, height: 300,

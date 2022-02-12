@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using SDLC.GUI;
 
 internal sealed class SDLWindow : IWindow, IDisposable
 {
@@ -20,6 +21,7 @@ internal sealed class SDLWindow : IWindow, IDisposable
     private IntPtr handle;
     private readonly SDLRenderer renderer;
     private readonly SDLContentManager contentManager;
+    private IGUISystem? gui;
     private bool disposedValue;
     private int windowId;
     private string? title;
@@ -163,6 +165,24 @@ internal sealed class SDLWindow : IWindow, IDisposable
     }
 
     public IContentManager ContentManager => contentManager;
+    public IGUISystem GUI
+    {
+        get
+        {
+            if (gui == null)
+            {
+                gui = GetApplet<Applets.GUISystem>();
+            }
+            return gui;
+        }
+        set
+        {
+            if (gui != value)
+            {
+                gui = value;
+            }
+        }
+    }
 
     public event EventHandler WindowShown
     {
@@ -910,7 +930,7 @@ internal sealed class SDLWindow : IWindow, IDisposable
     internal void RaiseWindowShown()
     {
         SDLLog.Debug(LogCategory.VIDEO, "Window {0} Shown", windowId);
-        foreach (SDLApplet applet in applets) { applet.OnWindowShown(EventArgs.Empty); }        
+        foreach (SDLApplet applet in applets) { applet.OnWindowShown(EventArgs.Empty); }
         if (enableEventHandlers) { ((EventHandler?)eventHandlerList[windowShownEventKey])?.Invoke(this, EventArgs.Empty); }
     }
     internal void RaiseWindowHidden()
@@ -1002,13 +1022,16 @@ internal sealed class SDLWindow : IWindow, IDisposable
     }
     internal void RaiseWindowResized(int width, int height, WindowResizeSource source)
     {
-        SDLLog.Debug(LogCategory.VIDEO, "Window {0} Resized {1} {2} ({3})", windowId, width, height, source);
-        this.width = width;
-        this.height = height;
-        SDLWindowSizeEventArgs e = new(width, height, source);
-        renderer.WindowResized(width, height, source);
-        foreach (SDLApplet applet in applets) { applet.OnWindowResized(e); }
-        if (enableEventHandlers) { ((SDLWindowSizeEventHandler?)eventHandlerList[windowResizedEventKey])?.Invoke(this, e); }
+        if (width != this.width || height != this.height)
+        {
+            SDLLog.Debug(LogCategory.VIDEO, "Window {0} Resized {1} {2} ({3})", windowId, width, height, source);
+            this.width = width;
+            this.height = height;
+            SDLWindowSizeEventArgs e = new(width, height, source);
+            renderer.WindowResized(width, height, source);
+            foreach (SDLApplet applet in applets) { applet.OnWindowResized(e); }
+            if (enableEventHandlers) { ((SDLWindowSizeEventHandler?)eventHandlerList[windowResizedEventKey])?.Invoke(this, e); }
+        }
     }
     internal void RaiseWindowLoad()
     {

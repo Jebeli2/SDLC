@@ -66,6 +66,28 @@ public class Screen : GUIObject
             windows.Insert(0, window);
         }
     }
+    internal void MoveWindowInFrontOf(Window window, Window behindWindow)
+    {
+        if (window != behindWindow)
+        {
+            int behindIndex = windows.IndexOf(behindWindow);
+            int index = windows.IndexOf(window);
+            if (index >= 0 && behindIndex >= 0 && index != behindIndex + 1)
+            {
+                windows.RemoveAt(index);
+                behindIndex = windows.IndexOf(behindWindow);
+                behindIndex++;
+                if (behindIndex < windows.Count - 1)
+                {
+                    windows.Insert(behindIndex, window);
+                }
+                else
+                {
+                    windows.Add(window);
+                }
+            }
+        }
+    }
 
     internal void Close()
     {

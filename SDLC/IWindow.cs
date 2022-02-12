@@ -4,6 +4,7 @@
 namespace SDLC;
 
 using System;
+using SDLC.GUI;
 
 public interface IWindow
 {
@@ -12,6 +13,7 @@ public interface IWindow
     bool HandleCreated { get; }
     IRenderer Renderer { get; }
     IContentManager ContentManager { get; }
+    IGUISystem GUI { get; set; }
     IScreen Screen { get; set; }
     int Width { get; }
     int Height { get; }

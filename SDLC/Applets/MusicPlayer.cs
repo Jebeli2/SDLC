@@ -124,7 +124,7 @@ public class MusicPlayer : SDLApplet
     }
     private void SDLAudio_MusicFinished(object? sender, SDLMusicFinishedEventArgs e)
     {
-        SDLLog.Debug(LogCategory.AUDIO, "Music '{0}' stopped ({1})", e.Music.Name, e.Reason);
+        SDLLog.Verbose(LogCategory.AUDIO, "Music '{0}' stopped ({1})", e.Music.Name, e.Reason);
         if (e.Music == currentMusic)
         {
             currentMusic.Dispose();

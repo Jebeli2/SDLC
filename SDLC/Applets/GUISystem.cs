@@ -360,6 +360,24 @@ public class GUISystem : SDLApplet, IGUISystem
             }
         }
     }
+
+    private void ClearGadgetsIfWindowMatches(Window window)
+    {
+        if (activeGadget != null && activeGadget.Window == window)
+        {
+            SetActiveGadget(null);
+        }
+        if (selectedGadget != null && selectedGadget.Window == window)
+        {
+            SetSelectedGadget(null);
+        }
+        if (mouseGadget != null && mouseGadget.Window == window)
+        {
+            SetMouseGadget(null);
+        }
+    }
+
+
     private static void CheckAndClear(ref Screen? screen, Screen test)
     {
         if (screen != null && screen == test)
@@ -887,18 +905,7 @@ public class GUISystem : SDLApplet, IGUISystem
     {
         if (window.Request(req))
         {
-            if (window == activeGadget?.Window)
-            {
-                SetActiveGadget(null);
-            }
-            if (window == selectedGadget?.Window)
-            {
-                SetSelectedGadget(null);
-            }
-            if (window == mouseGadget?.Window)
-            {
-                SetMouseGadget(null);
-            }
+            ClearGadgetsIfWindowMatches(window);
             return true;
         }
         return false;
@@ -935,7 +942,17 @@ public class GUISystem : SDLApplet, IGUISystem
     {
         window.MoveWindow(deltaX, deltaY);
     }
-
+    public void MoveWindowInFrontOf(Window window, Window behindWindow)
+    {
+        if (window != behindWindow)
+        {
+            Screen screen = window.Screen;
+            if (screen != null && screen == behindWindow.Screen)
+            {
+                screen.MoveWindowInFrontOf(window, behindWindow);
+            }
+        }
+    }
     public void SizeWindow(Window window, int deltaX, int deltaY)
     {
         window.SizeWindow(deltaX, deltaY);

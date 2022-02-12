@@ -75,6 +75,14 @@ public class Gadget : GUIObject
     internal PropInfo? PropInfo => propInfo;
     internal StringInfo? StrInfo => strInfo;
 
+    internal Action<int>? ValueChangedAction { get; set; }
+    internal int SliderMin { get; set; }
+    internal int SliderMax { get; set; }
+    internal int SliderLevel { get; set; }
+
+    internal int ScrollerTotal { get; set; }
+    internal int ScrollerVisible { get; set; }
+    internal int ScrollerTop { get; set; }
     public bool Selected
     {
         get => (flags & GadgetFlags.Selected) == GadgetFlags.Selected;
@@ -87,6 +95,22 @@ public class Gadget : GUIObject
             else
             {
                 Flags &= ~GadgetFlags.Selected;
+            }
+        }
+    }
+
+    public bool NoHighlight
+    {
+        get => (flags & GadgetFlags.HNone) == GadgetFlags.HNone;
+        set
+        {
+            if (value)
+            {
+                Flags |= GadgetFlags.HNone;
+            }
+            else
+            {
+                Flags &= ~GadgetFlags.HNone;
             }
         }
     }
@@ -480,7 +504,7 @@ public class Gadget : GUIObject
         if ((activation & GadgetActivation.LeftBorder) == 0)
         {
             bounds.X += window.BorderLeft;
-            bounds.Width-= window.BorderLeft;
+            bounds.Width -= window.BorderLeft;
         }
         if ((activation & GadgetActivation.TopBorder) == 0)
         {

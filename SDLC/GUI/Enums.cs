@@ -9,6 +9,7 @@ using System;
 public enum GadgetFlags
 {
     None = 0x0000,
+    HNone = 0x0002,
     RelBottom = 0x0008,
     RelRight = 0x0010,
     RelWidth = 0x0020,
@@ -107,4 +108,28 @@ public enum ActionResult
     GadgetUp = 0x0002,
     NavigateNext = 0x0004,
     NavigatePrevious = 0x0008,
+}
+
+public enum GadgetKind
+{
+    Generic,
+    Button,
+    Checkbox,
+    Integer,
+    ListView,
+    Mx,
+    Number,
+    Cycle,
+    Palette,
+    Scroller,
+    Reserved,
+    Slider,
+    String,
+    Text
+}
+
+public enum PropFreedom
+{
+    Vertical,
+    Horizontal,
 }

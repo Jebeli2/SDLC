@@ -3,6 +3,7 @@
 
 namespace SDLC;
 using System.Collections.Generic;
+using SDLC.GUI;
 
 public class SDLScreen : IScreen
 {
@@ -16,6 +17,7 @@ public class SDLScreen : IScreen
     private IWindow? window;
     private IRenderer? renderer;
     private IContentManager? contentManager;
+    private IGUISystem? gui;
 
     public SDLScreen(string name = "SDLScreen")
     {
@@ -24,6 +26,33 @@ public class SDLScreen : IScreen
     public string Name => name;
 
     public Configuration Configuration => configuration;
+
+    public IGUISystem GUI
+    {
+        get
+        {
+            if (gui == null)
+            {
+                gui = window?.GUI;
+                if (gui == null)
+                {
+                    gui = GetApplet<Applets.GUISystem>();
+                }
+            }
+            return gui;
+        }
+        set
+        {
+            if (gui != value)
+            {
+                gui = value;
+                if (window != null)
+                {
+                    window.GUI = value;
+                }
+            }
+        }
+    }
 
     public Configuration GetConfiguration()
     {
