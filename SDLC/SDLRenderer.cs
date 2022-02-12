@@ -5,6 +5,7 @@ namespace SDLC;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 internal sealed class SDLRenderer : IRenderer, IDisposable
@@ -93,7 +94,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
             colorG = value.G;
             colorB = value.B;
             colorA = value.A;
-            CheckedSDLCall(() => SDL_SetRenderDrawColor(handle, colorR, colorG, colorB, colorA), nameof(SDL_SetRenderDrawColor));
+            SDLApplication.LogSDLError(SDL_SetRenderDrawColor(handle, colorR, colorG, colorB, colorA));
         }
     }
 
@@ -102,7 +103,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         if (blendMode != value)
         {
             blendMode = value;
-            CheckedSDLCall(() => SDL_SetRenderDrawBlendMode(handle, blendMode), nameof(SDL_SetRenderDrawBlendMode));
+            SDLApplication.LogSDLError(SDL_SetRenderDrawBlendMode(handle, blendMode));
         }
     }
 
@@ -121,7 +122,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         if (handle != IntPtr.Zero)
         {
             SDL_RendererInfo info = new();
-            CheckedSDLCall(() => SDL_GetRendererInfo(handle, out info), nameof(SDL_GetRendererInfo));
+            SDLApplication.LogSDLError(SDL_GetRendererInfo(handle, out info));
             SDLLog.Info(LogCategory.RENDER, "Renderer {0} created: {1} ({2}x{3} max texture size)", window.WindowId, Marshal.PtrToStringUTF8(info.name), info.max_texture_width, info.max_texture_height);
             backBufferWidth = window.BackBufferWidth;
             backBufferHeight = window.BackBufferHeight;
@@ -149,10 +150,10 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
                 backBuffer = SDL_CreateTexture(handle, format, SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, backBufferWidth, backBufferHeight);
                 if (backBuffer != IntPtr.Zero)
                 {
-                    CheckedSDLCall(() => SDL_SetTextureAlphaMod(backBuffer, 255), nameof(SDL_SetTextureAlphaMod));
-                    CheckedSDLCall(() => SDL_SetTextureColorMod(backBuffer, 255, 255, 255), nameof(SDL_SetTextureColorMod));
-                    CheckedSDLCall(() => SDL_SetTextureBlendMode(backBuffer, BlendMode.Blend), nameof(SDL_SetTextureBlendMode));
-                    CheckedSDLCall(() => SDL_SetTextureScaleMode(backBuffer, textureFilter), nameof(SDL_SetTextureScaleMode));
+                    SDLApplication.LogSDLError(SDL_SetTextureAlphaMod(backBuffer, 255));
+                    SDLApplication.LogSDLError(SDL_SetTextureColorMod(backBuffer, 255, 255, 255));
+                    SDLApplication.LogSDLError(SDL_SetTextureBlendMode(backBuffer, BlendMode.Blend));
+                    SDLApplication.LogSDLError(SDL_SetTextureScaleMode(backBuffer, textureFilter));
                     width = backBufferWidth;
                     height = backBufferHeight;
                 }
@@ -209,13 +210,13 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
             case RendererSizeMode.Window:
                 SetColor(Color.Black);
                 SetBlendMode(BlendMode.Blend);
-                CheckedSDLCall(() => SDL_RenderClear(handle), nameof(SDL_RenderClear));
+                SDLApplication.LogSDLError(SDL_RenderClear(handle));
                 break;
             case RendererSizeMode.BackBuffer:
-                _ = SDL_SetRenderTarget(handle, backBuffer);
+                SDLApplication.LogSDLError(SDL_SetRenderTarget(handle, backBuffer));
                 SetColor(Color.Black);
                 SetBlendMode(BlendMode.Blend);
-                CheckedSDLCall(() => SDL_RenderClear(handle), nameof(SDL_RenderClear));
+                SDLApplication.LogSDLError(SDL_RenderClear(handle));
                 break;
         }
     }
@@ -232,8 +233,8 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
             case RendererSizeMode.Window:
                 break;
             case RendererSizeMode.BackBuffer:
-                CheckedSDLCall(() => SDL_SetRenderTarget(handle, IntPtr.Zero), nameof(SDL_SetRenderTarget));
-                CheckedSDLCall(() => SDL_RenderCopy(handle, backBuffer, IntPtr.Zero, IntPtr.Zero), nameof(SDL_RenderCopy));
+                SDLApplication.LogSDLError(SDL_SetRenderTarget(handle, IntPtr.Zero));
+                SDLApplication.LogSDLError(SDL_RenderCopy(handle, backBuffer, IntPtr.Zero, IntPtr.Zero));
                 break;
         }
         SDL_RenderPresent(handle);
@@ -241,18 +242,18 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
 
     public void DrawRect(Rectangle rect)
     {
-        CheckedSDLCall(() => SDL_RenderDrawRect(handle, ref rect), nameof(SDL_RenderDrawRect));
+        SDLApplication.LogSDLError(SDL_RenderDrawRect(handle, ref rect));
     }
     public void DrawRect(RectangleF rect)
     {
-        CheckedSDLCall(() => SDL_RenderDrawRectF(handle, ref rect), nameof(SDL_RenderDrawRectF));
+        SDLApplication.LogSDLError(SDL_RenderDrawRectF(handle, ref rect));
     }
     public void DrawRects(IEnumerable<Rectangle> rects)
     {
         Rectangle[] rcts = rects.AsArray();
         if (rcts.Length > 0)
         {
-            CheckedSDLCall(() => SDL_RenderDrawRects(handle, rcts, rcts.Length), nameof(SDL_RenderDrawRects));
+            SDLApplication.LogSDLError(SDL_RenderDrawRects(handle, rcts, rcts.Length));
         }
     }
     public void DrawRects(IEnumerable<RectangleF> rects)
@@ -260,27 +261,27 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         RectangleF[] rcts = rects.AsArray();
         if (rcts.Length > 0)
         {
-            CheckedSDLCall(() => SDL_RenderDrawRectsF(handle, rcts, rcts.Length), nameof(SDL_RenderDrawRectsF));
+            SDLApplication.LogSDLError(SDL_RenderDrawRectsF(handle, rcts, rcts.Length));
         }
     }
 
     public void FillRect(Rectangle rect)
     {
-        CheckedSDLCall(() => SDL_RenderFillRect(Handle, ref rect), nameof(SDL_RenderFillRect));
+        SDLApplication.LogSDLError(SDL_RenderFillRect(Handle, ref rect));
     }
     public void FillRect(RectangleF rect)
     {
-        CheckedSDLCall(() => SDL_RenderFillRectF(Handle, ref rect), nameof(SDL_RenderFillRectF));
+        SDLApplication.LogSDLError(SDL_RenderFillRectF(Handle, ref rect));
     }
 
     public void DrawLine(int x1, int y1, int x2, int y2)
     {
-        CheckedSDLCall(() => SDL_RenderDrawLine(handle, x1, y1, x2, y2), nameof(SDL_RenderDrawLine));
+        SDLApplication.LogSDLError(SDL_RenderDrawLine(handle, x1, y1, x2, y2));
     }
 
     public void DrawLine(float x1, float y1, float x2, float y2)
     {
-        CheckedSDLCall(() => SDL_RenderDrawLineF(handle, x1, y1, x2, y2), nameof(SDL_RenderDrawLineF));
+        SDLApplication.LogSDLError(SDL_RenderDrawLineF(handle, x1, y1, x2, y2));
     }
 
     public void DrawLines(IEnumerable<Point> points)
@@ -288,7 +289,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         Point[] pts = points.AsArray();
         if (pts.Length > 0)
         {
-            CheckedSDLCall(() => SDL_RenderDrawLines(handle, pts, pts.Length), nameof(SDL_RenderDrawLines));
+            SDLApplication.LogSDLError(SDL_RenderDrawLines(handle, pts, pts.Length));
         }
     }
     public void DrawLines(IEnumerable<PointF> points)
@@ -296,17 +297,17 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         PointF[] pts = points.AsArray();
         if (pts.Length > 0)
         {
-            CheckedSDLCall(() => SDL_RenderDrawLinesF(handle, pts, pts.Length), nameof(SDL_RenderDrawLinesF));
+            SDLApplication.LogSDLError(SDL_RenderDrawLinesF(handle, pts, pts.Length));
         }
     }
 
     public void DrawPoint(int x, int y)
     {
-        CheckedSDLCall(() => SDL_RenderDrawPoint(handle, x, y), nameof(SDL_RenderDrawPoint));
+        SDLApplication.LogSDLError(SDL_RenderDrawPoint(handle, x, y));
     }
     public void DrawPoint(float x, float y)
     {
-        CheckedSDLCall(() => SDL_RenderDrawPointF(handle, x, y), nameof(SDL_RenderDrawPointF));
+        SDLApplication.LogSDLError(SDL_RenderDrawPointF(handle, x, y));
     }
 
     private static int ToSDLColor(Color c)
@@ -335,7 +336,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         rectVertices[3].color = ToSDLColor(colorBottomRight);
         rectVertices[3].position.X = rect.Right;
         rectVertices[3].position.Y = rect.Bottom;
-        CheckedSDLCall(() => SDL_RenderGeometry(handle, IntPtr.Zero, rectVertices, 4, rectIndices, NUM_RECT_INDICES), nameof(SDL_RenderGeometry));
+        SDLApplication.LogSDLError(SDL_RenderGeometry(handle, IntPtr.Zero, rectVertices, 4, rectIndices, NUM_RECT_INDICES));
     }
 
     public void FillColorRect(RectangleF rect, Color colorTopLeft, Color colorTopRight, Color colorBottomLeft, Color colorBottomRight)
@@ -352,42 +353,42 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         rectVertices[3].color = ToSDLColor(colorBottomRight);
         rectVertices[3].position.X = rect.Right;
         rectVertices[3].position.Y = rect.Bottom;
-        CheckedSDLCall(() => SDL_RenderGeometry(handle, IntPtr.Zero, rectVertices, 4, rectIndices, NUM_RECT_INDICES), nameof(SDL_RenderGeometry));
+        SDLApplication.LogSDLError(SDL_RenderGeometry(handle, IntPtr.Zero, rectVertices, 4, rectIndices, NUM_RECT_INDICES));
     }
 
     public void DrawTexture(SDLTexture? texture, Rectangle src, Rectangle dst)
     {
         if (texture.GetTextureHandle(out IntPtr th))
         {
-            CheckedSDLCall(() => SDL_RenderCopy(handle, th, ref src, ref dst), nameof(SDL_RenderCopy));
+            SDLApplication.LogSDLError(SDL_RenderCopy(handle, th, ref src, ref dst));
         }
     }
     public void DrawTexture(SDLTexture? texture, Rectangle dst)
     {
         if (texture.GetTextureHandle(out IntPtr th))
         {
-            CheckedSDLCall(() => SDL_RenderCopy(handle, th, IntPtr.Zero, ref dst), nameof(SDL_RenderCopy));
+            SDLApplication.LogSDLError(SDL_RenderCopy(handle, th, IntPtr.Zero, ref dst));
         }
     }
     public void DrawTexture(SDLTexture? texture)
     {
         if (texture.GetTextureHandle(out IntPtr th))
         {
-            CheckedSDLCall(() => SDL_RenderCopy(handle, th, IntPtr.Zero, IntPtr.Zero), nameof(SDL_RenderCopy));
+            SDLApplication.LogSDLError(SDL_RenderCopy(handle, th, IntPtr.Zero, IntPtr.Zero));
         }
     }
     public void DrawTexture(SDLTexture? texture, Rectangle src, RectangleF dst)
     {
         if (texture.GetTextureHandle(out IntPtr th))
         {
-            CheckedSDLCall(() => SDL_RenderCopyF(handle, th, ref src, ref dst), nameof(SDL_RenderCopyF));
+            SDLApplication.LogSDLError(SDL_RenderCopyF(handle, th, ref src, ref dst));
         }
     }
     public void DrawTexture(SDLTexture? texture, RectangleF dst)
     {
         if (texture.GetTextureHandle(out IntPtr th))
         {
-            CheckedSDLCall(() => SDL_RenderCopyF(handle, th, IntPtr.Zero, ref dst), nameof(SDL_RenderCopyF));
+            SDLApplication.LogSDLError(SDL_RenderCopyF(handle, th, IntPtr.Zero, ref dst));
         }
     }
 
@@ -395,28 +396,28 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
     {
         if (texture.GetTextureHandle(out IntPtr th))
         {
-            CheckedSDLCall(() => SDL_RenderCopyEx(handle, th, ref src, ref dst, angle, ref center, flip), nameof(SDL_RenderCopyEx));
+            SDLApplication.LogSDLError(SDL_RenderCopyEx(handle, th, ref src, ref dst, angle, ref center, flip));
         }
     }
     public void DrawTexture(SDLTexture? texture, Rectangle src, Rectangle dst, double angle, RendererFlip flip = RendererFlip.None)
     {
         if (texture.GetTextureHandle(out IntPtr th))
         {
-            CheckedSDLCall(() => SDL_RenderCopyEx(handle, th, ref src, ref dst, angle, IntPtr.Zero, flip), nameof(SDL_RenderCopyEx));
+            SDLApplication.LogSDLError(SDL_RenderCopyEx(handle, th, ref src, ref dst, angle, IntPtr.Zero, flip));
         }
     }
     public void DrawTexture(SDLTexture? texture, Rectangle dst, double angle, Point center, RendererFlip flip = RendererFlip.None)
     {
         if (texture.GetTextureHandle(out IntPtr th))
         {
-            CheckedSDLCall(() => SDL_RenderCopyEx(handle, th, IntPtr.Zero, ref dst, angle, ref center, flip), nameof(SDL_RenderCopyEx));
+            SDLApplication.LogSDLError(SDL_RenderCopyEx(handle, th, IntPtr.Zero, ref dst, angle, ref center, flip));
         }
     }
     public void DrawTexture(SDLTexture? texture, Rectangle dst, double angle, RendererFlip flip = RendererFlip.None)
     {
         if (texture.GetTextureHandle(out IntPtr th))
         {
-            CheckedSDLCall(() => SDL_RenderCopyEx(handle, th, IntPtr.Zero, ref dst, angle, IntPtr.Zero, flip), nameof(SDL_RenderCopyEx));
+            SDLApplication.LogSDLError(SDL_RenderCopyEx(handle, th, IntPtr.Zero, ref dst, angle, IntPtr.Zero, flip));
         }
     }
     public void DrawIcon(Icons icon, float x, float y, float width, float height, Color color, HorizontalAlignment hAlign = HorizontalAlignment.Center, VerticalAlignment vAlign = VerticalAlignment.Center, float offsetX = 0, float offsetY = 0)
@@ -469,7 +470,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         SDLTexture? texture = textureTracker.Find(fileName);
         if (texture == null && !string.IsNullOrEmpty(fileName))
         {
-            _ = SDLApplication.SDL_SetHint(SDLApplication.SDL_HINT_RENDER_SCALE_QUALITY, ((int)textureFilter).ToString());
+            _ = SDLApplication.SetHint(SDLApplication.SDL_HINT_RENDER_SCALE_QUALITY, (int)textureFilter);
             IntPtr tex = SDLTexture.IMG_LoadTexture(handle, fileName);
             if (tex != IntPtr.Zero)
             {
@@ -488,7 +489,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
             IntPtr rw = SDLApplication.SDL_RWFromMem(data, data.Length);
             if (rw != IntPtr.Zero)
             {
-                _ = SDLApplication.SDL_SetHint(SDLApplication.SDL_HINT_RENDER_SCALE_QUALITY, ((int)textureFilter).ToString());
+                _ = SDLApplication.SetHint(SDLApplication.SDL_HINT_RENDER_SCALE_QUALITY, (int)textureFilter);
                 IntPtr tex = SDLTexture.IMG_LoadTexture_RW(handle, rw, 1);
                 if (tex != IntPtr.Zero)
                 {
@@ -516,7 +517,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
     }
     public void ClearScreen()
     {
-        CheckedSDLCall(() => SDL_RenderClear(handle), nameof(SDL_RenderClear));
+        SDLApplication.LogSDLError(SDL_RenderClear(handle));
     }
     public void PushTarget(SDLTexture? texture)
     {
@@ -524,8 +525,8 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         {
             IntPtr oldTarget = SDL_GetRenderTarget(handle);
             prevTargets.Push(oldTarget);
-            CheckedSDLCall(() => SDL_SetRenderTarget(handle, texture.Handle), nameof(SDL_SetRenderTarget));
-            CheckedSDLCall(() => SDL_SetRenderDrawBlendMode(handle, blendMode), nameof(SDL_SetRenderDrawBlendMode));
+            SDLApplication.LogSDLError(SDL_SetRenderTarget(handle, texture.Handle));
+            SDLApplication.LogSDLError(SDL_SetRenderDrawBlendMode(handle, blendMode));
         }
     }
     public void PopTarget()
@@ -533,7 +534,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         if (prevTargets.Count > 0)
         {
             IntPtr oldTarget = prevTargets.Pop();
-            CheckedSDLCall(() => SDL_SetRenderTarget(handle, oldTarget), nameof(SDL_SetRenderTarget));
+            SDLApplication.LogSDLError(SDL_SetRenderTarget(handle, oldTarget));
         }
     }
 
@@ -541,8 +542,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
     {
         get
         {
-            Rectangle clip = Rectangle.Empty;
-            CheckedSDLCall(() => SDL_RenderGetClipRect(handle, out clip), nameof(SDL_RenderGetClipRect));
+            SDLApplication.LogSDLError(SDL_RenderGetClipRect(handle, out Rectangle clip));
             return clip;
         }
     }
@@ -557,19 +557,11 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         return clip;
     }
 
-    private static void CheckedSDLCall(Func<int> func, string funcName)
-    {
-        int result = func();
-        if (result != 0)
-        {
-            SDLLog.Error(LogCategory.RENDER, "{0} returned an error: {1} ({2})", funcName, result, SDLApplication.GetError());
-        }
-    }
     public void PushClip(Rectangle clip)
     {
         if (disableClipping) return;
         clip = CombineClip(clip);
-        CheckedSDLCall(() => SDL_RenderSetClipRect(handle, ref clip), nameof(SDL_RenderSetClipRect));
+        SDLApplication.LogSDLError(SDL_RenderSetClipRect(handle, ref clip));
         prevClips.Push(clip);
     }
     public void PopClip()
@@ -579,23 +571,23 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         if (prevClips.Count > 0)
         {
             Rectangle clip = prevClips.Peek();
-            CheckedSDLCall(() => SDL_RenderSetClipRect(handle, ref clip), nameof(SDL_RenderSetClipRect));
+            SDLApplication.LogSDLError(SDL_RenderSetClipRect(handle, ref clip));
         }
         else
         {
-            CheckedSDLCall(() => SDL_RenderSetClipRect(handle, IntPtr.Zero), nameof(SDL_RenderSetClipRect));
+            SDLApplication.LogSDLError(SDL_RenderSetClipRect(handle, IntPtr.Zero));
         }
     }
 
     public void SetClip(Rectangle clip)
     {
         if (disableClipping) return;
-        CheckedSDLCall(() => SDL_RenderSetClipRect(handle, ref clip), nameof(SDL_RenderSetClipRect));
+        SDLApplication.LogSDLError(SDL_RenderSetClipRect(handle, ref clip));
     }
     public void ClearClip()
     {
         if (disableClipping) return;
-        CheckedSDLCall(() => SDL_RenderSetClipRect(handle, IntPtr.Zero), nameof(SDL_RenderSetClipRect));
+        SDLApplication.LogSDLError(SDL_RenderSetClipRect(handle, IntPtr.Zero));
     }
 
 
@@ -640,7 +632,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         }
         RectangleF dstRect = new RectangleF(x + offsetX, y + offsetY, w, h);
         BlendMode = BlendMode.Blend;
-        CheckedSDLCall(() => SDL_RenderCopyF(handle, textCache.Handle, IntPtr.Zero, ref dstRect), nameof(SDL_RenderCopyF));
+        SDLApplication.LogSDLError(SDL_RenderCopyF(handle, textCache.Handle, IntPtr.Zero, ref dstRect));
     }
 
     private void DrawIconCache(IconCache? iconCache, float x, float y, float width, float height, HorizontalAlignment hAlign, VerticalAlignment vAlign, float offsetX, float offsetY)
@@ -674,7 +666,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         }
         RectangleF dstRect = new RectangleF(x + offsetX, y + offsetY, w, h);
         BlendMode = BlendMode.Blend;
-        CheckedSDLCall(() => SDL_RenderCopyF(handle, iconCache.Handle, IntPtr.Zero, ref dstRect), nameof(SDL_RenderCopyF));
+        SDLApplication.LogSDLError(SDL_RenderCopyF(handle, iconCache.Handle, IntPtr.Zero, ref dstRect));
     }
 
     private TextCache? GetTextCache(SDLFont font, string text, Color color)
@@ -723,10 +715,8 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
                     IntPtr texHandle = SDL_CreateTextureFromSurface(handle, surface);
                     if (texHandle != IntPtr.Zero)
                     {
-                        int w = 0;
-                        int h = 0;
-                        CheckedSDLCall(() => SDL_QueryTexture(texHandle, out _, out _, out w, out h), nameof(SDL_QueryTexture));
-                        CheckedSDLCall(() => SDL_SetTextureAlphaMod(texHandle, color.A), nameof(SDL_SetTextureAlphaMod));
+                        SDLApplication.LogSDLError(SDL_QueryTexture(texHandle, out _, out _, out int w, out int h));
+                        SDLApplication.LogSDLError(SDL_SetTextureAlphaMod(texHandle, color.A));
                         textCache = new TextCache(font, text, color, w, h, texHandle);
                     }
                     SDL_FreeSurface(surface);
@@ -752,10 +742,8 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
                     {
                         if (texHandle != IntPtr.Zero)
                         {
-                            int w = 0;
-                            int h = 0;
-                            CheckedSDLCall(() => SDL_QueryTexture(texHandle, out _, out _, out w, out h), nameof(SDL_QueryTexture));
-                            CheckedSDLCall(() => SDL_SetTextureAlphaMod(texHandle, color.A), nameof(SDL_SetTextureAlphaMod));
+                            SDLApplication.LogSDLError(SDL_QueryTexture(texHandle, out _, out _, out int w, out int h));
+                            SDLApplication.LogSDLError(SDL_SetTextureAlphaMod(texHandle, color.A));
                             iconCache = new IconCache(icon, color, w, h, texHandle);
                         }
                     }
@@ -838,16 +826,6 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         }
     }
 
-    public static uint SDL_FOURCC(byte A, byte B, byte C, byte D)
-    {
-        return (uint)(A | (B << 8) | (C << 16) | (D << 24));
-    }
-
-    public static uint SDL_DEFINE_PIXELFOURCC(byte A, byte B, byte C, byte D)
-    {
-        return SDL_FOURCC(A, B, C, D);
-    }
-
     private class TextCache
     {
         internal TextCache(SDLFont font, string text, Color color, int width, int height, IntPtr handle)
@@ -895,6 +873,15 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         }
     }
 
+    public static uint SDL_FOURCC(byte A, byte B, byte C, byte D)
+    {
+        return (uint)(A | (B << 8) | (C << 16) | (D << 24));
+    }
+
+    public static uint SDL_DEFINE_PIXELFOURCC(byte A, byte B, byte C, byte D)
+    {
+        return SDL_FOURCC(A, B, C, D);
+    }
     public static uint SDL_DEFINE_PIXELFORMAT(
         SDL_PixelType type,
         uint order,

@@ -404,7 +404,6 @@ public class Window : GUIObject
         {
             return NormalFindGadget(x, y);
         }
-        return null;
     }
     private Gadget? InReqFindGadget(int x, int y)
     {

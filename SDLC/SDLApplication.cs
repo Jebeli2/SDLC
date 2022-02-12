@@ -6,7 +6,7 @@ namespace SDLC;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 public static class SDLApplication
@@ -149,7 +149,14 @@ public static class SDLApplication
 
     internal static SDLWindow? GetWindowFromId(int id)
     {
-        return windows.FirstOrDefault(window => window.WindowId == id);
+        foreach (SDLWindow window in windows)
+        {
+            if (window.WindowId == id)
+            {
+                return window;
+            }
+        }
+        return null;
     }
 
     public static void Exit()
@@ -196,13 +203,13 @@ RetryTick:
                 if (updateFrameLag == 0)
                 {
                     isRunningSlowly = false;
-                    SDLLog.Verbose(LogCategory.APPLICATION, $"Stopped Running Slowly");
+                    SDLLog.Verbose(LogCategory.APPLICATION, "Stopped Running Slowly");
                 }
             }
             else if (updateFrameLag >= 5)
             {
                 isRunningSlowly = true;
-                SDLLog.Verbose(LogCategory.APPLICATION, $"Started Running Slowly");
+                SDLLog.Verbose(LogCategory.APPLICATION, "Started Running Slowly");
             }
             if (stepCount == 1 && updateFrameLag > 0) { updateFrameLag--; }
             elapsedTime = targetTime * stepCount;
@@ -263,30 +270,27 @@ RetryTick:
     {
         return SDL_SetHint(name, value);
     }
-
-    internal static bool CheckedSDLCall(Func<int> func, string funcName)
+    public static bool SetHint(string name, int value)
     {
-        int result = func();
-        if (result != 0)
-        {
-            SDLLog.Error(LogCategory.RENDER, "{0} returned an error: {1} ({2})", funcName, result, GetError());
-            return false;
-        }
-        else
-        {
-            return true;
-        }
+        return SDL_SetHint(name, value.ToString());
     }
 
+    internal static void LogSDLError(int result, [CallerMemberName] string memberName = "")
+    {
+        if (result != 0)
+        {
+            SDLLog.Error(LogCategory.RENDER, "SDL returned {0} in {1}: {2}", result, memberName, SDLApplication.GetError());
+        }
+    }
     private static bool Initialize(LogPriority logPriority)
     {
         string dllDir = Path.Combine(Environment.CurrentDirectory, IntPtr.Size == 4 ? "x86" : "x64");
         Environment.SetEnvironmentVariable("PATH", Environment.GetEnvironmentVariable("PATH") + ";" + dllDir);
         SDLLog.InitializeLog(logPriority);
-        SDLLog.Info(LogCategory.APPLICATION, $"SDL Initialization Starting...");
+        SDLLog.Info(LogCategory.APPLICATION, "SDL Initialization Starting...");
         SDL_SetMainReady();
         _ = SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1");
-        if (CheckedSDLCall(() => SDL_Init(InitFlags.Everything & ~InitFlags.Sensor), nameof(SDL_Init)))
+        if (SDL_Init(InitFlags.Everything & ~InitFlags.Sensor) == 0)
         {
             _ = SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
             _ = SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
@@ -304,16 +308,16 @@ RetryTick:
             _ = SDLFont.TTF_Init();
             defaultFont = SDLFont.LoadFont(Properties.Resources.Roboto_Regular, nameof(Properties.Resources.Roboto_Regular), 16);
             iconFont = SDLFont.LoadFont(Properties.Resources.entypo, nameof(Properties.Resources.entypo), 16);
-            SDLLog.Info(LogCategory.APPLICATION, $"SDL Initialization Done...");
+            SDLLog.Info(LogCategory.APPLICATION, "SDL Initialization Done...");
             return true;
         }
-        SDLLog.Critical(LogCategory.APPLICATION, $"SDL Initialization Failed...");
+        SDLLog.Critical(LogCategory.APPLICATION, "SDL Initialization Failed: {0}", GetError());
         return false;
     }
 
     private static void Shutdown()
     {
-        SDLLog.Info(LogCategory.APPLICATION, $"SDL Shutdown Starting...");
+        SDLLog.Info(LogCategory.APPLICATION, "SDL Shutdown Starting...");
         defaultFont?.Dispose();
         defaultFont = null;
         iconFont?.Dispose();
@@ -323,7 +327,7 @@ RetryTick:
         SDLAudio.Shutdown();
         SDLInput.Shutdown();
         SDLTexture.IMG_Quit();
-        SDLLog.Info(LogCategory.APPLICATION, $"SDL Shutdown Done...");
+        SDLLog.Info(LogCategory.APPLICATION, "SDL Shutdown Done...");
         SDLLog.ShutdownLog();
         SDL_Quit();
     }
@@ -549,7 +553,7 @@ RetryTick:
     private static extern void SDL_Quit();
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    internal static extern bool SDL_SetHint([In()][MarshalAs(UnmanagedType.LPUTF8Str)] string name, [In()][MarshalAs(UnmanagedType.LPUTF8Str)] string value);
+    private static extern bool SDL_SetHint([In()][MarshalAs(UnmanagedType.LPUTF8Str)] string name, [In()][MarshalAs(UnmanagedType.LPUTF8Str)] string value);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern void SDL_Delay(uint ms);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
