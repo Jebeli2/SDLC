@@ -77,7 +77,7 @@ public class Requester : GUIObject
     }
     internal void InvalidateBounds()
     {
-        Invalidate();
+        OnInvalidate();
         foreach (Gadget gadget in gadgets)
         {
             gadget.InvalidateBounds();

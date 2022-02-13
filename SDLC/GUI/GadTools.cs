@@ -160,8 +160,10 @@ public static class GadTools
             gad.GadInfo.Kind = GadgetKind.Checkbox;
             gad.GadInfo.CheckboxChecked = _checked;
             gad.GadInfo.CheckedStateChangedAction = checkedStateChangedAction;
-            gad.GadInfo.TextGadget = CreateText(gui, window, req, leftEdge + boxWidth + INTERWIDTH, topEdge, width - (boxWidth + INTERWIDTH), boxHeight, text, HorizontalAlignment.Left, VerticalAlignment.Center, disabled, gadgetId);
-            LinkTextGadget(gad, gad.GadInfo.TextGadget);
+            Gadget textGad = CreateText(gui, window, req, leftEdge + boxWidth, topEdge, width - boxWidth, boxHeight, text, HorizontalAlignment.Left, VerticalAlignment.Center, disabled, gadgetId);
+            textGad.TextOffsetX = INTERWIDTH;
+            gad.GadInfo.TextGadget = textGad;
+            LinkTextGadget(gad, textGad);
         }
         gad.GadgetUp += CheckboxGadgetUp;
         return gad;
@@ -203,8 +205,10 @@ public static class GadTools
                     gad.GadInfo.Kind = GadgetKind.Mx;
                     gad.GadInfo.MxGadgets = mxButtons;
                     gad.GadInfo.ValueChangedAction = valueChangedAction;
-                    gad.GadInfo.TextGadget = CreateText(gui, window, req, leftEdge + boxWidth + INTERWIDTH, y, width - (boxWidth + INTERWIDTH), boxHeight, text, HorizontalAlignment.Left, VerticalAlignment.Center, false, gadgetId);
-                    LinkTextGadget(gad, gad.GadInfo.TextGadget);
+                    Gadget textGad = CreateText(gui, window, req, leftEdge + boxWidth, y, width - boxWidth, boxHeight, text, HorizontalAlignment.Left, VerticalAlignment.Center, false, gadgetId);
+                    textGad.TextOffsetX = INTERWIDTH;
+                    gad.GadInfo.TextGadget = textGad;
+                    LinkTextGadget(gad, textGad);
                 }
                 y += boxHeight;
                 y += 1;

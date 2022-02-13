@@ -77,7 +77,7 @@ public class Window : GUIObject
             if (windowFlags != value)
             {
                 windowFlags = value;
-                Invalidate();
+                OnInvalidate();
             }
         }
     }
@@ -184,7 +184,7 @@ public class Window : GUIObject
         {
             requests.Add(req);
             windowFlags |= WindowFlags.InRequest;
-            Invalidate();
+            OnInvalidate();
             return true;
         }
         return false;
@@ -198,7 +198,7 @@ public class Window : GUIObject
             {
                 windowFlags &= ~WindowFlags.InRequest;
             }
-            Invalidate();
+            OnInvalidate();
         }
     }
 
@@ -225,6 +225,18 @@ public class Window : GUIObject
     internal void ToBack()
     {
         screen.WindowToBack(this);
+    }
+
+    internal void ToggleDepth()
+    {
+        if (IsFrontWindow)
+        {
+            ToBack();
+        }
+        else
+        {
+            ToFront();
+        }
     }
 
     internal void ChangeWindowBox(int left, int top, int width, int height)
@@ -438,17 +450,17 @@ public class Window : GUIObject
 
     internal void InvalidateFromGadget()
     {
-        Invalidate();
+        OnInvalidate();
     }
 
-    protected override void Invalidate()
+    protected override void OnInvalidate()
     {
         valid = false;
     }
 
     private void InvalidateBounds()
     {
-        Invalidate();
+        OnInvalidate();
         foreach (Gadget gadget in gadgets)
         {
             gadget.InvalidateBounds();

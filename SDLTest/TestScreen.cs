@@ -43,7 +43,7 @@
             base.Show(window);
             AddResourceManager(Properties.Resources.ResourceManager);
             GetApplet<BackgroundImage>().Image = LoadTexture(nameof(Properties.Resources.ice_palace));
-            GetApplet<MusicPlayer>().PlayNow(nameof(Properties.Resources.bach));
+            GetApplet<MusicPlayer>().PlayNow(nameof(Properties.Resources.bach), "Bach 1");
             var boxes = GetApplet<RainingBoxesApp>();
             var lines = GetApplet<LinesApp>();
             var music = GetApplet<MusicVisualizer>();
@@ -127,8 +127,8 @@
 
 
             Size tsize = renderer.MeasureText(null, text1);
-            renderer.DrawText(null, text1, midX - tsize.Width / 2, 10);
-            renderer.DrawText(null, text2, scrollX, midX, Color.White);
+            renderer.DrawShadowedText(null, text1, midX - tsize.Width / 2, 10);
+            renderer.DrawShadowedText(null, text2, scrollX, height - 50);
         }
 
         public override void Resized(IWindow window, int width, int height)

@@ -14,6 +14,7 @@ public static class SDLAudio
     private static readonly EventHandlerList eventHandlerList = new();
     private static readonly object audioDataReceivedKey = new();
     private static readonly object audioMusicDoneKey = new();
+    private static readonly object audioMusicStartKey = new();
     private static short[] musicData = Array.Empty<short>();
     private static int musicVolume = MIX_MAX_VOLUME;
     private static int soundVolume = MIX_MAX_VOLUME;
@@ -23,6 +24,12 @@ public static class SDLAudio
 
     public static bool UseTmpFilesForMusic { get; set; } = true;
     public static bool AttemptToDeleteOldTmpFiles { get; set; } = true;
+
+    public static event SDLMusicEventHandler MusicStarted
+    {
+        add { eventHandlerList.AddHandler(audioMusicStartKey, value); }
+        remove { eventHandlerList.RemoveHandler(audioMusicStartKey, value); }
+    }
 
     public static event SDLMusicFinishedEventHandler MusicFinished
     {
@@ -80,6 +87,7 @@ public static class SDLAudio
         if (music == null) return;
         IntPtr handle = music.Handle;
         if (handle == IntPtr.Zero) return;
+        SDLMusicEventArgs e = new SDLMusicEventArgs(music);
         if (currentMusic != null)
         {
             if (currentMusic != music)
@@ -90,11 +98,13 @@ public static class SDLAudio
             {
                 Mix_RewindMusic();
                 SDLLog.Verbose(LogCategory.AUDIO, "Music '{0}' restarted", music.Name);
+                OnMusicStarted(e);
                 return;
             }
             else
             {
                 SDLLog.Verbose(LogCategory.AUDIO, "Music '{0}' already playing, continuing...", music.Name);
+                OnMusicStarted(e); // or maybe not?
                 return;
             }
         }
@@ -106,6 +116,7 @@ public static class SDLAudio
         {
             _ = Mix_VolumeMusic(musicVolume);
             SDLLog.Verbose(LogCategory.AUDIO, "Music '{0}' started", music.Name);
+            OnMusicStarted(e);
             currentMusic = music;
         }
     }
@@ -229,6 +240,11 @@ public static class SDLAudio
         {
             SDLLog.Warn(LogCategory.AUDIO, $"Music finished callback called on no music");
         }
+    }
+
+    private static void OnMusicStarted(SDLMusicEventArgs e)
+    {
+        ((SDLMusicEventHandler?)eventHandlerList[audioMusicStartKey])?.Invoke(null, e);
     }
     private static void OnMusicFinished(SDLMusicFinishedEventArgs e)
     {

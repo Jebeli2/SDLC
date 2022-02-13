@@ -13,6 +13,7 @@ using System.Drawing;
 /// </summary>
 public interface IGUISystem
 {
+    bool ShowDebugBounds { get; set; }
     Screen OpenScreen(bool keepOldScreens = false);
     void CloseScreen(Screen screen);
     Window OpenWindow(Screen screen,

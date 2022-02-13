@@ -9,9 +9,10 @@ using System.Runtime.InteropServices;
 
 public class SDLFont : SDLObject
 {
+    private static int nextFontId;
+    private readonly int fontId;
     private readonly IntPtr mem;
     private readonly int ySize;
-
     private FontStyle fontStyle;
     private int fontOutline;
     private FontHinting fontHinting;
@@ -32,6 +33,7 @@ public class SDLFont : SDLObject
     internal SDLFont(IntPtr handle, int ySize, IntPtr mem)
         : base(handle, BuildFontName(handle, ySize))
     {
+        fontId = ++nextFontId;
         this.mem = mem;
         this.ySize = ySize;
         fontStyle = (FontStyle)TTF_GetFontStyle(this.handle);
@@ -53,6 +55,7 @@ public class SDLFont : SDLObject
         string styleName = SDLApplication.IntPtr2String(TTF_FontFaceStyleName(fontHandle)) ?? "regular";
         return familyName + "-" + styleName + "-" + ySize;
     }
+    public int FontId => fontId;
     public int YSize => ySize;
     public string FamilyName => familyName;
     public string StyleName => styleName;

@@ -57,6 +57,26 @@ public class GUISystem : SDLApplet, IGUISystem
         InputPrio = -1000;
     }
 
+    public bool ShowDebugBounds
+    {
+        get => guiRenderer.ShowDebugBounds;
+        set
+        {
+            if (value != guiRenderer.ShowDebugBounds)
+            {
+                guiRenderer.ShowDebugBounds = value;
+                Invalidate();
+            }
+        }
+    }
+
+    public void Invalidate()
+    {
+        foreach (Screen screen in screens)
+        {
+            screen.Invalidate();
+        }
+    }
     protected override void OnWindowLoad(SDLWindowLoadEventArgs e)
     {
         UpdateScreenSize(e.Renderer.Width, e.Renderer.Height);
@@ -324,10 +344,7 @@ public class GUISystem : SDLApplet, IGUISystem
     {
         if (sender is Gadget gad)
         {
-            if (gad.Window is Window win)
-            {
-                win.RaiseWindowClose();
-            }
+            gad.Window.RaiseWindowClose();
         }
     }
 
@@ -335,11 +352,8 @@ public class GUISystem : SDLApplet, IGUISystem
     {
         if (sender is Gadget gad)
         {
-            if (gad.Window is Window win)
-            {
-                win.Zip();
-                gad.Icon = win.Zoomed ? Icons.ENTYPO_ICON_RESIZE_100_PERCENT : Icons.ENTYPO_ICON_RESIZE_FULL_SCREEN;
-            }
+            gad.Window.Zip();
+            gad.Icon = gad.Window.Zoomed ? Icons.ENTYPO_ICON_RESIZE_100_PERCENT : Icons.ENTYPO_ICON_RESIZE_FULL_SCREEN;
         }
     }
 
@@ -347,17 +361,7 @@ public class GUISystem : SDLApplet, IGUISystem
     {
         if (sender is Gadget gad)
         {
-            if (gad.Window is Window win)
-            {
-                if (win.IsFrontWindow)
-                {
-                    win.ToBack();
-                }
-                else
-                {
-                    win.ToFront();
-                }
-            }
+            gad.Window.ToggleDepth();
         }
     }
 

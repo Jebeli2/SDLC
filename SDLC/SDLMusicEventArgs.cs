@@ -15,3 +15,5 @@ public class SDLMusicEventArgs : EventArgs
 
     public SDLMusic Music => music;
 }
+
+public delegate void SDLMusicEventHandler(object? sender, SDLMusicEventArgs e);

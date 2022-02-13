@@ -9,6 +9,7 @@ public class MusicPlayer : SDLApplet
 
     public class PlayListEntry
     {
+        public string Title { get; set; } = "";
         public string Name { get; set; } = "";
         public int NumLoops { get; set; } = 1;
     }
@@ -37,6 +38,17 @@ public class MusicPlayer : SDLApplet
         }
     }
 
+    public bool RepeatPlayList
+    {
+        get => repeatPlayList;
+        set
+        {
+            if (repeatPlayList != value)
+            {
+                repeatPlayList = value;
+            }
+        }
+    }
 
     public void ClearPlayList()
     {
@@ -44,14 +56,14 @@ public class MusicPlayer : SDLApplet
         playListIndex = -1;
     }
 
-    public void AddToPlayList(string name, int numLoops = 1)
+    public void AddToPlayList(string name, string? title = null, int numLoops = 1)
     {
-        PlayListEntry entry = new PlayListEntry() { Name = name, NumLoops = numLoops };
+        PlayListEntry entry = new PlayListEntry() { Name = name, NumLoops = numLoops, Title = title ?? name };
         playList.Add(entry);
     }
-    public void PlayNow(string name, int numLoops = 1)
+    public void PlayNow(string name, string? title = null, int numLoops = 1)
     {
-        PlayListEntry entry = new PlayListEntry() { Name = name, NumLoops = numLoops };
+        PlayListEntry entry = new PlayListEntry() { Name = name, NumLoops = numLoops, Title = title ?? name };
         ClearPlayList();
         playList.Add(entry);
         NextMusic();

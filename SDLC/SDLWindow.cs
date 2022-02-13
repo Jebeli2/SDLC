@@ -532,7 +532,7 @@ internal sealed class SDLWindow : IWindow, IDisposable
                 skipTaskbar = value;
                 if (HandleCreated)
                 {
-                    SDLLog.Warn(LogCategory.VIDEO, $"SkipTaskbar can only be set before the window handle is created");
+                    SDLLog.Warn(LogCategory.VIDEO, "SkipTaskbar can only be set before the window handle is created");
                 }
             }
         }
@@ -790,6 +790,7 @@ internal sealed class SDLWindow : IWindow, IDisposable
     private void GoFullScreen()
     {
         fullScreenModeWhenGoingFullScreen = fullScreenMode;
+        SDLLog.Info(LogCategory.VIDEO, "Entering {0} FullScreen Mode", fullScreenMode);
         switch (fullScreenMode)
         {
             case FullScreenMode.Desktop:
@@ -806,11 +807,11 @@ internal sealed class SDLWindow : IWindow, IDisposable
 
     private void GoWindowed()
     {
+        SDLLog.Info(LogCategory.VIDEO, "Entering Windowed Mode");
         if (fullScreenModeWhenGoingFullScreen == FullScreenMode.Desktop)
         {
             if (SDL_SetWindowFullscreen(Handle, 0) == 0)
             {
-                SDLLog.Info(LogCategory.VIDEO, $"Entered Windowed Mode");
             }
         }
         else
@@ -821,7 +822,6 @@ internal sealed class SDLWindow : IWindow, IDisposable
             SDL_SetWindowResizable(handle, resizeable);
             if (title != null) { SDL_SetWindowTitle(handle, title); }
             SDL_SetWindowAlwaysOnTop(handle, alwaysOnTop);
-            SDLLog.Info(LogCategory.VIDEO, $"Entered Windowed Mode");
         }
     }
 
@@ -838,7 +838,6 @@ internal sealed class SDLWindow : IWindow, IDisposable
             SDL_SetWindowAlwaysOnTop(handle, true);
             SDL_SetWindowSize(handle, bounds.Width, bounds.Height);
             SDL_SetWindowPosition(handle, bounds.X, bounds.Y);
-            SDLLog.Info(LogCategory.VIDEO, $"Entered Full Size Full Screen Mode");
         }
     }
 
@@ -870,7 +869,6 @@ internal sealed class SDLWindow : IWindow, IDisposable
             SDL_SetWindowAlwaysOnTop(handle, true);
             SDL_SetWindowSize(handle, bounds.Width, bounds.Height);
             SDL_SetWindowPosition(handle, bounds.X, bounds.Y);
-            SDLLog.Info(LogCategory.VIDEO, $"Entered Multi Monitor Full Screen Mode");
         }
     }
 
@@ -880,13 +878,11 @@ internal sealed class SDLWindow : IWindow, IDisposable
         SDL_GetWindowSize(handle, out oldWidth, out oldHeight);
         if (SDL_SetWindowFullscreen(Handle, (uint)SDL_WindowFlags.FULLSCREEN_DESKTOP) == 0)
         {
-            SDLLog.Info(LogCategory.VIDEO, $"Entered Desktop Full Screen Mode");
         }
     }
 
     private void ScaleMouse(ref int x, ref int y)
     {
-        if (sizeMode == RendererSizeMode.Window) return;
         double scaleX = width;
         scaleX /= backBufferWidth;
         x = (int)(x / scaleX);
@@ -1058,8 +1054,8 @@ internal sealed class SDLWindow : IWindow, IDisposable
     }
     internal void RaiseMouseButtonDown(int which, int x, int y, MouseButton button, int clicks, KeyButtonState state)
     {
-        ScaleMouse(ref x, ref y);
-        SDLLog.Verbose(LogCategory.INPUT, $"Window {0} Mouse {1} {2} {3} {4} {5}", windowId, which, button, state, x, y);
+        if (sizeMode != RendererSizeMode.Window) { ScaleMouse(ref x, ref y); }
+        SDLLog.Verbose(LogCategory.INPUT, "Window {0} Mouse {1} {2} {3} {4} {5}", windowId, which, button, state, x, y);
         lastButton = button;
         lastState = state;
         SDLMouseEventArgs e = new(which, x, y, button, clicks, state, 0, 0);
@@ -1069,7 +1065,7 @@ internal sealed class SDLWindow : IWindow, IDisposable
 
     internal void RaiseMouseButtonUp(int which, int x, int y, MouseButton button, int clicks, KeyButtonState state)
     {
-        ScaleMouse(ref x, ref y);
+        if (sizeMode != RendererSizeMode.Window) { ScaleMouse(ref x, ref y); }
         SDLLog.Verbose(LogCategory.INPUT, "Window {0} Mouse {1} {2} {3} {4} {5}", windowId, which, button, state, x, y);
         lastButton = button;
         lastState = state;
@@ -1080,7 +1076,7 @@ internal sealed class SDLWindow : IWindow, IDisposable
 
     internal void RaiseMouseMove(int which, int x, int y, int relX, int relY)
     {
-        ScaleMouse(ref x, ref y);
+        if (sizeMode != RendererSizeMode.Window) { ScaleMouse(ref x, ref y); }
         SDLLog.Verbose(LogCategory.INPUT, "Window {0} Mouse {1} Moved {2} {3} {4} {5}", windowId, which, x, y, relX, relY);
         SDLMouseEventArgs e = new(which, x, y, lastButton, 0, lastState, relX, relY);
         foreach (SDLApplet applet in inputApplets) { applet.OnMouseMove(e); if (e.Handled) break; }

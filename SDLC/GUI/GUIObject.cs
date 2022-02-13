@@ -33,7 +33,7 @@ public class GUIObject : IBox
             if (!string.Equals(text, value))
             {
                 SetText(value);
-                Invalidate();
+                OnInvalidate();
             }
         }
     }
@@ -182,8 +182,11 @@ public class GUIObject : IBox
             }
         }
     }
-
-    protected virtual void Invalidate()
+    public void Invalidate()
+    {
+        OnInvalidate();
+    }
+    protected virtual void OnInvalidate()
     {
 
     }

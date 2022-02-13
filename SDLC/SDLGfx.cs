@@ -8,6 +8,8 @@ using System.Drawing;
 
 public static class SDLGfx
 {
+    private static readonly Color defaultShadowColor = Color.FromArgb(32, Color.Black);
+    private static readonly Color defaultTextColor = Color.FromArgb(222, Color.White);
     public static void ClearScreen(this IRenderer renderer, Color color)
     {
         renderer.Color = color;
@@ -169,6 +171,19 @@ public static class SDLGfx
             renderer.BlendMode = BlendMode.Blend;
             renderer.DrawTexture(texture, src, dst);
         }
+    }
+    public static void DrawShadowedText(this IRenderer renderer, SDLFont? font, string? text, float x, float y, float shadowOffset = 0.75f)
+    {
+        renderer.DrawText(font, text, x + shadowOffset, y + shadowOffset, 0, 0, defaultShadowColor, HorizontalAlignment.Left, VerticalAlignment.Top);
+        renderer.DrawText(font, text, x - shadowOffset, y - shadowOffset, 0, 0, defaultShadowColor, HorizontalAlignment.Left, VerticalAlignment.Top);
+        renderer.DrawText(font, text, x, y, 0, 0, defaultTextColor, HorizontalAlignment.Left, VerticalAlignment.Top);
+    }
+
+    public static void DrawShadowedText(this IRenderer renderer, SDLFont? font, string? text, float x, float y, Color color, Color shadowColor, float shadowOffset = 0.75f)
+    {
+        renderer.DrawText(font, text, x + shadowOffset, y + shadowOffset, 0, 0, shadowColor, HorizontalAlignment.Left, VerticalAlignment.Top);
+        renderer.DrawText(font, text, x - shadowOffset, y - shadowOffset, 0, 0, shadowColor, HorizontalAlignment.Left, VerticalAlignment.Top);
+        renderer.DrawText(font, text, x, y, 0, 0, color, HorizontalAlignment.Left, VerticalAlignment.Top);
     }
 
     public static void DrawText(this IRenderer renderer, SDLFont? font, string? text, float x, float y, Color color)

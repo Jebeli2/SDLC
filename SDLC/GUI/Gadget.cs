@@ -23,6 +23,8 @@ public class Gadget : GUIObject
     private GadToolsInfo? gadInfo;
     private VerticalAlignment verticalTextAlignment;
     private HorizontalAlignment horizontalTextAlignment;
+    private int textOffsetX;
+    private int textOffsetY;
     internal Gadget(IGUISystem gui, Window window, Requester? req = null)
         : base(gui)
     {
@@ -57,7 +59,7 @@ public class Gadget : GUIObject
             if (icon != value)
             {
                 icon = value;
-                Invalidate();
+                OnInvalidate();
             }
         }
     }
@@ -70,7 +72,7 @@ public class Gadget : GUIObject
             if (bgColor != value)
             {
                 bgColor = value;
-                Invalidate();
+                OnInvalidate();
             }
         }
     }
@@ -83,7 +85,7 @@ public class Gadget : GUIObject
             if (verticalTextAlignment != value)
             {
                 verticalTextAlignment = value;
-                Invalidate();
+                OnInvalidate();
             }
         }
     }
@@ -96,7 +98,32 @@ public class Gadget : GUIObject
             if (horizontalTextAlignment != value)
             {
                 horizontalTextAlignment = value;
-                Invalidate();
+                OnInvalidate();
+            }
+        }
+    }
+
+    public int TextOffsetX
+    {
+        get => textOffsetX;
+        set
+        {
+            if (textOffsetX != value)
+            {
+                textOffsetX = value;
+                OnInvalidate();
+            }
+        }
+    }
+    public int TextOffsetY
+    {
+        get => textOffsetY;
+        set
+        {
+            if (textOffsetY != value)
+            {
+                textOffsetY = value;
+                OnInvalidate();
             }
         }
     }
@@ -469,7 +496,7 @@ public class Gadget : GUIObject
         }
     }
 
-    protected override void Invalidate()
+    protected override void OnInvalidate()
     {
         propInfo?.Invalidate();
         strInfo?.Invalidate();
@@ -480,10 +507,7 @@ public class Gadget : GUIObject
     internal void InvalidateBounds()
     {
         bounds = null;
-        propInfo?.Invalidate();
-        strInfo?.Invalidate();
-        gadInfo?.Invalidate();
-        window.InvalidateFromGadget();
+        OnInvalidate();
     }
 
     public override Rectangle GetBounds()

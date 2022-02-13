@@ -6,32 +6,14 @@ using System.Drawing;
 
 public class DefaultGUIRenderer : IGUIRenderer
 {
+    private bool showDebugBounds;
+    private Color debugColor = Color.FromArgb(128, Color.Red);
     public DefaultGUIRenderer()
     {
-        WindowBackActive = Color.FromArgb(228, 45, 45, 45);
-        WindowBackInactive = Color.FromArgb(128, 43, 43, 43);
-        WindowBackActiveHover = Color.FromArgb(228, 45 + 20, 45 + 20, 45 + 20);
-        WindowBackInactiveHover = Color.FromArgb(128, 43 + 20, 43 + 20, 43 + 20);
-
-        WindowBorderActive = Color.FromArgb(130, 62, 92, 154);
-        WindowBorderInactive = Color.FromArgb(130, 50, 50, 50);
-        WindowBorderActiveHover = Color.FromArgb(130, 62 + 20, 92 + 20, 154 + 20);
-        WindowBorderInactiveHover = Color.FromArgb(130, 50 + 20, 50 + 20, 50 + 20);
-
-        ButtonActive = Color.FromArgb(128, 64, 64, 64);
-        ButtonInactive = Color.FromArgb(128, 74, 74, 74);
-        ButtonActiveHover = Color.FromArgb(128, 64 + 20, 64 + 20, 64 + 20);
-        ButtonInactiveHover = Color.FromArgb(128, 74 + 20, 74 + 20, 74 + 20);
-
         TextColor = Color.FromArgb(238, 238, 238);
         ActiveTextColor = Color.FromArgb(238, 238, 238);
         InactiveTextColor = Color.FromArgb(200, 200, 200);
         SelectedTextColor = Color.FromArgb(255, 255, 255, 255);
-
-        ShineColor = Color.FromArgb(128, 250, 250, 250);
-        ShadowColor = Color.FromArgb(128, 40, 40, 40);
-        DarkBackColor = Color.FromArgb(230, 55, 55, 55);
-        PropKnobColor = Color.FromArgb(200, 120, 120, 120);
 
         BorderDark = MkColor(29, 255);
         BorderLight = MkColor(92, 255);
@@ -66,10 +48,16 @@ public class DefaultGUIRenderer : IGUIRenderer
         KnobGradientBot = MkColor(128, 100);
         KnobGradientTopHover = MkColor(220, 100);
         KnobGradientBotHover = MkColor(128, 100);
-        StrGradientTop = MkColor(255, 32);
-        StrGradientBot = MkColor(32, 32);
+        StrGradientTop = MkColor(0, 32);
+        StrGradientBot = MkColor(0, 92);
 
         DisabledGhost = MkColor(255, 22);
+    }
+
+    public bool ShowDebugBounds
+    {
+        get => showDebugBounds;
+        set => showDebugBounds = value;
     }
 
     private static Color MkColor(int gray, int alpha)
@@ -118,23 +106,7 @@ public class DefaultGUIRenderer : IGUIRenderer
     public Color InactiveTextColor { get; set; }
     public Color SelectedTextColor { get; set; }
 
-    public Color WindowBackActive { get; set; }
-    public Color WindowBackInactive { get; set; }
-    public Color WindowBackActiveHover { get; set; }
-    public Color WindowBackInactiveHover { get; set; }
-    public Color WindowBorderActive { get; set; }
-    public Color WindowBorderInactive { get; set; }
-    public Color WindowBorderActiveHover { get; set; }
-    public Color WindowBorderInactiveHover { get; set; }
 
-    public Color ButtonActive { get; set; }
-    public Color ButtonInactive { get; set; }
-    public Color ButtonActiveHover { get; set; }
-    public Color ButtonInactiveHover { get; set; }
-    public Color ShineColor { get; set; }
-    public Color ShadowColor { get; set; }
-    public Color DarkBackColor { get; set; }
-    public Color PropKnobColor { get; set; }
 
     public void RenderScreen(IRenderer gfx, Screen screen, int offsetX, int offsetY)
     {
@@ -209,6 +181,7 @@ public class DefaultGUIRenderer : IGUIRenderer
         {
             DrawStrGadget(gfx, gadget, gadget.StrInfo, offsetX, offsetY);
         }
+        DrawDebugBounds(gfx, gadget, offsetX, offsetY);
     }
 
     private void DrawRequester(IRenderer gfx, Requester req, int offsetX, int offsetY)
@@ -303,7 +276,7 @@ public class DefaultGUIRenderer : IGUIRenderer
             Size textSize = gfx.MeasureText(null, gadget.Text);
 
             gfx.DrawIcon(gadget.Icon, inner.X, inner.Y, inner.Width / 2 - textSize.Width / 2 - 10, inner.Height, tc, HorizontalAlignment.Right, VerticalAlignment.Center, offset, offset);
-            gfx.DrawText(null, gadget.Text, inner.X, inner.Y, inner.Width, inner.Height, tc, HorizontalAlignment.Center, VerticalAlignment.Center, offset, offset);
+            gfx.DrawText(null, gadget.Text, inner.X, inner.Y, inner.Width, inner.Height, tc, HorizontalAlignment.Center, VerticalAlignment.Center, gadget.TextOffsetX + offset, gadget.TextOffsetY + offset);
         }
         else if (hasIcon)
         {
@@ -311,7 +284,7 @@ public class DefaultGUIRenderer : IGUIRenderer
         }
         else if (hasText)
         {
-            gfx.DrawText(null, gadget.Text, inner.X, inner.Y, inner.Width, inner.Height, tc, gadget.HorizontalTextAlignment, gadget.VerticalTextAlignment, offset, offset);
+            gfx.DrawText(null, gadget.Text, inner.X, inner.Y, inner.Width, inner.Height, tc, gadget.HorizontalTextAlignment, gadget.VerticalTextAlignment, gadget.TextOffsetX + offset, gadget.TextOffsetY + offset);
         }
         if (!gadget.Enabled && !gadget.NoHighlight)
         {
@@ -406,4 +379,13 @@ public class DefaultGUIRenderer : IGUIRenderer
         gfx.DrawRect(rect.X, rect.Y, rect.Width - 1, rect.Height - 1, shadowPen);
     }
 
+    private void DrawDebugBounds(IRenderer gfx, Gadget gadget, int offsetX, int offsetY)
+    {
+        if (showDebugBounds)
+        {
+            Rectangle rect = gadget.GetBounds();
+            rect.Offset(offsetX, offsetY);
+            gfx.DrawRect(rect, debugColor);
+        }
+    }
 }

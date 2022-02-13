@@ -29,7 +29,6 @@ public class Screen : GUIObject
         }
         return null;
     }
-
     internal void AddWindow(Window window)
     {
         windows.Add(window);
@@ -116,6 +115,14 @@ public class Screen : GUIObject
         Window next = windows[index];
         if (next != window) return next;
         return null;
+    }
+
+    protected override void OnInvalidate()
+    {
+        foreach (Window window in windows)
+        {
+            window.Invalidate();
+        }
     }
     public override string ToString()
     {

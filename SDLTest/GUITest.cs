@@ -35,7 +35,6 @@
 
         public override void Update(IRenderer renderer, double totalTime, double elapsedTime)
         {
-            musicText = GetApplet<MusicPlayer>().CurrentEntry?.Name ?? "no music";
             scrollY = Height - 40;
             base.Update(renderer, totalTime, elapsedTime);
             double dT = totalTime - lastScrollTime;
@@ -47,23 +46,22 @@
         public override void Render(IRenderer renderer, double totalTime, double elapsedTime)
         {
             base.Render(renderer, totalTime, elapsedTime);
-            renderer.DrawText(null, musicText, scrollX + 0.75f, scrollY + 0.75f, Color.Black);
-            renderer.DrawText(null, musicText, scrollX - 0.75f, scrollY - 0.75f, Color.Black);
-            renderer.DrawText(null, musicText, scrollX, scrollY, Color.FromArgb(222, Color.White));
-
+            renderer.DrawShadowedText(null, musicText, scrollX, scrollY);
         }
         public override void Show(IWindow window)
         {
             base.Show(window);
             GetApplet<BackgroundImage>().Image = LoadTexture(nameof(Properties.Resources.fire_temple));
-            GetApplet<MusicPlayer>().AddToPlayList(nameof(Properties.Resources.loss_of_me_3_));
-            GetApplet<MusicPlayer>().AddToPlayList(nameof(Properties.Resources.jesu_joy));
-            GetApplet<MusicPlayer>().AddToPlayList(nameof(Properties.Resources.jesters_of_the_moon));
-            GetApplet<MusicPlayer>().AddToPlayList(FF9_1);
-            GetApplet<MusicPlayer>().AddToPlayList(FF9_2);
-            GetApplet<MusicPlayer>().AddToPlayList(FF9_3);
-            GetApplet<MusicPlayer>().AddToPlayList(SONG2);
-            GetApplet<MusicPlayer>().AddToPlayList(DC);
+            GetApplet<MusicPlayer>().AddToPlayList(nameof(Properties.Resources.loss_of_me_3_), "Loss of Me 3");
+            GetApplet<MusicPlayer>().AddToPlayList(nameof(Properties.Resources.jesu_joy), "Bach 2");
+            GetApplet<MusicPlayer>().AddToPlayList(nameof(Properties.Resources.jesters_of_the_moon), "Jesters of the Moon 1");
+            GetApplet<MusicPlayer>().AddToPlayList(FF9_1, "Black Mage Village");
+            GetApplet<MusicPlayer>().AddToPlayList(FF9_2, "Jesters of the Moon 2");
+            GetApplet<MusicPlayer>().AddToPlayList(FF9_3, "Loss of Me 1");
+            GetApplet<MusicPlayer>().AddToPlayList(SONG2, "Song 2");
+            GetApplet<MusicPlayer>().AddToPlayList(DC, "Deathcrush");
+            musicText = GetApplet<MusicPlayer>().CurrentEntry?.Title ?? "no music";
+            SDLAudio.MusicStarted += SDLAudio_MusicStarted;
             IGUISystem gui = GUI;
             screen1 = gui.OpenScreen();
             window1 = gui.OpenWindow(screen1, leftEdge: 66, topEdge: 66, width: 400, height: 400, title: "Test GUI", minWidth: 200, minHeight: 220);
@@ -72,7 +70,16 @@
             _ = GadTools.CreateGadget(GadgetKind.Button, leftEdge: 10, topEdge: 10, width: -20, height: 40, text: "Back", clickAction: GoToTestScreen);
             _ = GadTools.CreateGadget(GadgetKind.Button, leftEdge: 10, topEdge: 60, width: -20, height: 40, text: "Buttons", clickAction: ShowButtonTest);
             _ = GadTools.CreateGadget(GadgetKind.Button, leftEdge: 10, topEdge: 110, width: -20, height: 40, text: "Props & Strings", clickAction: ShowPropTest);
+        }
 
+        public override void Hide(IWindow window)
+        {
+            base.Hide(window);
+            SDLAudio.MusicStarted += SDLAudio_MusicStarted;
+        }
+        private void SDLAudio_MusicStarted(object? sender, SDLMusicEventArgs e)
+        {
+            musicText = GetApplet<MusicPlayer>().CurrentEntry?.Title ?? "no music";
         }
 
         private void GoToTestScreen()
@@ -168,15 +175,17 @@
                                 GUI.MoveWindowInFrontOf(winPropTest, winButTest);
                             }
                         });
-                    var cb = GadTools.CreateGadget(GadgetKind.Checkbox, leftEdge: 10, topEdge: 290, width: 200, height: 30, text: "Checkbox", _checked: true, disabled: true);
-                    _ = GadTools.CreateGadget(GadgetKind.Checkbox, leftEdge: 210, topEdge: 290, width: 200, height: 30, text: "Fullscreen", _checked: IsFullScreen, checkedStateChangedAction:
+                    var cb = GadTools.CreateGadget(GadgetKind.Checkbox, leftEdge: 10, topEdge: 290, width: 200, height: 30, text: "Checkbox", _checked: true, disabled: false);
+                    _ = GadTools.CreateGadget(GadgetKind.Checkbox, leftEdge: 220, topEdge: 290, width: 200, height: 30, text: "Fullscreen", _checked: IsFullScreen, checkedStateChangedAction:
                         (b) => { IsFullScreen = b; });
-                    var mx = GadTools.CreateGadget(GadgetKind.Mx, leftEdge: 210, topEdge: 320, width: 200, height: 30,
+                    var mx = GadTools.CreateGadget(GadgetKind.Mx, leftEdge: 220, topEdge: 320, width: 200, height: 30,
                         options: new FullScreenMode[] { FullScreenMode.Desktop, FullScreenMode.FullSize, FullScreenMode.MultiMonitor },
                         selectedIndex: (int)FullScreenMode,
                         valueChangedAction: (index) => { FullScreenMode = (FullScreenMode)index; });
-                    _ = GadTools.CreateGadget(GadgetKind.Checkbox, leftEdge: 10, topEdge: 320, width: 200, height: 30, text: "Disabled", _checked: true, disabled: false, checkedStateChangedAction:
-                        (b) => { cb.Enabled = !b; mx.Enabled = b; });
+                    _ = GadTools.CreateGadget(GadgetKind.Checkbox, leftEdge: 10, topEdge: 320, width: 200, height: 30, text: "Disabled", _checked: false, disabled: false, checkedStateChangedAction:
+                        (b) => { cb.Enabled = !b; mx.Enabled = !b; });
+                    _ = GadTools.CreateGadget(GadgetKind.Checkbox, leftEdge: 10, topEdge: 350, width: 200, height: 30, text: "Debug Bounds", _checked: gui.ShowDebugBounds, disabled: false, checkedStateChangedAction:
+                        (b) => { gui.ShowDebugBounds = b; });
                 }
                 else
                 {

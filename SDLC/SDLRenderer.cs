@@ -32,11 +32,11 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
     private int backBufferHeight;
     private int width;
     private int height;
-    private readonly Dictionary<string, TextCache> textCache = new();
-    private readonly List<string> textCacheKeys = new();
+    private readonly Dictionary<int, TextCache> textCache = new();
+    private readonly List<int> textCacheKeys = new();
     private int textCacheLimit = 100;
-    private readonly Dictionary<string, IconCache> iconCache = new();
-    private readonly List<string> iconCacheKeys = new();
+    private readonly Dictionary<int, IconCache> iconCache = new();
+    private readonly List<int> iconCacheKeys = new();
     private int iconCacheLimit = 100;
     private readonly SDLObjectTracker<SDLTexture> textureTracker = new(LogCategory.RENDER, "Texture");
     // Indices for 4 rectangle vertices: bottomleft-topleft-topright, topright,bottomright,bottomleft
@@ -671,7 +671,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
 
     private TextCache? GetTextCache(SDLFont font, string text, Color color)
     {
-        string key = MakeTextCacheKey(font, text, color);
+        int key = MakeTextCacheKey(font, text, color);
         CheckTextCache();
         if (textCache.TryGetValue(key, out var tc))
         {
@@ -689,7 +689,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
 
     private IconCache? GetIconCache(SDLFont font, Icons icon, Color color)
     {
-        string key = MakeIconCacheKey(icon, color);
+        int key = MakeIconCacheKey(icon, color);
         CheckIconCache();
         if (iconCache.TryGetValue(key, out var ic))
         {
@@ -791,7 +791,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         }
         textCache.Clear();
     }
-    private void ClearTextCache(IEnumerable<string> keys)
+    private void ClearTextCache(IEnumerable<int> keys)
     {
         foreach (var key in keys)
         {
@@ -815,7 +815,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         iconCache.Clear();
     }
 
-    private void ClearIconCache(IEnumerable<string> keys)
+    private void ClearIconCache(IEnumerable<int> keys)
     {
         foreach (var key in keys)
         {
@@ -830,14 +830,14 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
     }
 
     //TODO: Make reasonable hashes for icon and text caches...
-    private static string MakeIconCacheKey(Icons icon, Color color)
+    private static int MakeIconCacheKey(Icons icon, Color color)
     {
-        return "" + (int)icon + "_" + color.ToArgb();
+        return HashCode.Combine(icon.GetHashCode(), color.GetHashCode());
     }
     //TODO: Make reasonable hashes for icon and text caches...
-    private static string MakeTextCacheKey(SDLFont font, string text, Color color)
+    private static int MakeTextCacheKey(SDLFont font, string text, Color color)
     {
-        return font.Name + "_" + text + "_" + color.ToArgb();
+        return HashCode.Combine(font.FontId, text.GetHashCode(), color.GetHashCode());
     }
 
     private class TextCache
