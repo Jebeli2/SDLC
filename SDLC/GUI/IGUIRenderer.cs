@@ -9,4 +9,5 @@ public interface IGUIRenderer
     void RenderWindow(IRenderer gfx, Window window, int offsetX, int offsetY);
     void RenderGadget(IRenderer gfx, Gadget gadget, int offsetX, int offsetY);
     void RenderRequester(IRenderer gfx, Requester req, int offsetX, int offsetY);
+    void RenderTooltip(IRenderer gfx, Gadget? gadget, int offsetX, int offsetY);
 }

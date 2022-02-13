@@ -61,20 +61,20 @@ public class SDLScreen : IScreen
 
     public virtual void Hide(IWindow window)
     {
-        SDLLog.Info(LogCategory.APPLICATION, "Hide Screen {0}", name);
         SetWindow(window);
+        SDLLog.Info(LogCategory.APPLICATION, "Hide Screen {0}", name);
     }
 
     public virtual void Initialize(IWindow window)
     {
-        SDLLog.Info(LogCategory.APPLICATION, "Initialize Screen {0}", name);
         SetWindow(window);
+        SDLLog.Info(LogCategory.APPLICATION, "Initialize Screen {0} ({1}x{2})", name, width, height);
     }
 
     public virtual void Pause(IWindow window)
     {
-        SDLLog.Info(LogCategory.APPLICATION, "Pause Screen {0}", name);
         SetWindow(window);
+        SDLLog.Info(LogCategory.APPLICATION, "Pause Screen {0}", name);
     }
 
     public virtual void Render(IRenderer renderer, double totalTime, double elapsedTime)
@@ -83,20 +83,20 @@ public class SDLScreen : IScreen
 
     public virtual void Resized(IWindow window, int width, int height)
     {
-        SDLLog.Info(LogCategory.APPLICATION, "Resized Screen {0} ({1}x{2})", name, width, height);
         SetWindow(window);
+        SDLLog.Info(LogCategory.APPLICATION, "Resized Screen {0} ({1}x{2})", name, this.width, this.height);
     }
 
     public virtual void Resume(IWindow window)
     {
-        SDLLog.Info(LogCategory.APPLICATION, "Resume Screen {0}", name);
         SetWindow(window);
+        SDLLog.Info(LogCategory.APPLICATION, "Resume Screen {0}", name);
     }
 
     public virtual void Show(IWindow window)
     {
-        SDLLog.Info(LogCategory.APPLICATION, "Show Screen {0}", name);
         SetWindow(window);
+        SDLLog.Info(LogCategory.APPLICATION, "Show Screen {0} ({1}x{2})", name, width, height);
     }
 
     public virtual void Shutdown(IWindow window)
@@ -114,8 +114,8 @@ public class SDLScreen : IScreen
         this.window = window;
         renderer = this.window.Renderer;
         contentManager = this.window.ContentManager;
-        width = window.Width;
-        height = window.Height;
+        width = renderer.Width;
+        height = renderer.Height;
         while (appletsToAdd.Count > 0)
         {
             SDLApplet applet = appletsToAdd[0];
@@ -128,7 +128,7 @@ public class SDLScreen : IScreen
     protected int Width => width;
     protected int Height => height;
 
-    protected FullScreenMode FullScreenMode 
+    protected FullScreenMode FullScreenMode
     {
         get => window?.FullScreenMode ?? 0;
         set
@@ -137,7 +137,7 @@ public class SDLScreen : IScreen
             {
                 window.FullScreenMode = value;
             }
-        } 
+        }
     }
     protected bool IsFullScreen
     {

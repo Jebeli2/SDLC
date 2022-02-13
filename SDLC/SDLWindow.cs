@@ -37,6 +37,8 @@ internal sealed class SDLWindow : IWindow, IDisposable
     private int height;
     private int backBufferWidth;
     private int backBufferHeight;
+    private float mouseScaleX = 1.0f;
+    private float mouseScaleY = 1.0f;
     private RendererSizeMode sizeMode;
     private MouseButton lastButton;
     private KeyButtonState lastState;
@@ -117,8 +119,6 @@ internal sealed class SDLWindow : IWindow, IDisposable
         x = SDL_WINDOWPOS_UNDEFINED;
         y = SDL_WINDOWPOS_UNDEFINED;
         SetConfiguration(this.screen.GetConfiguration());
-        backBufferWidth = width;
-        backBufferHeight = height;
         windowId = -1;
         contentManager = new SDLContentManager(this);
         renderer = new SDLRenderer(this);
@@ -137,6 +137,11 @@ internal sealed class SDLWindow : IWindow, IDisposable
         title = config.WindowTitle;
         width = config.WindowWidth;
         height = config.WindowHeight;
+        backBufferWidth = config.BackbufferWidth;
+        backBufferHeight = config.BackbufferHeight;
+        mouseScaleX = (float)backBufferWidth / width;
+        mouseScaleY = (float)backBufferHeight / height;
+        sizeMode = config.SizeMode;
         resizeable = config.Resizeable;
         alwaysOnTop = config.AlwaysOnTop;
         borderless = config.Borderless;
@@ -701,8 +706,7 @@ internal sealed class SDLWindow : IWindow, IDisposable
 
     public void SetSize(int width, int height)
     {
-        this.width = width;
-        this.height = height;
+        ChangeSize(width, height);
         if (HandleCreated)
         {
             SDL_SetWindowSize(handle, width, height);
@@ -713,7 +717,17 @@ internal sealed class SDLWindow : IWindow, IDisposable
     {
         backBufferWidth = w;
         backBufferHeight = h;
+        mouseScaleX = (float)backBufferWidth / width;
+        mouseScaleY = (float)backBufferHeight / height;
         renderer.SetBackBufferSize(backBufferWidth, backBufferHeight);
+    }
+
+    private void ChangeSize(int width, int height)
+    {
+        this.width = width;
+        this.height = height;
+        mouseScaleX = (float)backBufferWidth / width;
+        mouseScaleY = (float)backBufferHeight / height;
     }
 
     public T GetApplet<T>() where T : SDLApplet, new()
@@ -881,15 +895,28 @@ internal sealed class SDLWindow : IWindow, IDisposable
         }
     }
 
-    private void ScaleMouse(ref int x, ref int y)
+    private int ScaleMouseX(int x)
     {
-        double scaleX = width;
-        scaleX /= backBufferWidth;
-        x = (int)(x / scaleX);
-        double scaleY = height;
-        scaleY /= backBufferHeight;
-        y = (int)(y / scaleY);
+        return (int)(x * mouseScaleX);
     }
+
+    private int ScaleMouseY(int y)
+    {
+        return (int)(y * mouseScaleY);
+    }
+
+    // Replaced this method with the the two above, because I thought the two ref parameters
+    // were causing all the allocations of System.Int32 I saw in the performance analyzer.
+    // Turns out it was string.Format() from the logging messages, not this here. 
+    //private void ScaleMouse(ref int x, ref int y)
+    //{
+    //    double scaleX = width;
+    //    scaleX /= backBufferWidth;
+    //    x = (int)(x / scaleX);
+    //    double scaleY = height;
+    //    scaleY /= backBufferHeight;
+    //    y = (int)(y / scaleY);
+    //}
 
     public void Dispose()
     {
@@ -1023,9 +1050,8 @@ internal sealed class SDLWindow : IWindow, IDisposable
         if (width != this.width || height != this.height)
         {
             SDLLog.Debug(LogCategory.VIDEO, "Window {0} Resized {1} {2} ({3})", windowId, width, height, source);
-            this.width = width;
-            this.height = height;
-            SDLWindowSizeEventArgs e = new(width, height, source);
+            ChangeSize(width, height);
+            SDLWindowSizeEventArgs e = new(renderer, width, height, source);
             renderer.WindowResized(width, height, source);
             foreach (SDLApplet applet in applets) { applet.OnWindowResized(e); }
             if (enableEventHandlers) { ((SDLWindowSizeEventHandler?)eventHandlerList[windowResizedEventKey])?.Invoke(this, e); }
@@ -1054,7 +1080,11 @@ internal sealed class SDLWindow : IWindow, IDisposable
     }
     internal void RaiseMouseButtonDown(int which, int x, int y, MouseButton button, int clicks, KeyButtonState state)
     {
-        if (sizeMode != RendererSizeMode.Window) { ScaleMouse(ref x, ref y); }
+        if (sizeMode != RendererSizeMode.Window)
+        {
+            x = ScaleMouseX(x);
+            y = ScaleMouseY(y);
+        }
         SDLLog.Verbose(LogCategory.INPUT, "Window {0} Mouse {1} {2} {3} {4} {5}", windowId, which, button, state, x, y);
         lastButton = button;
         lastState = state;
@@ -1065,7 +1095,11 @@ internal sealed class SDLWindow : IWindow, IDisposable
 
     internal void RaiseMouseButtonUp(int which, int x, int y, MouseButton button, int clicks, KeyButtonState state)
     {
-        if (sizeMode != RendererSizeMode.Window) { ScaleMouse(ref x, ref y); }
+        if (sizeMode != RendererSizeMode.Window)
+        {
+            x = ScaleMouseX(x);
+            y = ScaleMouseY(y);
+        }
         SDLLog.Verbose(LogCategory.INPUT, "Window {0} Mouse {1} {2} {3} {4} {5}", windowId, which, button, state, x, y);
         lastButton = button;
         lastState = state;
@@ -1076,7 +1110,11 @@ internal sealed class SDLWindow : IWindow, IDisposable
 
     internal void RaiseMouseMove(int which, int x, int y, int relX, int relY)
     {
-        if (sizeMode != RendererSizeMode.Window) { ScaleMouse(ref x, ref y); }
+        if (sizeMode != RendererSizeMode.Window)
+        {
+            x = ScaleMouseX(x);
+            y = ScaleMouseY(y);
+        }
         SDLLog.Verbose(LogCategory.INPUT, "Window {0} Mouse {1} Moved {2} {3} {4} {5}", windowId, which, x, y, relX, relY);
         SDLMouseEventArgs e = new(which, x, y, lastButton, 0, lastState, relX, relY);
         foreach (SDLApplet applet in inputApplets) { applet.OnMouseMove(e); if (e.Handled) break; }
@@ -1177,6 +1215,7 @@ internal sealed class SDLWindow : IWindow, IDisposable
             windowId = SDL_GetWindowID(handle);
             SDLLog.Info(LogCategory.VIDEO, "SDLWindow {0} created", windowId);
             renderer.SetBackBufferSize(backBufferWidth, backBufferHeight);
+            renderer.SizeMode = sizeMode;
             renderer.CreateHandle();
             if (renderer.HandleCreated)
             {

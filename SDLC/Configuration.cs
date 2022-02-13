@@ -10,6 +10,9 @@ public class Configuration
         WindowTitle = "SDL";
         WindowWidth = 1440;
         WindowHeight = 900;
+        BackbufferWidth = 1440;
+        BackbufferHeight = 900;
+        SizeMode = RendererSizeMode.Window;
         FullScreen = false;
         Resizeable = true;
         AlwaysOnTop = false;
@@ -23,6 +26,9 @@ public class Configuration
     public string Driver { get; set; }
     public int WindowWidth { get; set; }
     public int WindowHeight { get; set; }
+    public int BackbufferWidth { get; set; }
+    public int BackbufferHeight { get; set; }
+    public RendererSizeMode SizeMode { get; set; }
     public string? WindowTitle { get; set; }
     public bool FullScreen { get; set; }
     public bool Resizeable { get; set; }

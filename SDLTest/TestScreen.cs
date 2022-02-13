@@ -35,7 +35,11 @@
             Configuration.WindowTitle = "Test Window";
             Configuration.MaxFramesPerSecond = 120;
             Configuration.ShowFPS = true;
+            //Configuration.BackbufferWidth = 720;
+            //Configuration.BackbufferHeight = 512;
+            //Configuration.SizeMode = RendererSizeMode.BackBuffer;
             //Configuration.SkipTaskbar = true;
+
         }
 
         public override void Show(IWindow window)
@@ -65,8 +69,11 @@
                 depth: false,
                 backdrop: true);
             Gadget gad1 = gui.AddGadget(window1, leftEdge: 10, topEdge: 10, width: -20, height: 40, text: "GUI Test", clickAction: GoToGUITest);
+            gad1.TooltipText = "Go To GUI Test Screen";
             Gadget gad2 = gui.AddGadget(window1, leftEdge: 10, topEdge: 60, width: -20, height: 40, text: "Gadget 2");
+            gad2.TooltipText = "Does nothing";
             Gadget gad3 = gui.AddGadget(window1, leftEdge: 10, topEdge: 110, width: -20, height: 40, text: "Gadget 3");
+            gad3.TooltipText = "Nothing here yet...";
 
             img2 = LoadTexture(nameof(Properties.Resources.badlands));
             text1 = $"{Width}x{Height}";

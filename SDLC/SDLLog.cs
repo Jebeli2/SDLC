@@ -6,13 +6,21 @@ namespace SDLC;
 using System;
 using System.Runtime.InteropServices;
 
+/// <summary>
+/// Log to SDL log facility and back to app again.
+/// Has a lot of generic overloads to delay boxing of values for formatted messages
+/// until they are actually formatted. Values that are not logged (because of their
+/// LogPriority) will never be boxed at all. If they are logged, boxing will currently
+/// still happen, because the standard string.Format method is used.
+/// Looking into allocation free string formatters...
+/// </summary>
 public static class SDLLog
 {
     private static readonly SDL_LogOutputFunction logFunc = LogOutputFunc;
     private static bool logToConsole = true;
     private static LogPriority logPriority;
-    private static string[] prioText = new string[(int)LogPriority.Max];
-    private static string[] catText = new string[(int)LogCategory.MAX];
+    private static readonly string[] prioText = new string[(int)LogPriority.Max];
+    private static readonly string[] catText = new string[(int)LogCategory.MAX];
 
     public static bool LogToConsole
     {
@@ -48,25 +56,40 @@ public static class SDLLog
         if (!WillLog(cat, prio)) return;
         SDL_LogMessage((int)cat, prio, msg);
     }
-    public static void Log(LogCategory cat, LogPriority prio, string format, object? arg0)
+    public static void Log<T0>(LogCategory cat, LogPriority prio, string format, T0 arg0)
     {
         if (!WillLog(cat, prio)) return;
         SDL_LogMessage((int)cat, prio, string.Format(format, arg0));
     }
-    public static void Log(LogCategory cat, LogPriority prio, string format, object? arg0, object? arg1)
+    public static void Log<T0, T1>(LogCategory cat, LogPriority prio, string format, T0 arg0, T1 arg1)
     {
         if (!WillLog(cat, prio)) return;
         SDL_LogMessage((int)cat, prio, string.Format(format, arg0, arg1));
     }
-    public static void Log(LogCategory cat, LogPriority prio, string format, object? arg0, object? arg1, object? arg2)
+    public static void Log<T0, T1, T2>(LogCategory cat, LogPriority prio, string format, T0 arg0, T1 arg1, T2 arg2)
     {
         if (!WillLog(cat, prio)) return;
         SDL_LogMessage((int)cat, prio, string.Format(format, arg0, arg1, arg2));
     }
-    public static void Log(LogCategory cat, LogPriority prio, string format, object? arg0, object? arg1, object? arg2, object? arg3)
+    public static void Log<T0, T1, T2, T3>(LogCategory cat, LogPriority prio, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3)
     {
         if (!WillLog(cat, prio)) return;
         SDL_LogMessage((int)cat, prio, string.Format(format, arg0, arg1, arg2, arg3));
+    }
+    public static void Log<T0, T1, T2, T3, T4>(LogCategory cat, LogPriority prio, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
+    {
+        if (!WillLog(cat, prio)) return;
+        SDL_LogMessage((int)cat, prio, string.Format(format, arg0, arg1, arg2, arg3, arg4));
+    }
+    public static void Log<T0, T1, T2, T3, T4, T5>(LogCategory cat, LogPriority prio, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
+    {
+        if (!WillLog(cat, prio)) return;
+        SDL_LogMessage((int)cat, prio, string.Format(format, arg0, arg1, arg2, arg3, arg4, arg5));
+    }
+    public static void Log<T0, T1, T2, T3, T4, T5, T6>(LogCategory cat, LogPriority prio, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
+    {
+        if (!WillLog(cat, prio)) return;
+        SDL_LogMessage((int)cat, prio, string.Format(format, arg0, arg1, arg2, arg3, arg4, arg5, arg6));
     }
     public static void Log(LogCategory cat, LogPriority prio, string format, params object?[] args)
     {
@@ -77,21 +100,33 @@ public static class SDLLog
     {
         Log(cat, LogPriority.Verbose, msg);
     }
-    public static void Verbose(LogCategory cat, string format, object? arg0)
+    public static void Verbose<T0>(LogCategory cat, string format, T0 arg0)
     {
         Log(cat, LogPriority.Verbose, format, arg0);
     }
-    public static void Verbose(LogCategory cat, string format, object? arg0, object? arg1)
+    public static void Verbose<T0, T1>(LogCategory cat, string format, T0 arg0, T1 arg1)
     {
         Log(cat, LogPriority.Verbose, format, arg0, arg1);
     }
-    public static void Verbose(LogCategory cat, string format, object? arg0, object? arg1, object? arg2)
+    public static void Verbose<T0, T1, T2>(LogCategory cat, string format, T0 arg0, T1 arg1, T2 arg2)
     {
         Log(cat, LogPriority.Verbose, format, arg0, arg1, arg2);
     }
-    public static void Verbose(LogCategory cat, string format, object? arg0, object? arg1, object? arg2, object? arg3)
+    public static void Verbose<T0, T1, T2, T3>(LogCategory cat, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3)
     {
         Log(cat, LogPriority.Verbose, format, arg0, arg1, arg2, arg3);
+    }
+    public static void Verbose<T0, T1, T2, T3, T4>(LogCategory cat, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
+    {
+        Log(cat, LogPriority.Verbose, format, arg0, arg1, arg2, arg3, arg4);
+    }
+    public static void Verbose<T0, T1, T2, T3, T4, T5>(LogCategory cat, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
+    {
+        Log(cat, LogPriority.Verbose, format, arg0, arg1, arg2, arg3, arg4, arg5);
+    }
+    public static void Verbose<T0, T1, T2, T3, T4, T5, T6>(LogCategory cat, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
+    {
+        Log(cat, LogPriority.Verbose, format, arg0, arg1, arg2, arg3, arg4, arg5, arg6);
     }
     public static void Verbose(LogCategory cat, string format, params object?[] args)
     {
@@ -102,17 +137,21 @@ public static class SDLLog
     {
         Log(cat, LogPriority.Debug, msg);
     }
-    public static void Debug(LogCategory cat, string format, object? arg0)
+    public static void Debug<T0>(LogCategory cat, string format, T0 arg0)
     {
         Log(cat, LogPriority.Debug, format, arg0);
     }
-    public static void Debug(LogCategory cat, string format, object? arg0, object? arg1)
+    public static void Debug<T0, T1>(LogCategory cat, string format, T0 arg0, T1 arg1)
     {
         Log(cat, LogPriority.Debug, format, arg0, arg1);
     }
-    public static void Debug(LogCategory cat, string format, object? arg0, object? arg1, object? arg2)
+    public static void Debug<T0, T1, T2>(LogCategory cat, string format, T0 arg0, T1 arg1, T2 arg2)
     {
         Log(cat, LogPriority.Debug, format, arg0, arg1, arg2);
+    }
+    public static void Debug<T0, T1, T2, T3>(LogCategory cat, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3)
+    {
+        Log(cat, LogPriority.Debug, format, arg0, arg1, arg2, arg3);
     }
     public static void Debug(LogCategory cat, string format, params object?[] args)
     {
@@ -123,17 +162,21 @@ public static class SDLLog
     {
         Log(cat, LogPriority.Info, msg);
     }
-    public static void Info(LogCategory cat, string format, object? arg0)
+    public static void Info<T0>(LogCategory cat, string format, T0 arg0)
     {
         Log(cat, LogPriority.Info, format, arg0);
     }
-    public static void Info(LogCategory cat, string format, object? arg0, object? arg1)
+    public static void Info<T0, T1>(LogCategory cat, string format, T0 arg0, T1 arg1)
     {
         Log(cat, LogPriority.Info, format, arg0, arg1);
     }
-    public static void Info(LogCategory cat, string format, object? arg0, object? arg1, object? arg2)
+    public static void Info<T0, T1, T2>(LogCategory cat, string format, T0 arg0, T1 arg1, T2 arg2)
     {
         Log(cat, LogPriority.Info, format, arg0, arg1, arg2);
+    }
+    public static void Info<T0, T1, T2, T3>(LogCategory cat, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3)
+    {
+        Log(cat, LogPriority.Info, format, arg0, arg1, arg2, arg3);
     }
     public static void Info(LogCategory cat, string format, params object?[] args)
     {
@@ -144,15 +187,15 @@ public static class SDLLog
     {
         Log(cat, LogPriority.Warn, msg);
     }
-    public static void Warn(LogCategory cat, string format, object? arg0)
+    public static void Warn<T0>(LogCategory cat, string format, T0 arg0)
     {
         Log(cat, LogPriority.Warn, format, arg0);
     }
-    public static void Warn(LogCategory cat, string format, object? arg0, object? arg1)
+    public static void Warn<T0, T1>(LogCategory cat, string format, T0 arg0, T1 arg1)
     {
         Log(cat, LogPriority.Warn, format, arg0, arg1);
     }
-    public static void Warn(LogCategory cat, string format, object? arg0, object? arg1, object? arg2)
+    public static void Warn<T0, T1, T2>(LogCategory cat, string format, T0 arg0, T1 arg1, T2 arg2)
     {
         Log(cat, LogPriority.Warn, format, arg0, arg1, arg2);
     }
@@ -165,15 +208,15 @@ public static class SDLLog
     {
         Log(cat, LogPriority.Error, msg);
     }
-    public static void Error(LogCategory cat, string format, object? arg0)
+    public static void Error<T0>(LogCategory cat, string format, T0 arg0)
     {
         Log(cat, LogPriority.Error, format, arg0);
     }
-    public static void Error(LogCategory cat, string format, object? arg0, object? arg1)
+    public static void Error<T0, T1>(LogCategory cat, string format, T0 arg0, T1 arg1)
     {
         Log(cat, LogPriority.Error, format, arg0, arg1);
     }
-    public static void Error(LogCategory cat, string format, object? arg0, object? arg1, object? arg2)
+    public static void Error<T0, T1, T2>(LogCategory cat, string format, T0 arg0, T1 arg1, T2 arg2)
     {
         Log(cat, LogPriority.Error, format, arg0, arg1, arg2);
     }
@@ -208,7 +251,7 @@ public static class SDLLog
         if (logToConsole)
         {
             ClearConsoleColor();
-            Console.Write(DateTime.Now);
+            Console.Write(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"));
             Console.Write(' ');
             SetConsoleColor(priority);
             Console.Write(prioText[(int)priority]);

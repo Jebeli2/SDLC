@@ -25,6 +25,7 @@ public class Gadget : GUIObject
     private HorizontalAlignment horizontalTextAlignment;
     private int textOffsetX;
     private int textOffsetY;
+    private string? tooltipText;
     internal Gadget(IGUISystem gui, Window window, Requester? req = null)
         : base(gui)
     {
@@ -124,6 +125,19 @@ public class Gadget : GUIObject
             {
                 textOffsetY = value;
                 OnInvalidate();
+            }
+        }
+    }
+
+    public string? TooltipText
+    {
+        get => tooltipText;
+        set
+        {
+            if (!string.Equals(tooltipText, value))
+            {
+                tooltipText = value;
+                //window.InvalidateFromGadget();
             }
         }
     }

@@ -44,6 +44,7 @@ public interface IGUISystem
         string? text = null,
         Icons icon = Icons.NONE,
         Color? bgColor = null,
+        string? tooltip = null,
         bool disabled = false,
         bool selected = false,
         bool toggleSelect = false,

@@ -106,6 +106,8 @@ public class SDLApplet : IDisposable
     {
         this.window = window;
         renderer = this.window.Renderer;
+        width = renderer.Width;
+        height = renderer.Height;
         contentManager = this.window.ContentManager;
         installed = true;
         InternalOnLoad(new SDLWindowLoadEventArgs(renderer));

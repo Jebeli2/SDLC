@@ -52,6 +52,9 @@ public class DefaultGUIRenderer : IGUIRenderer
         StrGradientBot = MkColor(0, 92);
 
         DisabledGhost = MkColor(255, 22);
+
+        TooltipGradientTop = Color.FromArgb(190, Color.DarkGoldenrod);
+        TooltipGradientBottom = Color.FromArgb(200, Color.LightGoldenrodYellow);
     }
 
     public bool ShowDebugBounds
@@ -106,6 +109,9 @@ public class DefaultGUIRenderer : IGUIRenderer
     public Color InactiveTextColor { get; set; }
     public Color SelectedTextColor { get; set; }
 
+    public Color TooltipGradientTop { get; set; }
+    public Color TooltipGradientBottom { get; set; }
+
 
 
     public void RenderScreen(IRenderer gfx, Screen screen, int offsetX, int offsetY)
@@ -125,7 +131,10 @@ public class DefaultGUIRenderer : IGUIRenderer
     {
         DrawRequester(gfx, req, offsetX, offsetY);
     }
-
+    public void RenderTooltip(IRenderer gfx, Gadget? gadget, int offsetX, int offsetY)
+    {
+        DrawTooltip(gfx, gadget, offsetX, offsetY);
+    }
     private void DrawScreen(IRenderer gfx, Screen screen, int offsetX, int offsetY)
     {
         Rectangle bounds = screen.GetBounds();
@@ -212,6 +221,24 @@ public class DefaultGUIRenderer : IGUIRenderer
         }
         gfx.FillVertGradient(bounds, gradTop, gradBottom);
         DrawBox(gfx, bounds, BorderLight, BorderDark);
+    }
+
+    private void DrawTooltip(IRenderer gfx, Gadget? gadget, int offsetX, int offsetY)
+    {
+        if (gadget == null) return;
+        if (string.IsNullOrEmpty(gadget.TooltipText)) return;
+        offsetX -= 32;
+        offsetY += 21;
+        Size tsize = gfx.MeasureText(null, gadget.TooltipText);
+        Rectangle rect = new Rectangle(offsetX, offsetY, tsize.Width, tsize.Height);
+        rect.X -= 3;
+        rect.Y -= 3;
+        rect.Width += 6;
+        rect.Height += 6;
+        gfx.BlendMode = BlendMode.Blend;
+        gfx.FillVertGradient(rect, TooltipGradientTop, TooltipGradientBottom);
+        gfx.DrawRect(rect, BorderDark);
+        gfx.DrawText(null, gadget.TooltipText, offsetX, offsetY, BorderDark);
     }
 
     private void DrawBoolGadget(IRenderer gfx, Gadget gadget, int offsetX, int offsetY)

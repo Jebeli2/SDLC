@@ -35,6 +35,7 @@ public static class GadTools
         IList? options = null,
         Icons icon = Icons.NONE,
         Color? bgColor = null,
+        string? tooltip = null,
         string? buffer = null,
         long intValue = 0,
         int selectedIndex = 0,
@@ -64,15 +65,15 @@ public static class GadTools
         if (gui == null || window == null) throw new InvalidOperationException($"Cannot create {kind} gadget without context");
         switch (kind)
         {
-            case GadgetKind.Button: return CreateButton(gui, window, requester, leftEdge, topEdge, width, height, text, icon, bgColor, disabled, selected, toggleSelect, endGadget, clickAction, gadgetId);
-            case GadgetKind.Checkbox: return CreateCheckbox(gui, window, requester, leftEdge, topEdge, width, height, text, _checked, disabled, scaled, checkedStateChangedAction, gadgetId);
-            case GadgetKind.Mx: return CreateMx(gui, window, requester, leftEdge, topEdge, width, height, options, selectedIndex, valueChangedAction, scaled, gadgetId);
-            case GadgetKind.String: return CreateString(gui, window, requester, leftEdge, topEdge, width, height, buffer, disabled, clickAction, gadgetId);
-            case GadgetKind.Integer: return CreateInteger(gui, window, requester, leftEdge, topEdge, width, height, intValue, disabled, clickAction, gadgetId);
-            case GadgetKind.Text: return CreateText(gui, window, requester, leftEdge, topEdge, width, height, text, htAlign, vtAlign, disabled, gadgetId);
-            case GadgetKind.Number: return CreateNumber(gui, window, requester, leftEdge, topEdge, width, height, intValue, text ?? "{0}", htAlign, vtAlign, disabled, gadgetId);
-            case GadgetKind.Slider: return CreateSlider(gui, window, requester, leftEdge, topEdge, width, height, min, max, level, freedom, placeText, valueChangedAction, gadgetId);
-            case GadgetKind.Scroller: return CreateScroller(gui, window, requester, leftEdge, topEdge, width, height, top, total, visible, freedom, valueChangedAction, gadgetId);
+            case GadgetKind.Button: return CreateButton(gui, window, requester, leftEdge, topEdge, width, height, text, icon, bgColor, tooltip, disabled, selected, toggleSelect, endGadget, clickAction, gadgetId);
+            case GadgetKind.Checkbox: return CreateCheckbox(gui, window, requester, leftEdge, topEdge, width, height, text, tooltip, _checked, disabled, scaled, checkedStateChangedAction, gadgetId);
+            case GadgetKind.Mx: return CreateMx(gui, window, requester, leftEdge, topEdge, width, height, options, selectedIndex, tooltip, valueChangedAction, scaled, gadgetId);
+            case GadgetKind.String: return CreateString(gui, window, requester, leftEdge, topEdge, width, height, buffer, tooltip, disabled, clickAction, gadgetId);
+            case GadgetKind.Integer: return CreateInteger(gui, window, requester, leftEdge, topEdge, width, height, intValue, tooltip, disabled, clickAction, gadgetId);
+            case GadgetKind.Text: return CreateText(gui, window, requester, leftEdge, topEdge, width, height, text, tooltip, htAlign, vtAlign, disabled, gadgetId);
+            case GadgetKind.Number: return CreateNumber(gui, window, requester, leftEdge, topEdge, width, height, intValue, text ?? "{0}", tooltip, htAlign, vtAlign, disabled, gadgetId);
+            case GadgetKind.Slider: return CreateSlider(gui, window, requester, leftEdge, topEdge, width, height, min, max, level, freedom, placeText, tooltip, valueChangedAction, gadgetId);
+            case GadgetKind.Scroller: return CreateScroller(gui, window, requester, leftEdge, topEdge, width, height, top, total, visible, freedom, tooltip, valueChangedAction, gadgetId);
         }
         throw new NotSupportedException($"GadgetKind {kind} not supported");
     }
@@ -119,6 +120,7 @@ public static class GadTools
         string? text,
         Icons icon,
         Color? bgColor,
+        string? tooltip,
         bool disabled,
         bool selected,
         bool toggleSelect,
@@ -128,6 +130,7 @@ public static class GadTools
     {
         Gadget gad = gui.AddGadget(window, req, leftEdge, topEdge, width, height, text: text, icon: icon, type: GadgetType.BoolGadget | GadgetType.GadToolsGadget,
             bgColor: bgColor,
+            tooltip: tooltip,
             disabled: disabled,
             selected: selected,
             toggleSelect: toggleSelect,
@@ -142,6 +145,7 @@ public static class GadTools
 
     private static Gadget CreateCheckbox(IGUISystem gui, Window window, Requester? req, int leftEdge, int topEdge, int width, int height,
         string? text,
+        string? tooltip,
         bool _checked,
         bool disabled,
         bool scaled,
@@ -153,6 +157,7 @@ public static class GadTools
         Icons icon = _checked ? Icons.ENTYPO_ICON_CHECK : Icons.NONE;
         Gadget gad = gui.AddGadget(window, req, leftEdge, topEdge, boxWidth, boxHeight, type: GadgetType.BoolGadget | GadgetType.GadToolsGadget,
             icon: icon,
+            tooltip: tooltip,
             disabled: disabled,
             gadgetId: gadgetId);
         if (gad.GadInfo != null)
@@ -160,7 +165,8 @@ public static class GadTools
             gad.GadInfo.Kind = GadgetKind.Checkbox;
             gad.GadInfo.CheckboxChecked = _checked;
             gad.GadInfo.CheckedStateChangedAction = checkedStateChangedAction;
-            Gadget textGad = CreateText(gui, window, req, leftEdge + boxWidth, topEdge, width - boxWidth, boxHeight, text, HorizontalAlignment.Left, VerticalAlignment.Center, disabled, gadgetId);
+            Gadget textGad = CreateText(gui, window, req, leftEdge + boxWidth, topEdge, width - boxWidth, boxHeight, text,
+                tooltip, HorizontalAlignment.Left, VerticalAlignment.Center, disabled, gadgetId);
             textGad.TextOffsetX = INTERWIDTH;
             gad.GadInfo.TextGadget = textGad;
             LinkTextGadget(gad, textGad);
@@ -172,6 +178,7 @@ public static class GadTools
     private static Gadget CreateMx(IGUISystem gui, Window window, Requester? req, int leftEdge, int topEdge, int width, int height,
         IList? options,
         int selectedIndex,
+        string? tooltip,
         Action<int>? valueChangedAction,
         bool scaled,
         int gadgetId)
@@ -193,7 +200,7 @@ public static class GadTools
                 Icons icon = Icons.NONE;
                 if (index == selectedIndex) { icon = Icons.ENTYPO_ICON_CHECK; }
                 Gadget gad = gui.AddGadget(window, req, leftEdge, y, boxWidth, boxHeight, type: GadgetType.BoolGadget | GadgetType.GadToolsGadget,
-                    //flags:GadgetFlags.HNone,
+                    tooltip: tooltip,
                     icon: icon,
                     gadgetId: gadgetId);
                 gad.TransparentBackground = true;
@@ -205,7 +212,8 @@ public static class GadTools
                     gad.GadInfo.Kind = GadgetKind.Mx;
                     gad.GadInfo.MxGadgets = mxButtons;
                     gad.GadInfo.ValueChangedAction = valueChangedAction;
-                    Gadget textGad = CreateText(gui, window, req, leftEdge + boxWidth, y, width - boxWidth, boxHeight, text, HorizontalAlignment.Left, VerticalAlignment.Center, false, gadgetId);
+                    Gadget textGad = CreateText(gui, window, req, leftEdge + boxWidth, y, width - boxWidth, boxHeight, text,
+                        tooltip, HorizontalAlignment.Left, VerticalAlignment.Center, false, gadgetId);
                     textGad.TextOffsetX = INTERWIDTH;
                     gad.GadInfo.TextGadget = textGad;
                     LinkTextGadget(gad, textGad);
@@ -225,6 +233,7 @@ public static class GadTools
 
     private static Gadget CreateString(IGUISystem gui, Window window, Requester? req, int leftEdge, int topEdge, int width, int height,
         string? buffer,
+        string? tooltip,
         bool disabled,
         Action? clickAction,
         int gadgetId)
@@ -232,6 +241,7 @@ public static class GadTools
         Gadget gad = gui.AddGadget(window, req, leftEdge, topEdge, width, height, type: GadgetType.StrGadget | GadgetType.GadToolsGadget,
             disabled: disabled,
             buffer: buffer,
+            tooltip: tooltip,
             clickAction: clickAction,
             gadgetId: gadgetId);
         if (gad.GadInfo != null)
@@ -242,6 +252,7 @@ public static class GadTools
     }
     private static Gadget CreateInteger(IGUISystem gui, Window window, Requester? req, int leftEdge, int topEdge, int width, int height,
         long intValue,
+        string? tooltip,
         bool disabled,
         Action? clickAction,
         int gadgetId)
@@ -250,6 +261,7 @@ public static class GadTools
             activation: GadgetActivation.Immediate | GadgetActivation.RelVerify | GadgetActivation.LongInt,
             disabled: disabled,
             buffer: intValue.ToString(),
+            tooltip: tooltip,
             clickAction: clickAction,
             gadgetId: gadgetId);
         if (gad.GadInfo != null)
@@ -260,6 +272,7 @@ public static class GadTools
     }
 
     private static Gadget CreateText(IGUISystem gui, Window window, Requester? req, int leftEdge, int topEdge, int width, int height, string? text,
+        string? tooltip,
         HorizontalAlignment htAlign,
         VerticalAlignment vtAlign,
         bool disabled,
@@ -268,6 +281,7 @@ public static class GadTools
         Gadget gad = gui.AddGadget(window, req, leftEdge, topEdge, width, height, text: text, type: GadgetType.BoolGadget | GadgetType.GadToolsGadget,
             flags: GadgetFlags.HNone,
             activation: GadgetActivation.None,
+            tooltip: tooltip,
             disabled: disabled,
             gadgetId: gadgetId);
         gad.VerticalTextAlignment = vtAlign;
@@ -281,6 +295,7 @@ public static class GadTools
     }
     private static Gadget CreateNumber(IGUISystem gui, Window window, Requester? req, int leftEdge, int topEdge, int width, int height, long intValue,
         string format,
+        string? tooltip,
         HorizontalAlignment htAlign,
         VerticalAlignment vtAlign,
         bool disabled,
@@ -289,6 +304,7 @@ public static class GadTools
         Gadget gad = gui.AddGadget(window, req, leftEdge, topEdge, width, height, text: string.Format(format, intValue), type: GadgetType.BoolGadget | GadgetType.GadToolsGadget,
             flags: GadgetFlags.HNone,
             activation: GadgetActivation.None,
+            tooltip: tooltip,
             disabled: disabled,
             gadgetId: gadgetId);
         gad.VerticalTextAlignment = vtAlign;
@@ -305,11 +321,13 @@ public static class GadTools
     private static Gadget CreateSlider(IGUISystem gui, Window window, Requester? req, int leftEdge, int topEdge, int width, int height,
         int min, int max, int level, PropFreedom freedom,
         PlaceText levelPlace,
+        string? tooltip,
         Action<int>? valueChangedAction,
         int gadgetId)
     {
         if (levelPlace == 0) { levelPlace = PlaceText.Left; }
         Gadget gad = gui.AddGadget(window, req, leftEdge, topEdge, width, height, type: GadgetType.PropGadget | GadgetType.GadToolsGadget,
+            tooltip: tooltip,
             gadgetId: gadgetId);
         PropFlags flags = 0;
         if (freedom == PropFreedom.Horizontal)
@@ -341,10 +359,12 @@ public static class GadTools
 
     private static Gadget CreateScroller(IGUISystem gui, Window window, Requester? req, int leftEdge, int topEdge, int width, int height,
         int top, int total, int visible, PropFreedom freedom,
+        string? tooltip,
         Action<int>? valueChangedAction,
         int gadgetId)
     {
         Gadget gad = gui.AddGadget(window, req, leftEdge, topEdge, width, height, type: GadgetType.PropGadget | GadgetType.GadToolsGadget,
+            tooltip: tooltip,
             gadgetId: gadgetId);
         PropFlags flags = 0;
         if (freedom == PropFreedom.Horizontal)

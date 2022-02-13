@@ -48,8 +48,12 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
     {
         this.window = window;
         format = SDL_PIXELFORMAT_ARGB8888;
-        windowWidth = backBufferWidth = width = window.Width;
-        windowHeight = backBufferHeight = height = window.Height;
+        windowWidth = window.Width;
+        windowHeight = window.Height;
+        backBufferWidth = window.BackBufferWidth;
+        backBufferHeight = window.BackBufferHeight;
+        width = window.Width;
+        height = window.Height;
     }
 
     public IntPtr Handle => handle;
@@ -234,7 +238,10 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
                 break;
             case RendererSizeMode.BackBuffer:
                 SDLApplication.LogSDLError(SDL_SetRenderTarget(handle, IntPtr.Zero));
-                SDLApplication.LogSDLError(SDL_RenderCopy(handle, backBuffer, IntPtr.Zero, IntPtr.Zero));
+                //SDLApplication.LogSDLError(SDL_RenderCopy(handle, backBuffer, IntPtr.Zero, IntPtr.Zero));
+                Rectangle src = new Rectangle(0, 0, backBufferWidth, backBufferHeight);
+                Rectangle dst = new Rectangle(0, 0, windowWidth, windowHeight);
+                SDLApplication.LogSDLError(SDL_RenderCopy(handle, backBuffer, ref src, ref dst));
                 break;
         }
         SDL_RenderPresent(handle);

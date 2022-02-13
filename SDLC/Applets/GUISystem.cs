@@ -38,9 +38,14 @@ public class GUISystem : SDLApplet, IGUISystem
     private Gadget? downGadget;
     private Gadget? upGadget;
     private Gadget? selectedGadget;
+    private Gadget? tooltipGadget;
     private bool selectMouseDown;
     private int timerTick;
     private int tickIntervall = 100;
+    private double currentTime;
+    private double mouseGadgetTime;
+    private double lastInputTime;
+    private int tooltipActivationTime = 1200;
 
     private int sysGadgetWidth = 32;
     private int sysGadgetHeight = 28;
@@ -84,7 +89,8 @@ public class GUISystem : SDLApplet, IGUISystem
     }
     protected internal override void OnWindowResized(SDLWindowSizeEventArgs e)
     {
-        UpdateScreenSize(e.Width, e.Height);
+
+        UpdateScreenSize(e.Renderer.Width, e.Renderer.Height);
     }
 
     protected override void OnWindowUpdate(SDLWindowUpdateEventArgs e)
@@ -101,6 +107,7 @@ public class GUISystem : SDLApplet, IGUISystem
         {
             screen.Render(e.Renderer, guiRenderer);
         }
+        guiRenderer.RenderTooltip(e.Renderer, tooltipGadget, mouseX, mouseY);
     }
 
     protected override void OnDispose()
@@ -198,6 +205,7 @@ public class GUISystem : SDLApplet, IGUISystem
             mouseGadget = gad;
             if (mouseGadget != null)
             {
+                mouseGadgetTime = currentTime;
                 mouseGadget.MouseHover = true;
             }
         }
@@ -252,7 +260,8 @@ public class GUISystem : SDLApplet, IGUISystem
                 GadgetType = GadgetType.SysGadget | GadgetType.BoolGadget | GadgetType.WDragging,
                 TransparentBackground = true,
                 GadgetId = SYSGAD_DRAG,
-                Activation = GadgetActivation.TopBorder | GadgetActivation.RightBorder | GadgetActivation.LeftBorder
+                Activation = GadgetActivation.TopBorder | GadgetActivation.RightBorder | GadgetActivation.LeftBorder,
+                TooltipText = "Drag"
             };
         }
 
@@ -268,7 +277,8 @@ public class GUISystem : SDLApplet, IGUISystem
                 TransparentBackground = true,
                 Icon = Icons.ENTYPO_ICON_CROSS,
                 GadgetId = SYSGAD_CLOSE,
-                Activation = GadgetActivation.RelVerify | GadgetActivation.TopBorder | GadgetActivation.LeftBorder
+                Activation = GadgetActivation.RelVerify | GadgetActivation.TopBorder | GadgetActivation.LeftBorder,
+                TooltipText = "Close"
             };
             closeGadget.GadgetUp += CloseGadget_GadgetUp;
         }
@@ -290,7 +300,8 @@ public class GUISystem : SDLApplet, IGUISystem
                 TransparentBackground = true,
                 Icon = Icons.ENTYPO_ICON_DOCUMENTS,
                 GadgetId = SYSGAD_DEPTH,
-                Activation = GadgetActivation.RelVerify | GadgetActivation.TopBorder | GadgetActivation.RightBorder
+                Activation = GadgetActivation.RelVerify | GadgetActivation.TopBorder | GadgetActivation.RightBorder,
+                TooltipText = "Depth"
             };
             depthGadget.GadgetUp += DepthGadget_GadgetUp;
         }
@@ -309,7 +320,8 @@ public class GUISystem : SDLApplet, IGUISystem
                 TransparentBackground = true,
                 Icon = Icons.ENTYPO_ICON_RESIZE_FULL_SCREEN,
                 GadgetId = SYSGAD_ZOOM,
-                Activation = GadgetActivation.RelVerify | GadgetActivation.TopBorder | GadgetActivation.RightBorder
+                Activation = GadgetActivation.RelVerify | GadgetActivation.TopBorder | GadgetActivation.RightBorder,
+                TooltipText = "Zoom"
             };
             zoomGadget.GadgetUp += ZoomGadget_GadgetUp;
         }
@@ -335,7 +347,8 @@ public class GUISystem : SDLApplet, IGUISystem
                 TransparentBackground = true,
                 Icon = Icons.ENTYPO_ICON_RETWEET,
                 GadgetId = SYSGAD_SIZE,
-                Activation = GadgetActivation.BottomBorder | GadgetActivation.RightBorder
+                Activation = GadgetActivation.BottomBorder | GadgetActivation.RightBorder,
+                TooltipText = "Size"
             };
         }
     }
@@ -510,6 +523,29 @@ public class GUISystem : SDLApplet, IGUISystem
         return false;
     }
 
+    private bool CheckGadgetTooltip(double time)
+    {
+        if (mouseGadget != null)
+        {
+            double dTGad = time - mouseGadgetTime;
+            double dTInput = time - lastInputTime;
+            if (dTGad > tooltipActivationTime && dTInput > tooltipActivationTime)
+            {
+                tooltipGadget = mouseGadget;
+                return true;
+            }
+            else
+            {
+                tooltipGadget = null;
+            }
+        }
+        else
+        {
+            tooltipGadget = null;
+        }
+        return false;
+    }
+
     private void CheckWindowActivationQueue()
     {
         if (activationWindows.Count > 0)
@@ -533,6 +569,7 @@ public class GUISystem : SDLApplet, IGUISystem
 
     private void CheckTimer(double time)
     {
+        currentTime = time;
         if (timerTick == 0)
         {
             timerTick = EventHelper.GetExpirationTime(time, tickIntervall);
@@ -542,6 +579,7 @@ public class GUISystem : SDLApplet, IGUISystem
             CheckGadgetTimer(time);
             timerTick = 0;
         }
+        CheckGadgetTooltip(time);
     }
 
     private bool CheckGadgetKeyDown(SDLKeyEventArgs e)
@@ -587,17 +625,17 @@ public class GUISystem : SDLApplet, IGUISystem
 
     protected internal override void OnKeyDown(SDLKeyEventArgs e)
     {
-        if (CheckGadgetKeyDown(e)) { e.Handled = true; }
+        if (CheckGadgetKeyDown(e)) { e.Handled = true; lastInputTime = currentTime; }
     }
 
     protected internal override void OnKeyUp(SDLKeyEventArgs e)
     {
-        if (CheckGadgetKeyUp(e)) { e.Handled = true; }
+        if (CheckGadgetKeyUp(e)) { e.Handled = true; lastInputTime = currentTime; }
     }
 
     protected internal override void OnTextInput(SDLTextInputEventArgs e)
     {
-        if (CheckGadgetTextInput(e)) { e.Handled = true; }
+        if (CheckGadgetTextInput(e)) { e.Handled = true; lastInputTime = currentTime; }
     }
 
     private bool CheckHandled(Screen? screen, Window? window, Gadget? gadget)
@@ -618,7 +656,7 @@ public class GUISystem : SDLApplet, IGUISystem
         SetMouseWindow(window);
         SetMouseGadget(gadget);
         e.Handled = CheckHandled(screen, window, gadget);
-        if (CheckWindowDragging(e) || CheckWindowSizing(e) || CheckGadgetMove(e)) { e.Handled = true; }
+        if (CheckWindowDragging(e) || CheckWindowSizing(e) || CheckGadgetMove(e)) { e.Handled = true; lastInputTime = currentTime; }
     }
 
     protected internal override void OnMouseButtonDown(SDLMouseEventArgs e)
@@ -635,7 +673,7 @@ public class GUISystem : SDLApplet, IGUISystem
         SetActiveGadget(gadget);
         e.Handled = CheckHandled(screen, window, gadget);
         if (e.Button == MouseButton.Left) { selectMouseDown = true; }
-        if (CheckGadgetDown(e)) { e.Handled = true; }
+        if (CheckGadgetDown(e)) { e.Handled = true; lastInputTime = currentTime; }
     }
 
     protected internal override void OnMouseButtonUp(SDLMouseEventArgs e)
@@ -649,7 +687,7 @@ public class GUISystem : SDLApplet, IGUISystem
         SetMouseGadget(gadget);
         e.Handled = CheckHandled(screen, window, gadget);
         if (e.Button == MouseButton.Left) { selectMouseDown = false; }
-        if (CheckGadgetUp(e)) { e.Handled = true; }
+        if (CheckGadgetUp(e)) { e.Handled = true; lastInputTime = currentTime; }
     }
 
     private bool UpdateMouse(int x, int y)
@@ -662,6 +700,7 @@ public class GUISystem : SDLApplet, IGUISystem
             mouseY = y;
             diffMouseX = mouseX - prevMouseX;
             diffMouseY = mouseY - prevMouseY;
+            lastInputTime = currentTime;
             return true;
         }
         return false;
@@ -684,9 +723,11 @@ public class GUISystem : SDLApplet, IGUISystem
                 CloseScreen(screens[0]);
             }
         }
-        Screen screen = new Screen(this);
-        screen.Width = Width;
-        screen.Height = Height;
+        Screen screen = new(this)
+        {
+            Width = Width,
+            Height = Height
+        };
         screens.Add(screen);
         return screen;
     }
@@ -856,6 +897,7 @@ public class GUISystem : SDLApplet, IGUISystem
         string? text = null,
         Icons icon = Icons.NONE,
         Color? bgColor = null,
+        string? tooltip = null,
         bool disabled = false,
         bool selected = false,
         bool toggleSelect = false,
@@ -888,6 +930,7 @@ public class GUISystem : SDLApplet, IGUISystem
         gadget.GadgetId = gadgetId;
         gadget.Text = text;
         gadget.Icon = icon;
+        gadget.TooltipText = tooltip;
         if (bgColor != null) { gadget.BackgroundColor = bgColor.Value; }
         if (clickAction != null) { gadget.GadgetUp += (s, e) => { clickAction(); }; }
         if (buffer != null && gadget.IsStrGadget && gadget.StrInfo != null)
