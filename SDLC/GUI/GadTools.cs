@@ -70,10 +70,49 @@ public static class GadTools
             case GadgetKind.String: return CreateString(gui, window, requester, leftEdge, topEdge, width, height, buffer, disabled, clickAction, gadgetId);
             case GadgetKind.Integer: return CreateInteger(gui, window, requester, leftEdge, topEdge, width, height, intValue, disabled, clickAction, gadgetId);
             case GadgetKind.Text: return CreateText(gui, window, requester, leftEdge, topEdge, width, height, text, htAlign, vtAlign, disabled, gadgetId);
+            case GadgetKind.Number: return CreateNumber(gui, window, requester, leftEdge, topEdge, width, height, intValue, text ?? "{0}", htAlign, vtAlign, disabled, gadgetId);
             case GadgetKind.Slider: return CreateSlider(gui, window, requester, leftEdge, topEdge, width, height, min, max, level, freedom, placeText, valueChangedAction, gadgetId);
             case GadgetKind.Scroller: return CreateScroller(gui, window, requester, leftEdge, topEdge, width, height, top, total, visible, freedom, valueChangedAction, gadgetId);
         }
         throw new NotSupportedException($"GadgetKind {kind} not supported");
+    }
+
+    public static void SetAttrs(Gadget gadget, int? intValue = null)
+    {
+        switch (GetGadgetKind(gadget))
+        {
+            case GadgetKind.Number: SetNumberAttrs(gadget, intValue); break;
+        }
+    }
+    private static GadgetKind GetGadgetKind(Gadget? gadget)
+    {
+        return gadget?.GadInfo?.Kind ?? GadgetKind.None;
+    }
+
+    private static bool IsValid(Gadget? gadget, GadgetKind expectedKind, out GadToolsInfo? info)
+    {
+        info = null;
+        if (gadget != null)
+        {
+            info = gadget.GadInfo;
+            if (info != null)
+            {
+                return info.Kind == expectedKind;
+            }
+        }
+        return false;
+    }
+
+    private static void SetNumberAttrs(Gadget gadget, int? intValue = null)
+    {
+        if (IsValid(gadget, GadgetKind.Number, out GadToolsInfo? info))
+        {
+            if (intValue != null)
+            {
+                string format = info?.Format ?? "{0}";
+                gadget.Text = string.Format(format, intValue.Value);
+            }
+        }
     }
 
     private static Gadget CreateButton(IGUISystem gui, Window window, Requester? req, int leftEdge, int topEdge, int width, int height,
@@ -94,6 +133,10 @@ public static class GadTools
             toggleSelect: toggleSelect,
             endGadget: endGadget,
             clickAction: clickAction, gadgetId: gadgetId);
+        if (gad.GadInfo != null)
+        {
+            gad.GadInfo.Kind = GadgetKind.Button;
+        }
         return gad;
     }
 
@@ -114,6 +157,7 @@ public static class GadTools
             gadgetId: gadgetId);
         if (gad.GadInfo != null)
         {
+            gad.GadInfo.Kind = GadgetKind.Checkbox;
             gad.GadInfo.CheckboxChecked = _checked;
             gad.GadInfo.CheckedStateChangedAction = checkedStateChangedAction;
             gad.GadInfo.TextGadget = CreateText(gui, window, req, leftEdge + boxWidth + INTERWIDTH, topEdge, width - (boxWidth + INTERWIDTH), boxHeight, text, HorizontalAlignment.Left, VerticalAlignment.Center, disabled, gadgetId);
@@ -156,6 +200,7 @@ public static class GadTools
                 if (firstGad == null) { firstGad = gad; }
                 if (gad.GadInfo != null)
                 {
+                    gad.GadInfo.Kind = GadgetKind.Mx;
                     gad.GadInfo.MxGadgets = mxButtons;
                     gad.GadInfo.ValueChangedAction = valueChangedAction;
                     gad.GadInfo.TextGadget = CreateText(gui, window, req, leftEdge + boxWidth + INTERWIDTH, y, width - (boxWidth + INTERWIDTH), boxHeight, text, HorizontalAlignment.Left, VerticalAlignment.Center, false, gadgetId);
@@ -185,6 +230,10 @@ public static class GadTools
             buffer: buffer,
             clickAction: clickAction,
             gadgetId: gadgetId);
+        if (gad.GadInfo != null)
+        {
+            gad.GadInfo.Kind = GadgetKind.String;
+        }
         return gad;
     }
     private static Gadget CreateInteger(IGUISystem gui, Window window, Requester? req, int leftEdge, int topEdge, int width, int height,
@@ -199,6 +248,10 @@ public static class GadTools
             buffer: intValue.ToString(),
             clickAction: clickAction,
             gadgetId: gadgetId);
+        if (gad.GadInfo != null)
+        {
+            gad.GadInfo.Kind = GadgetKind.Integer;
+        }
         return gad;
     }
 
@@ -216,6 +269,32 @@ public static class GadTools
         gad.VerticalTextAlignment = vtAlign;
         gad.HorizontalTextAlignment = htAlign;
         gad.TransparentBackground = true;
+        if (gad.GadInfo != null)
+        {
+            gad.GadInfo.Kind = GadgetKind.Text;
+        }
+        return gad;
+    }
+    private static Gadget CreateNumber(IGUISystem gui, Window window, Requester? req, int leftEdge, int topEdge, int width, int height, long intValue,
+        string format,
+        HorizontalAlignment htAlign,
+        VerticalAlignment vtAlign,
+        bool disabled,
+        int gadgetId)
+    {
+        Gadget gad = gui.AddGadget(window, req, leftEdge, topEdge, width, height, text: string.Format(format, intValue), type: GadgetType.BoolGadget | GadgetType.GadToolsGadget,
+            flags: GadgetFlags.HNone,
+            activation: GadgetActivation.None,
+            disabled: disabled,
+            gadgetId: gadgetId);
+        gad.VerticalTextAlignment = vtAlign;
+        gad.HorizontalTextAlignment = htAlign;
+        gad.TransparentBackground = true;
+        if (gad.GadInfo != null)
+        {
+            gad.GadInfo.Kind = GadgetKind.Number;
+            gad.GadInfo.Format = format;
+        }
         return gad;
     }
 
@@ -241,6 +320,7 @@ public static class GadTools
         if (level < min) { level = min; }
         if (gad.GadInfo != null)
         {
+            gad.GadInfo.Kind = GadgetKind.Slider;
             gad.GadInfo.SliderMin = min;
             gad.GadInfo.SliderMax = max;
             gad.GadInfo.SliderLevel = level;
@@ -274,6 +354,7 @@ public static class GadTools
         FindScrollerValues(total, visible, top, 0, out int body, out int pot);
         if (gad.GadInfo != null)
         {
+            gad.GadInfo.Kind = GadgetKind.Scroller;
             gad.GadInfo.ScrollerTop = top;
             gad.GadInfo.ScrollerTotal = total;
             gad.GadInfo.ScrollerVisible = visible;

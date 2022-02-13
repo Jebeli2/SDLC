@@ -15,6 +15,7 @@ internal class GadToolsInfo
     {
         this.gadget = gadget;
     }
+    internal GadgetKind Kind { get; set; }
     internal Action<int>? ValueChangedAction { get; set; }
     internal Action<bool>? CheckedStateChangedAction { get; set; }
     internal int SliderMin { get; set; }
@@ -25,6 +26,7 @@ internal class GadToolsInfo
     internal int ScrollerVisible { get; set; }
     internal int ScrollerTop { get; set; }
     internal bool CheckboxChecked { get; set; }
+    internal string? Format { get; set; }
     internal Gadget? LinkedGadget { get; set; }
     internal Gadget? TextGadget { get; set; }
     internal List<Gadget>? MxGadgets { get; set; }

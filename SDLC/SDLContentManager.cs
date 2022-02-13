@@ -94,6 +94,8 @@ internal class SDLContentManager : IContentManager
         if (knownNames.Contains(name)) return name;
         string testName = name.Replace('_', '-');
         if (knownNames.Contains(testName)) return testName;
+        testName = name.Replace('_', ' ').Trim();
+        if (knownNames.Contains(testName)) return testName;
         return name;
     }
 

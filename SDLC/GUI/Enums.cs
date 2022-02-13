@@ -114,6 +114,7 @@ public enum ActionResult
 
 public enum GadgetKind
 {
+    None,
     Generic,
     Button,
     Checkbox,

@@ -14,18 +14,44 @@
     {
         private const string SONG2 = @"D:\Users\jebel\Music\iTunes\iTunes Media\Music\Blur\Blur\02 Song 2.mp3";
         private const string DC = @"D:\Users\jebel\Music\iTunes\iTunes Media\Music\Alt-J\Relaxer\05 Deadcrush.mp3";
+        private const string FF9_1 = @"d:\Users\jebel\Music\iTunes\iTunes Media\Music\Nobuo Uematsu\Final Fantasy IX\05 Black Mage Village.mp3";
+        private const string FF9_2 = @"d:\Users\jebel\Music\iTunes\iTunes Media\Music\Nobuo Uematsu\Final Fantasy IX\02 Jesters of the Moon.mp3";
+        private const string FF9_3 = @"d:\Users\jebel\Music\iTunes\iTunes Media\Music\Nobuo Uematsu\Final Fantasy IX\03 Loss of Me.mp3";
         private Screen? screen1;
         private Window? window1;
 
         private Window? winButTest;
         private Window? winPropTest;
         private Requester? requester;
-
+        private string musicText = "";
+        private float scrollX;
+        private float scrollY;
+        private float scrollSpeed = 0.1f;
+        private double lastScrollTime;
         public GUITest() : base("GUI Test")
         {
 
         }
 
+        public override void Update(IRenderer renderer, double totalTime, double elapsedTime)
+        {
+            musicText = GetApplet<MusicPlayer>().CurrentEntry?.Name ?? "no music";
+            scrollY = Height - 40;
+            base.Update(renderer, totalTime, elapsedTime);
+            double dT = totalTime - lastScrollTime;
+            scrollX += (float)(dT * scrollSpeed);
+            if (scrollX > Width) { scrollX = -200; }
+            lastScrollTime = totalTime;
+        }
+
+        public override void Render(IRenderer renderer, double totalTime, double elapsedTime)
+        {
+            base.Render(renderer, totalTime, elapsedTime);
+            renderer.DrawText(null, musicText, scrollX + 0.75f, scrollY + 0.75f, Color.Black);
+            renderer.DrawText(null, musicText, scrollX - 0.75f, scrollY - 0.75f, Color.Black);
+            renderer.DrawText(null, musicText, scrollX, scrollY, Color.FromArgb(222, Color.White));
+
+        }
         public override void Show(IWindow window)
         {
             base.Show(window);
@@ -33,6 +59,9 @@
             GetApplet<MusicPlayer>().AddToPlayList(nameof(Properties.Resources.loss_of_me_3_));
             GetApplet<MusicPlayer>().AddToPlayList(nameof(Properties.Resources.jesu_joy));
             GetApplet<MusicPlayer>().AddToPlayList(nameof(Properties.Resources.jesters_of_the_moon));
+            GetApplet<MusicPlayer>().AddToPlayList(FF9_1);
+            GetApplet<MusicPlayer>().AddToPlayList(FF9_2);
+            GetApplet<MusicPlayer>().AddToPlayList(FF9_3);
             GetApplet<MusicPlayer>().AddToPlayList(SONG2);
             GetApplet<MusicPlayer>().AddToPlayList(DC);
             IGUISystem gui = GUI;
@@ -60,6 +89,7 @@
                     winPropTest = gui.OpenWindow(screen1, 400, 10, 500, 500, "Props & Strings");
                     winPropTest.WindowClose += WinPropTest_WindowClose;
                     GadTools.CreateContext(gui, winPropTest);
+                    var nu = GadTools.CreateGadget(GadgetKind.Number, leftEdge: 10, topEdge: 300, width: 200, height: 30, text: "Level {0}", intValue: 1);
                     _ = GadTools.CreateGadget(GadgetKind.Slider, leftEdge: 10, topEdge: 10, width: -20, height: 20, min: 1, max: 3, level: 2, valueChangedAction:
                         (level) =>
                         {
@@ -68,6 +98,7 @@
                     _ = GadTools.CreateGadget(GadgetKind.Slider, leftEdge: 10, topEdge: 40, width: -20, height: 20, min: 1, max: 16, valueChangedAction:
                         (level) =>
                         {
+                            GadTools.SetAttrs(nu, intValue: level);
                             SDLLog.Info(LogCategory.APPLICATION, "Slider Level changed to {0}", level);
                         });
                     Gadget prop3 = gui.AddGadget(winPropTest, leftEdge: 10, topEdge: 70, width: -20, height: 100, type: GadgetType.PropGadget);
