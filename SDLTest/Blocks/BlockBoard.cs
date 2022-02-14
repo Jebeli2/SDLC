@@ -36,7 +36,7 @@ public class BlockBoard
             {
                 return blocks[x, y];
             }
-            return default;
+            throw new IndexOutOfRangeException($"{x}x{y} is not a valid position");
         }
         set
         {
@@ -76,7 +76,7 @@ public class BlockBoard
         return fullRows.Contains(row);
     }
 
-    public void CopyPiece(BlockPiece piece)
+    public void CopyPiece(BlockPiece? piece)
     {
         if (piece != null)
         {

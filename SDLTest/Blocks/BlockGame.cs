@@ -475,9 +475,12 @@ public class BlockGame
 
     private void CopyPieceToBoard(bool noSound = false)
     {
-        board.CopyPiece(currentPiece);
-        points += currentPiece.Points;
-        FindNextBest();
+        if (currentPiece != null)
+        {
+            board.CopyPiece(currentPiece);
+            points += currentPiece.Points;
+            FindNextBest();
+        }
         currentPiece = null;
         ghostPiece = null;
         if (holdPiece != null) holdPiece.Hold = false;

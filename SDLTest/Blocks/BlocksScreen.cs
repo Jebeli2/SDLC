@@ -285,18 +285,19 @@ public class BlocksScreen : SDLScreen
         kcm.AddKeyCommand(ScanCode.SCANCODE_KP_5, KeyButtonState.Pressed, RotateLeft);
         kcm.AddKeyCommand(ScanCode.SCANCODE_KP_9, KeyButtonState.Pressed, RotateLeft);
         kcm.AddKeyCommand(ScanCode.SCANCODE_X, KeyButtonState.Pressed, RotateLeft);
-        kcm.AddKeyCommand(ControllerButton.B, KeyButtonState.Pressed, RotateLeft);
+        kcm.AddKeyCommand(ControllerButton.Circle, KeyButtonState.Pressed, RotateLeft);
 
         kcm.AddKeyCommand(ScanCode.SCANCODE_KP_3, KeyButtonState.Pressed, RotateRight);
         kcm.AddKeyCommand(ScanCode.SCANCODE_KP_7, KeyButtonState.Pressed, RotateRight);
         kcm.AddKeyCommand(ScanCode.SCANCODE_Z, KeyButtonState.Pressed, RotateRight);
         kcm.AddKeyCommand(ScanCode.SCANCODE_LCTRL, KeyButtonState.Pressed, RotateRight);
         kcm.AddKeyCommand(ScanCode.SCANCODE_RCTRL, KeyButtonState.Pressed, RotateRight);
-        kcm.AddKeyCommand(ControllerButton.A, KeyButtonState.Pressed, RotateRight);
+        kcm.AddKeyCommand(ControllerButton.Cross, KeyButtonState.Pressed, RotateRight);
 
         kcm.AddKeyCommand(ScanCode.SCANCODE_SPACE, KeyButtonState.Pressed, Drop);
         kcm.AddKeyCommand(ScanCode.SCANCODE_KP_8, KeyButtonState.Pressed, Drop);
         kcm.AddKeyCommand(ControllerButton.DPadUp, KeyButtonState.Pressed, Drop);
+        kcm.AddKeyCommand(ControllerButton.Triangle, KeyButtonState.Pressed, Drop);
 
 
         kcm.AddKeyCommand(ScanCode.SCANCODE_LEFT, KeyButtonState.Released, StopMoveLeft);
@@ -316,18 +317,19 @@ public class BlocksScreen : SDLScreen
         kcm.AddKeyCommand(ScanCode.SCANCODE_KP_5, KeyButtonState.Released, StopRotateLeft);
         kcm.AddKeyCommand(ScanCode.SCANCODE_KP_9, KeyButtonState.Released, StopRotateLeft);
         kcm.AddKeyCommand(ScanCode.SCANCODE_X, KeyButtonState.Released, StopRotateLeft);
-        kcm.AddKeyCommand(ControllerButton.B, KeyButtonState.Released, StopRotateLeft);
+        kcm.AddKeyCommand(ControllerButton.Circle, KeyButtonState.Released, StopRotateLeft);
 
         kcm.AddKeyCommand(ScanCode.SCANCODE_KP_3, KeyButtonState.Released, StopRotateRight);
         kcm.AddKeyCommand(ScanCode.SCANCODE_KP_7, KeyButtonState.Released, StopRotateRight);
         kcm.AddKeyCommand(ScanCode.SCANCODE_Z, KeyButtonState.Released, StopRotateRight);
         kcm.AddKeyCommand(ScanCode.SCANCODE_LCTRL, KeyButtonState.Released, StopRotateRight);
         kcm.AddKeyCommand(ScanCode.SCANCODE_RCTRL, KeyButtonState.Released, StopRotateRight);
-        kcm.AddKeyCommand(ControllerButton.A, KeyButtonState.Released, StopRotateRight);
+        kcm.AddKeyCommand(ControllerButton.Cross, KeyButtonState.Released, StopRotateRight);
 
         kcm.AddKeyCommand(ScanCode.SCANCODE_SPACE, KeyButtonState.Released, StopDrop);
         kcm.AddKeyCommand(ScanCode.SCANCODE_KP_8, KeyButtonState.Released, StopDrop);
         kcm.AddKeyCommand(ControllerButton.DPadUp, KeyButtonState.Released, StopDrop);
+        kcm.AddKeyCommand(ControllerButton.Triangle, KeyButtonState.Released, StopDrop);
 
         kcm.AddKeyCommand(ScanCode.SCANCODE_KP_0, KeyButtonState.Released, Hold);
         kcm.AddKeyCommand(ScanCode.SCANCODE_C, KeyButtonState.Released, Hold);
@@ -335,7 +337,7 @@ public class BlocksScreen : SDLScreen
         kcm.AddKeyCommand(ControllerButton.RightShoulder, KeyButtonState.Released, Hold);
 
         kcm.AddKeyCommand(ScanCode.SCANCODE_ESCAPE, KeyButtonState.Released, Pause);
-        kcm.AddKeyCommand(ControllerButton.Start, KeyButtonState.Released, Pause);
+        kcm.AddKeyCommand(ControllerButton.Options, KeyButtonState.Released, Pause);
     }
 
     private void Pause()

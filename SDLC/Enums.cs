@@ -104,13 +104,13 @@ public enum WindowCloseOperation
 public enum ControllerButton
 {
     Invalid = -1,
-    A = 0,
-    B = 1,
-    X = 2,
-    Y = 3,
-    Back = 4,
+    Cross = 0,
+    Circle = 1,
+    Square = 2,
+    Triangle = 3,
+    Share = 4,
     Guide = 5,
-    Start = 6,
+    Options = 6,
     LeftStick = 7,
     RightStick = 8,
     LeftShoulder = 9,
@@ -123,7 +123,7 @@ public enum ControllerButton
     Paddle1 = 16,
     Paddle2 = 17,
     Paddle3 = 18,
-    Paddle4 = 18,
+    Paddle4 = 19,
     TouchPad = 20,
     Max = 21
 }
