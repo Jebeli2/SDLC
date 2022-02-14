@@ -927,6 +927,21 @@ public class BlocksScreen : SDLScreen
     private void OldRenderBlock(IRenderer gfx, Block block, int x, int y, int size)
     {
         if (y < ystart) return;
+        Color o = block.Color;
+        Color d1 = o.ChangBrightness(-0.3f);
+        Color b1 = o.ChangBrightness(0.2f);
+        Color b2 = o.ChangBrightness(0.4f);
+
+        gfx.FillColorRect(x, y, size, size, b1, o, b2, d1);
+        gfx.DrawLine(x, y, x + size - 1, y, borderColor);
+        gfx.DrawLine(x, y + 1, x, y + size - 1, borderColor);
+        gfx.DrawLine(x, y + size - 1, x + size - 1, y + size - 1, shadowColor);
+        gfx.DrawLine(x + size - 1, y + 1, x + size - 1, y + size - 1, shadowColor);
+        gfx.DrawRect(x + 1, y + 1, size - 2, size - 2, innerBorderColor);
+    }
+    private void VeryOldRenderBlock(IRenderer gfx, Block block, int x, int y, int size)
+    {
+        if (y < ystart) return;
         gfx.FillRect(x, y, size, size, block.Color);
         gfx.DrawLine(x, y, x + size - 1, y, borderColor);
         gfx.DrawLine(x, y + 1, x, y + size - 1, borderColor);
@@ -957,7 +972,13 @@ public class BlocksScreen : SDLScreen
 
     private void DrawTetrionRect(IRenderer gfx, Rectangle rect)
     {
-        gfx.FillRect(rect.X, rect.Y, rect.Width, rect.Height, tetColor);
+        Color o = tetColor;
+        Color d1 = o.ChangBrightness(-0.3f);
+        Color b1 = o.ChangBrightness(0.2f);
+        Color b2 = o.ChangBrightness(0.4f);
+
+        gfx.FillColorRect(rect, b1, o, b2, d1);
+        //gfx.FillRect(rect.X, rect.Y, rect.Width, rect.Height, tetColor);
         gfx.DrawRect(rect.X, rect.Y, rect.Width, rect.Height, tetBorderColor);
     }
 

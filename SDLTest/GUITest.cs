@@ -96,7 +96,7 @@
                     winPropTest = gui.OpenWindow(screen1, 400, 10, 500, 500, "Props & Strings");
                     winPropTest.WindowClose += WinPropTest_WindowClose;
                     GadTools.CreateContext(gui, winPropTest);
-                    var nu = GadTools.CreateGadget(GadgetKind.Number, leftEdge: 10, topEdge: 300, width: 200, height: 30, text: "Level {0}", intValue: 1);
+                    var nu = GadTools.CreateGadget(GadgetKind.Number, leftEdge: 10, topEdge: 332, width: 200, height: 30, text: "Level {0}", intValue: 1);
                     _ = GadTools.CreateGadget(GadgetKind.Slider, leftEdge: 10, topEdge: 10, width: -20, height: 20, min: 1, max: 3, level: 2, valueChangedAction:
                         (level) =>
                         {
@@ -118,7 +118,12 @@
                         {
                             SDLLog.Info(LogCategory.APPLICATION, "Scroller Top changed to {0}", top);
                         });
-                    _ = GadTools.CreateGadget(GadgetKind.Integer, leftEdge: 10, topEdge: 270, width: -20, height: 22, intValue: 1234);
+                    _ = GadTools.CreateGadget(GadgetKind.Scroller, leftEdge: 10, topEdge: 270, width: -20, height: 22, total: 300, visible: 20, top: 100, valueChangedAction:
+                        (top) =>
+                        {
+                            SDLLog.Info(LogCategory.APPLICATION, "Scroller Top changed to {0}", top);
+                        });
+                    _ = GadTools.CreateGadget(GadgetKind.Integer, leftEdge: 10, topEdge: 300, width: -20, height: 22, intValue: 1234);
                 }
                 else
                 {
