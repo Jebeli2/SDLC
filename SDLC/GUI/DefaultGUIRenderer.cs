@@ -171,7 +171,7 @@ public class DefaultGUIRenderer : IGUIRenderer
             DrawBox(gfx, bounds, BorderLight, BorderDark);
             if (!string.IsNullOrEmpty(window.Title))
             {
-                gfx.DrawText(null, window.Title, inner.X, bounds.Y, inner.Width, window.BorderTop, active ? WindowTitleFocused : WindowTitleUnFocused);
+                gfx.DrawText(window.Font, window.Title, inner.X, bounds.Y, inner.Width, window.BorderTop, active ? WindowTitleFocused : WindowTitleUnFocused);
             }
         }
     }
@@ -229,7 +229,7 @@ public class DefaultGUIRenderer : IGUIRenderer
         if (string.IsNullOrEmpty(gadget.TooltipText)) return;
         offsetX -= 12;
         offsetY += 21;
-        Size tsize = gfx.MeasureText(null, gadget.TooltipText);
+        Size tsize = gfx.MeasureText(gadget.Font, gadget.TooltipText);
         Rectangle rect = new Rectangle(offsetX, offsetY, tsize.Width, tsize.Height);
         rect.X -= 3;
         rect.Y -= 3;
@@ -238,7 +238,7 @@ public class DefaultGUIRenderer : IGUIRenderer
         gfx.BlendMode = BlendMode.Blend;
         gfx.FillVertGradient(rect, TooltipGradientTop, TooltipGradientBottom);
         gfx.DrawRect(rect, BorderDark);
-        gfx.DrawText(null, gadget.TooltipText, offsetX, offsetY, BorderDark);
+        gfx.DrawText(gadget.Font, gadget.TooltipText, offsetX, offsetY, BorderDark);
     }
 
     private void DrawBoolGadget(IRenderer gfx, Gadget gadget, int offsetX, int offsetY)
@@ -303,7 +303,7 @@ public class DefaultGUIRenderer : IGUIRenderer
             Size textSize = gfx.MeasureText(null, gadget.Text);
 
             gfx.DrawIcon(gadget.Icon, inner.X, inner.Y, inner.Width / 2 - textSize.Width / 2 - 10, inner.Height, tc, HorizontalAlignment.Right, VerticalAlignment.Center, offset, offset);
-            gfx.DrawText(null, gadget.Text, inner.X, inner.Y, inner.Width, inner.Height, tc, HorizontalAlignment.Center, VerticalAlignment.Center, gadget.TextOffsetX + offset, gadget.TextOffsetY + offset);
+            gfx.DrawText(gadget.Font, gadget.Text, inner.X, inner.Y, inner.Width, inner.Height, tc, HorizontalAlignment.Center, VerticalAlignment.Center, gadget.TextOffsetX + offset, gadget.TextOffsetY + offset);
         }
         else if (hasIcon)
         {
@@ -311,7 +311,7 @@ public class DefaultGUIRenderer : IGUIRenderer
         }
         else if (hasText)
         {
-            gfx.DrawText(null, gadget.Text, inner.X, inner.Y, inner.Width, inner.Height, tc, gadget.HorizontalTextAlignment, gadget.VerticalTextAlignment, gadget.TextOffsetX + offset, gadget.TextOffsetY + offset);
+            gfx.DrawText(gadget.Font, gadget.Text, inner.X, inner.Y, inner.Width, inner.Height, tc, gadget.HorizontalTextAlignment, gadget.VerticalTextAlignment, gadget.TextOffsetX + offset, gadget.TextOffsetY + offset);
         }
         if (!gadget.Enabled && !gadget.NoHighlight)
         {
@@ -364,40 +364,44 @@ public class DefaultGUIRenderer : IGUIRenderer
         int x = inner.X;
         int y = inner.Y;
         int last = buffer.Length;
-        gfx.PushClip(inner);
         int dispPos = strInfo.DispPos;
         int minx;
         int maxx;
         int miny;
         int maxy;
         int advance;
-        for (int i = dispPos; i < last + 1; i++)
+        SDLFont? font = gadget.Font ?? SDLApplication.DefaultFont;
+        if (font != null)
         {
-            char c = ' ';
-            if (i < last) { c = buffer[i]; }
-            bool selected = (i >= strInfo.BufferSelStart && i < strInfo.BufferSelEnd);
-            gfx.GetGlyphMetrics(null, c, out minx, out maxx, out miny, out maxy, out advance);
-            string txt = "" + c;
-            //Size size = gfx.MeasureText(null, "" + c);
-            if (selected)
+            gfx.PushClip(inner);
+            for (int i = dispPos; i < last + 1; i++)
             {
-                gfx.FillRect(x, y, advance, inner.Height, Color.LightBlue);
-                gfx.DrawText(null, txt, x, y, SelectedTextColor);
-            }
-            else
-            {
-                gfx.DrawText(null, txt, x, y, TextColor);
-            }
-            if (i == strInfo.BufferPos)
-            {
-                if (gadget.Active)
+                char c = ' ';
+                if (i < last) { c = buffer[i]; }
+                bool selected = (i >= strInfo.BufferSelStart && i < strInfo.BufferSelEnd);
+                font.GetGlyphMetrics(c, out minx, out maxx, out miny, out maxy, out advance);
+                string txt = "" + c;
+                //Size size = gfx.MeasureText(null, "" + c);
+                if (selected)
                 {
-                    gfx.DrawLine(x, y, x, y + inner.Height, TextColor);
+                    gfx.FillRect(x, y, advance, inner.Height, Color.LightBlue);
+                    gfx.DrawText(gadget.Font, txt, x, y, SelectedTextColor);
                 }
+                else
+                {
+                    gfx.DrawText(gadget.Font, txt, x, y, TextColor);
+                }
+                if (i == strInfo.BufferPos)
+                {
+                    if (gadget.Active)
+                    {
+                        gfx.DrawLine(x, y, x, y + font.Height, TextColor);
+                    }
+                }
+                x += advance;
             }
-            x += advance;
+            gfx.PopClip();
         }
-        gfx.PopClip();
     }
 
     private static void DrawBox(IRenderer gfx, Rectangle rect, Color shinePen, Color shadowPen)

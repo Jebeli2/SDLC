@@ -12,11 +12,15 @@ internal class SDLContentManager : IContentManager
     private readonly SDLWindow window;
     private readonly List<string> knownNames = new();
     private bool allowFromFileSystem = true;
+    private string saveDirectory;
 
     internal SDLContentManager(SDLWindow window)
     {
         this.window = window;
+        saveDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), SDLApplication.AppName);
     }
+
+    public string SaveDirectory => saveDirectory;
 
     public void AddResourceManager(ResourceManager resourceManager)
     {

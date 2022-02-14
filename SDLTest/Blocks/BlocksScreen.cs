@@ -14,6 +14,7 @@ using SDLC.GUI;
 
 public class BlocksScreen : SDLScreen
 {
+    private const string HSNAME = "blocks_highscores";
     private const int BOARDOFFSET = 1;
     private readonly BlockGame blockGame = new();
     private readonly BlockGfx blockGfx;
@@ -89,6 +90,12 @@ public class BlocksScreen : SDLScreen
     private int maxSpaceY;
     private int maxFogX;
     private int maxFogY;
+    private int highScoresX = 10;
+    private int highScoresY = 66;
+    private float scoreAlpha = 0.5f;
+    private float scoreDir = 1.0f;
+    private float scoreSpeed = 0.02f;
+    private bool showScore;
 
     private Screen? gameScreen;
     private Screen? pauseScreen;
@@ -132,6 +139,7 @@ public class BlocksScreen : SDLScreen
         InitCommands(GetApplet<KeyCommandManager>());
         gameScreen = MakeGameScreen();
         bsize = CalcBlockSize(Width, Height);
+        LoadHighScores();
     }
     public override void Resized(IWindow window, int width, int height)
     {
@@ -142,6 +150,10 @@ public class BlocksScreen : SDLScreen
     public override void Update(IRenderer renderer, double totalTime, double elapsedTime)
     {
         base.Update(renderer, totalTime, elapsedTime);
+        if (showScore)
+        {
+            UpdateHighScore(elapsedTime);
+        }
         if (!paused)
         {
             blockGame.Update(elapsedTime / 1000.0);
@@ -149,6 +161,7 @@ public class BlocksScreen : SDLScreen
             UpdateSoundEffects();
             UpdateMessages(elapsedTime / 1000.0);
             UpdateGameOver();
+
         }
         else
         {
@@ -161,6 +174,7 @@ public class BlocksScreen : SDLScreen
         base.Render(renderer, totalTime, elapsedTime);
         renderer.BlendMode = BlendMode.Blend;
         RenderBackground(renderer);
+        if (showScore) { RenderHighScores(renderer, highScoresX, highScoresY); }
         RenderBoard(renderer, blockGame.Board);
         RenderPiece(renderer, blockGame.CurrentPiece);
         RenderGhostPiece(renderer, blockGame.GhostPiece);
@@ -177,13 +191,25 @@ public class BlocksScreen : SDLScreen
     public override void Hide(IWindow window)
     {
         base.Hide(window);
+        SaveHighScores();
         DisposeGfx();
+    }
+    private void LoadHighScores()
+    {
+        blockGame.SetHighScores(LoadData(HSNAME));
+    }
+
+    private void SaveHighScores()
+    {
+        byte[] hs = blockGame.GetHighScores();
+        SaveData(HSNAME, hs);
     }
 
     private Screen MakePauseScreen()
     {
         IGUISystem gui = GUI;
         Screen scr = gui.OpenScreen();
+        scr.Font = blockGfx.MsgFont;
         int midX = Width / 2;
         int midY = Height / 2;
         int halfW = 400 / 2;
@@ -203,6 +229,7 @@ public class BlocksScreen : SDLScreen
     {
         IGUISystem gui = GUI;
         Screen scr = gui.OpenScreen();
+        scr.Font = blockGfx.MsgFont;
         int midX = Width / 2;
         int midY = Height / 2;
         int halfW = 400 / 2;
@@ -211,7 +238,7 @@ public class BlocksScreen : SDLScreen
             closing: false, sizing: false, zooming: false, depth: false, dragging: false);
         GadTools.CreateContext(gui, win);
         _ = GadTools.CreateGadget(GadgetKind.Text, leftEdge: 10, topEdge: 10, width: -20, height: 40, text: "Enter Your Name:");
-        nameGadget = GadTools.CreateGadget(GadgetKind.String, leftEdge: 10, topEdge: 60, width: -20, height: 40, text: blockGame.CurrentName, clickAction: OkName);
+        nameGadget = GadTools.CreateGadget(GadgetKind.String, leftEdge: 10, topEdge: 60, width: -20, height: 40, buffer: blockGame.CurrentName, clickAction: OkName);
         gui.ActivateGadget(nameGadget);
         return scr;
     }
@@ -513,6 +540,7 @@ public class BlocksScreen : SDLScreen
     private void Reset()
     {
         nameEntered = false;
+        showScore = false;
         blockGame.Reset();
         lineClearColors = BuildLineClearColors(Color.Black, blockGame.LineClearDelay);
     }
@@ -613,9 +641,35 @@ public class BlocksScreen : SDLScreen
 
     private void UpdateGameOver()
     {
-        if (blockGame.GameOver && !nameEntered)
+        if (blockGame.GameOver)
         {
-            GoToEnterName();
+            showScore = true;
+            if (!nameEntered)
+            {
+                GoToEnterName();
+            }
+        }
+    }
+
+    private void UpdateHighScore(double elapsedTime)
+    {
+        if (scoreDir > 0.0f)
+        {
+            scoreAlpha += scoreSpeed;
+            if (scoreAlpha > 1.0f)
+            {
+                scoreAlpha = 1.0f;
+                scoreDir = -1.0f;
+            }
+        }
+        else
+        {
+            scoreAlpha -= scoreSpeed;
+            if (scoreAlpha < 0.0f)
+            {
+                scoreAlpha = 0.0f;
+                scoreDir = 1.0f;
+            }
         }
     }
 
@@ -663,7 +717,10 @@ public class BlocksScreen : SDLScreen
         {
             var font = blockGfx.SmallFont;
             gfx.DrawText(font, nextBest.Name, nextBestX + 3, nextBestY + 22, lightTextColor);
-            gfx.DrawText(font, nextBest.Points.ToString(), nextBestX + 10, nextBestY + nextBestHeight - 22, varTextColor);
+            if (nextBest.Points > 0)
+            {
+                gfx.DrawText(font, nextBest.Points.ToString(), nextBestX + 10, nextBestY + nextBestHeight - 22, varTextColor);
+            }
         }
     }
 
@@ -671,7 +728,6 @@ public class BlocksScreen : SDLScreen
     {
         if (blockGame.GameOver)
         {
-            //game.ShowScore = true;
             var font = blockGfx.SoupFontBig;
             var goSize = gfx.MeasureText(font, "GAME OVER");
             int goPosX = boardX + boardWidth / 2 - goSize.Width / 2;
@@ -687,6 +743,52 @@ public class BlocksScreen : SDLScreen
         if (paused)
         {
             gfx.DrawTextureFill(blockGfx.Blur);
+        }
+    }
+
+    private void RenderHighScores(IRenderer gfx, int x, int y)
+    {
+        SDLFont? smallFont = blockGfx.SmallFont;
+        Point pos = new Point(x, y);
+        gfx.DrawText(smallFont, "#", pos.X, pos.Y, Color.LightBlue);
+        pos.X += 30;
+        gfx.DrawText(smallFont, "Player", pos.X, pos.Y, Color.White);
+        pos.X += 140;
+        var scSize = gfx.MeasureText(smallFont, "Score");
+        gfx.DrawText(smallFont, "Score", pos.X - scSize.Width, pos.Y, Color.White);
+        pos.X += 100;
+        var liSize = gfx.MeasureText(smallFont, "Lines");
+        gfx.DrawText(smallFont, "Lines", pos.X - liSize.Width, pos.Y, Color.White);
+        pos.X += 70;
+        var leSize = gfx.MeasureText(smallFont, "Level");
+        gfx.DrawText(smallFont, "Level", pos.X - leSize.Width, pos.Y, Color.White);
+        gfx.DrawLine(x, y + 20, pos.X, y + 20, Color.LightBlue);
+        int count = 0;
+        foreach (var hs in blockGame.HighScores)
+        {
+            y += 20;
+            if (hs.IsCurrent)
+            {
+                gfx.DrawRect(x - 5, y, 30 + 140 + 100 + 70 + 10, 20, Color.FromArgb((int)(scoreAlpha * 255), Color.LightBlue));
+            }
+
+            pos = new Point(x, y);
+            gfx.DrawText(smallFont, (count + 1).ToString(), pos.X, pos.Y, Color.LightBlue);
+            pos.X += 30;
+            gfx.DrawText(smallFont, hs.Name, pos.X, pos.Y, Color.White);
+            pos.X += 140;
+            string ps = hs.Points.ToString();
+            scSize = gfx.MeasureText(smallFont, ps);
+            gfx.DrawText(smallFont, ps, pos.X - scSize.Width, pos.Y, Color.White);
+            pos.X += 100;
+            string li = hs.Lines.ToString();
+            liSize = gfx.MeasureText(smallFont, li);
+            gfx.DrawText(smallFont, li, pos.X - liSize.Width, pos.Y, Color.White);
+            pos.X += 70;
+            string le = hs.Level.ToString();
+            leSize = gfx.MeasureText(smallFont, le);
+            gfx.DrawText(smallFont, le, pos.X - leSize.Width, pos.Y, Color.White);
+            count++;
         }
     }
 

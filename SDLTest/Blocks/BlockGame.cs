@@ -98,21 +98,24 @@ public class BlockGame
         }
     }
 
-    public void SetHighScores(byte[] data)
+    public void SetHighScores(byte[]? data)
     {
-        highScores.Clear();
-        MemoryStream ms = new MemoryStream(data, false);
-        BinaryReader br = new BinaryReader(ms);
-        int count = br.ReadInt32();
-        for (int i = 0; i < count; i++)
+        if (data != null)
         {
-            var hs = ReadHighScore(br);
-            highScores.Add(hs);
+            highScores.Clear();
+            MemoryStream ms = new MemoryStream(data, false);
+            BinaryReader br = new BinaryReader(ms);
+            int count = br.ReadInt32();
+            for (int i = 0; i < count; i++)
+            {
+                var hs = ReadHighScore(br);
+                highScores.Add(hs);
+            }
+            br.Close();
+            ms.Close();
+            highScores.Sort();
+            FindNextBest();
         }
-        br.Close();
-        ms.Close();
-        highScores.Sort();
-        FindNextBest();
     }
 
     public byte[] GetHighScores()

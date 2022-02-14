@@ -4,6 +4,7 @@
 namespace SDLC;
 public interface IContentManager
 {
+    string SaveDirectory { get; }
     void AddResourceManager(System.Resources.ResourceManager resourceManager);
     byte[]? FindContent(string? name);
 }

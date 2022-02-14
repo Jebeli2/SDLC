@@ -173,6 +173,10 @@ public class Window : GUIObject
 
     public IEnumerable<Gadget> Gadgets => gadgets;
 
+    protected override SDLFont? GetFont()
+    {
+        return font ?? screen.Font;
+    }
     internal void AddGadget(Gadget gadget)
     {
         gadgets.Add(gadget);

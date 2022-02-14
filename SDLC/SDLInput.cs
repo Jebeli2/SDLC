@@ -14,8 +14,10 @@ public static class SDLInput
 {
     private static IntPtr evtMem;
     private static readonly List<SDLController> controllers = new();
+    private static readonly List<SDLJoystick> joysticks = new();
     private static float controllerDeadZone = 8000.0f;
     private static float controllerMaxValue = 30000.0f;
+    private static bool useController = true;
 
     internal static void Initialize()
     {
@@ -24,9 +26,11 @@ public static class SDLInput
 
     internal static void Shutdown()
     {
+        List<SDLController> clist = new List<SDLController>(controllers);
+        foreach (SDLController c in clist) { RemoveController(c.Which); }
+        List<SDLJoystick> jlist = new List<SDLJoystick>(joysticks);
+        foreach (SDLJoystick j in jlist) { RemoveJoystick(j.Which); }
         Marshal.FreeHGlobal(evtMem);
-        List<SDLController> list = new List<SDLController>(controllers);
-        foreach (SDLController c in list) { RemoveController(c.Which); }
     }
 
     internal static void MessageLoop()
@@ -69,6 +73,12 @@ public static class SDLInput
                 case SDL_EventType.CONTROLLERDEVICEREMOVED:
                     RemoveController(evt.cdevice.which);
                     break;
+                case SDL_EventType.JOYDEVICEADDED:
+                    AddJoystick(evt.jdevice.which);
+                    break;
+                case SDL_EventType.JOYDEVICEREMOVED:
+                    RemoveJoystick(evt.jdevice.which);
+                    break;
                 case SDL_EventType.CONTROLLERBUTTONDOWN:
                     HandleControllerButtonDownEvent(GetController(evt.cbutton.which), ref evt.cbutton);
                     break;
@@ -87,6 +97,12 @@ public static class SDLInput
                 case SDL_EventType.CONTROLLERTOUCHPADMOTION:
                     HandleControllerTouchpadMotionEvent(GetController(evt.ctouchpad.which), ref evt.ctouchpad);
                     break;
+                case SDL_EventType.JOYBUTTONDOWN:
+                    HandleJoystickButtonDownEvent(GetJoystick(evt.jbutton.which), ref evt.jbutton);
+                    break;
+                case SDL_EventType.JOYBUTTONUP:
+                    HandleJoystickButtonUpEvent(GetJoystick(evt.jbutton.which), ref evt.jbutton);
+                    break;
             }
         }
         CheckControllerButtonRepeats();
@@ -94,10 +110,18 @@ public static class SDLInput
 
     private static void CheckControllerButtonRepeats()
     {
-        foreach(SDLController c in controllers)
+        foreach (SDLController c in controllers)
         {
             c.HandleButtonRepeats(SDL_GetTicks());
         }
+    }
+
+    public static void CheckJoystick()
+    {
+        int state = SDL_JoystickEventState(SDL_QUERY);
+        SDLLog.Debug(LogCategory.INPUT, "Joy State = {0}", state);
+        state = SDL_GameControllerEventState(SDL_QUERY);
+        SDLLog.Debug(LogCategory.INPUT, "Controller State = {0}", state);
     }
 
     private static void HandleWindowEvent(SDLWindow? window, ref SDL_WindowEvent evt)
@@ -180,6 +204,19 @@ public static class SDLInput
         }
     }
 
+    private static void HandleJoystickButtonDownEvent(SDLJoystick? joystick, ref SDL_JoyButtonEvent evt)
+    {
+        if (joystick == null) return;
+        if (joystick.Window == null) return;
+        SDLLog.Debug(LogCategory.INPUT, "Joy Button {0} down", evt.button);
+    }
+    private static void HandleJoystickButtonUpEvent(SDLJoystick? joystick, ref SDL_JoyButtonEvent evt)
+    {
+        if (joystick == null) return;
+        if (joystick.Window == null) return;
+        SDLLog.Debug(LogCategory.INPUT, "Joy Button {0} up", evt.button);
+    }
+
     private static void HandleControllerButtonDownEvent(SDLController? controller, ref SDL_ControllerButtonEvent evt)
     {
         if (controller == null) return;
@@ -226,7 +263,7 @@ public static class SDLInput
 
     private static void AddController(int which)
     {
-        if (SDL_IsGameController(which))
+        if (SDL_IsGameController(which) && useController)
         {
             IntPtr handle = SDL_GameControllerOpen(which);
             if (handle != IntPtr.Zero)
@@ -234,6 +271,7 @@ public static class SDLInput
                 SDLController controller = new SDLController(which, handle);
                 controller.Window = SDLApplication.MainWindow;
                 controller.Name = Marshal.PtrToStringUTF8(SDL_GameControllerName(handle));
+                controller.Mapping = Marshal.PtrToStringUTF8(SDL_GameControllerMapping(handle));
                 controllers.Add(controller);
                 SDLLog.Info(LogCategory.INPUT, "SDLController {0} ({1}) added", which, controller.Name);
             }
@@ -242,23 +280,61 @@ public static class SDLInput
 
     private static void RemoveController(int which)
     {
-        SDLController? controller = GetController(which);
-        if (controller != null)
+        if (SDL_IsGameController(which) && useController)
         {
-            controllers.Remove(controller);
-            if (controller.Handle != IntPtr.Zero)
+            SDLController? controller = GetController(which);
+            if (controller != null)
             {
-                SDL_GameControllerClose(controller.Handle);
-                SDLLog.Info(LogCategory.INPUT, "SDLController {0} removed", which);
+                controllers.Remove(controller);
+                if (controller.Handle != IntPtr.Zero)
+                {
+                    SDL_GameControllerClose(controller.Handle);
+                    SDLLog.Info(LogCategory.INPUT, "SDLController {0} removed", which);
+                    return;
+                }
+            }
+            SDLLog.Warn(LogCategory.INPUT, "Previously unknown SDLController {0} removed", which);
+        }
+    }
+
+    private static void AddJoystick(int which)
+    {
+        IntPtr handle = SDL_JoystickOpen(which);
+        if (handle != IntPtr.Zero)
+        {
+            SDLJoystick joystick = new SDLJoystick(which, handle);
+            joystick.Window = SDLApplication.MainWindow;
+            joystick.Name = Marshal.PtrToStringUTF8(SDL_JoystickName(handle));
+            joysticks.Add(joystick);
+            SDLLog.Info(LogCategory.INPUT, "SDLJoystick {0} ({1}) added", which, joystick.Name);
+
+        }
+    }
+
+    private static void RemoveJoystick(int which)
+    {
+        SDLJoystick? joystick = GetJoystick(which);
+        if (joystick != null)
+        {
+            joysticks.Remove(joystick);
+            if (joystick.Handle != IntPtr.Zero)
+            {
+                SDL_JoystickClose(joystick.Handle);
+                SDLLog.Info(LogCategory.INPUT, "SDLJoystick {0} removed", which);
                 return;
             }
         }
-        SDLLog.Warn(LogCategory.INPUT, "Previously unknown SDLController {0} removed", which);
+        SDLLog.Warn(LogCategory.INPUT, "Previously unknown SDLJoystick {0} removed", which);
     }
 
     private static SDLController? GetController(int which)
     {
         return controllers.FirstOrDefault(x => x.Which == which);
+    }
+
+    private static SDLJoystick? GetJoystick(int which)
+    {
+        return joysticks.FirstOrDefault(x => x.Which == which);
     }
 
     private static Vector2 GetAxisDirection(IntPtr controller, ref SDL_ControllerAxisEvent evt)
@@ -584,6 +660,66 @@ public static class SDLInput
         public float y;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    private struct SDL_JoyAxisEvent
+    {
+        public SDL_EventType type;
+        public uint timestamp;
+        public int which;
+        public byte axis;
+        private byte padding1;
+        private byte padding2;
+        private byte padding3;
+        public short axisValue;
+        public ushort padding4;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct SDL_JoyBallEvent
+    {
+        public SDL_EventType type;
+        public uint timestamp;
+        public int which;
+        public byte ball;
+        private byte padding1;
+        private byte padding2;
+        private byte padding3;
+        public short xrel;
+        public short yrel;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct SDL_JoyHatEvent
+    {
+        public SDL_EventType type;
+        public uint timestamp;
+        public int which;
+        public byte hat;
+        public byte hatValue;
+        private byte padding1;
+        private byte padding2;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct SDL_JoyButtonEvent
+    {
+        public SDL_EventType type;
+        public uint timestamp;
+        public int which;
+        public byte button;
+        public byte state;
+        private byte padding1;
+        private byte padding2;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct SDL_JoyDeviceEvent
+    {
+        public SDL_EventType type;
+        public uint timestamp;
+        public int which;
+    }
+
 
     [StructLayout(LayoutKind.Explicit, Pack = 1, Size = 64)]
     private struct SDL_Event
@@ -620,7 +756,24 @@ public static class SDLInput
         public SDL_MultiGestureEvent mgesture;
         [FieldOffset(0)]
         public SDL_DollarGestureEvent dgesture;
+        [FieldOffset(0)]
+        public SDL_JoyAxisEvent jaxis;
+        [FieldOffset(0)]
+        public SDL_JoyBallEvent jball;
+        [FieldOffset(0)]
+        public SDL_JoyHatEvent jhat;
+        [FieldOffset(0)]
+        public SDL_JoyButtonEvent jbutton;
+        [FieldOffset(0)]
+        public SDL_JoyDeviceEvent jdevice;
+
     }
+
+    private const int SDL_QUERY = -1;
+    private const int SDL_IGNORE = 0;
+    private const int SDL_DISABLE = 0;
+    private const int SDL_ENABLE = 1;
+
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern int SDL_PollEvent(out SDL_Event _event);
@@ -637,5 +790,49 @@ public static class SDLInput
     private static extern IntPtr SDL_GameControllerName(IntPtr gamecontroller);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern uint SDL_GetTicks();
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int SDL_GameControllerAddMapping([MarshalAs(UnmanagedType.LPUTF8Str)] string mappingString);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int SDL_GameControllerNumMappings();
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr INTERNAL_SDL_GameControllerMappingForIndex(int mapping_index);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int SDL_GameControllerAddMappingsFromRW(IntPtr rw, int freerw);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int SDL_GameControllerAddMappingsFromFile([MarshalAs(UnmanagedType.LPUTF8Str)] string filename);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr SDL_GameControllerMappingForGUID(Guid guid);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr SDL_GameControllerMapping(IntPtr gamecontroller);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr SDL_GameControllerNameForIndex(int joystick_index);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr SDL_GameControllerMappingForDeviceIndex(int joystick_index);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern ushort SDL_GameControllerGetVendor(IntPtr gamecontroller);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern ushort SDL_GameControllerGetProduct(IntPtr gamecontroller);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern ushort SDL_GameControllerGetProductVersion(IntPtr gamecontroller);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr SDL_GameControllerGetSerial(IntPtr gamecontroller);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SDL_GameControllerGetAttached(IntPtr gamecontroller);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr SDL_JoystickOpen(int device_index);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern void SDL_JoystickClose(IntPtr joystick);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr SDL_JoystickName(IntPtr joystick);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int SDL_GameControllerEventState(int state);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern void SDL_GameControllerUpdate();
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int SDL_JoystickEventState(int state);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern void SDL_JoystickUpdate();
+
 
 }

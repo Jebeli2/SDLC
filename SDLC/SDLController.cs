@@ -17,7 +17,7 @@ public class SDLController
     private uint repeatDelay = 64;
     private uint repeatRate = 31;
 
-    public SDLController(int which, IntPtr handle)
+    internal SDLController(int which, IntPtr handle)
     {
         this.which = which;
         this.handle = handle;
@@ -36,6 +36,8 @@ public class SDLController
         get => name;
         set => name = value;
     }
+
+    public string? Mapping { get; set; }
     internal void HandleButtonRepeats(uint timeStamp)
     {
         for (int i = 0; i < buttonRepeatDownTime.Length; i++)

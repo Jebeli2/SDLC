@@ -38,6 +38,7 @@ public static class SDLApplication
     private static string? fpsText;
     private static SDLWindow? mainWindow;
     private static readonly SDLObjectTracker<SDLFont> fontTracker = new(LogCategory.FONT, "Font");
+    private static string appName = "SDLC";
 
     public static void Run(IScreen screen, LogPriority logPriority = LogPriority.Info)
     {
@@ -51,6 +52,12 @@ public static class SDLApplication
         if (window.Visible) { window.Show(); }
         MainLoop();
         Shutdown();
+    }
+
+    public static string AppName
+    {
+        get => appName;
+        set => appName = value;
     }
 
     public static bool UseStopwatch

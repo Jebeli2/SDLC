@@ -386,6 +386,11 @@ public class Gadget : GUIObject
     {
         return window.FindPrevGadget(this);
     }
+
+    protected override SDLFont? GetFont()
+    {
+        return font ?? window.Font;
+    }
     internal void RaiseGadgetDown()
     {
         EventHelper.Raise(this, GadgetDown, EventArgs.Empty);

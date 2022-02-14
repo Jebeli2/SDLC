@@ -20,6 +20,7 @@ public class GUIObject : IBox
     private int maxWidth;
     private int maxHeight;
     private string? text;
+    protected SDLFont? font;
 
     protected GUIObject(IGUISystem gui)
     {
@@ -33,7 +34,20 @@ public class GUIObject : IBox
             if (!string.Equals(text, value))
             {
                 SetText(value);
-                OnInvalidate();
+                Invalidate();
+            }
+        }
+    }
+
+    public SDLFont? Font
+    {
+        get { return GetFont(); }
+        set
+        {
+            if (font != value)
+            {
+                font = value;
+                Invalidate();
             }
         }
     }
@@ -189,6 +203,11 @@ public class GUIObject : IBox
     protected virtual void OnInvalidate()
     {
 
+    }
+
+    protected virtual SDLFont? GetFont()
+    {
+        return font;
     }
     public virtual Rectangle GetBounds()
     {

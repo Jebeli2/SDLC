@@ -14,11 +14,6 @@ public class BlockGfx
 {
     private readonly BlocksScreen screen;
 
-    private int scoreX = 10;
-    private int scoreY = 66;
-    private float scoreAlpha = 0.5f;
-    private float scoreDir = 1.0f;
-    private float scoreSpeed = 0.02f;
     public BlockGfx(BlocksScreen screen)
     {
         this.screen = screen;
@@ -54,71 +49,5 @@ public class BlockGfx
         //}
     }
 
-    private void UpdateHighScore(double elapsedTime)
-    {
-        //float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-        if (scoreDir > 0.0f)
-        {
-            scoreAlpha += scoreSpeed;
-            if (scoreAlpha > 1.0f)
-            {
-                scoreAlpha = 1.0f;
-                scoreDir = -1.0f;
-            }
-        }
-        else
-        {
-            scoreAlpha -= scoreSpeed;
-            if (scoreAlpha < 0.0f)
-            {
-                scoreAlpha = 0.0f;
-                scoreDir = 1.0f;
-            }
-        }
-    }
 
-    private void RenderHighScores(IRenderer gfx, int x, int y)
-    {
-        Point pos = new Point(x, y);
-        gfx.DrawText(SmallFont, "#", pos.X, pos.Y, Color.LightBlue);
-        pos.X += 30;
-        gfx.DrawText(SmallFont, "Player", pos.X, pos.Y, Color.White);
-        pos.X += 140;
-        var scSize = gfx.MeasureText(SmallFont, "Score");
-        gfx.DrawText(SmallFont, "Score", pos.X - scSize.Width, pos.Y, Color.White);
-        pos.X += 100;
-        var liSize = gfx.MeasureText(SmallFont, "Lines");
-        gfx.DrawText(SmallFont, "Lines", pos.X - liSize.Width, pos.Y, Color.White);
-        pos.X += 70;
-        var leSize = gfx.MeasureText(SmallFont, "Level");
-        gfx.DrawText(SmallFont, "Level", pos.X - leSize.Width, pos.Y, Color.White);
-        gfx.DrawLine(x, y + 20, pos.X, y + 20, Color.LightBlue);
-        int count = 0;
-        foreach (var hs in screen.BlockGame.HighScores)
-        {
-            y += 20;
-            if (hs.IsCurrent)
-            {
-                gfx.DrawRect(x - 5, y, 30 + 140 + 100 + 70 + 10, 20, Color.FromArgb((int)(scoreAlpha * 255), Color.LightBlue));
-            }
-
-            pos = new Point(x, y);
-            gfx.DrawText(SmallFont, (count + 1).ToString(), pos.X, pos.Y, Color.LightBlue);
-            pos.X += 30;
-            gfx.DrawText(SmallFont, hs.Name, pos.X, pos.Y, Color.White);
-            pos.X += 140;
-            string ps = hs.Points.ToString();
-            scSize = gfx.MeasureText(SmallFont, ps);
-            gfx.DrawText(SmallFont, ps, pos.X - scSize.Width, pos.Y, Color.White);
-            pos.X += 100;
-            string li = hs.Lines.ToString();
-            liSize = gfx.MeasureText(SmallFont, li);
-            gfx.DrawText(SmallFont, li, pos.X - liSize.Width, pos.Y, Color.White);
-            pos.X += 70;
-            string le = hs.Level.ToString();
-            leSize = gfx.MeasureText(SmallFont, le);
-            gfx.DrawText(SmallFont, le, pos.X - leSize.Width, pos.Y, Color.White);
-            count++;
-        }
-    }
 }

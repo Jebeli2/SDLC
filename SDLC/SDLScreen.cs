@@ -201,6 +201,53 @@ public class SDLScreen : IScreen
         return null;
     }
 
+    protected byte[]? LoadData(string name)
+    {
+        if (contentManager != null)
+        {
+            string dir = contentManager.SaveDirectory;
+            string fileName = Path.Combine(dir, name);
+            if (File.Exists(fileName))
+            {
+                return File.ReadAllBytes(fileName);
+            }
+        }
+        return null;
+    }
+
+    protected bool SaveData(string name, byte[] data)
+    {
+        if (contentManager != null)
+        {
+            string dir = contentManager.SaveDirectory;
+            DirectoryInfo info = new DirectoryInfo(dir);
+            if (!info.Exists)
+            {
+                try
+                {
+                    info.Create();
+                }
+                catch (Exception ex)
+                {
+                    SDLLog.Error(LogCategory.APPLICATION, "Could not create save directory '{0}': {1}", dir, ex.Message);
+                    return false;
+                }
+            }
+            string fileName = Path.Combine(dir, name);
+            try
+            {
+                File.WriteAllBytes(fileName, data);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                SDLLog.Error(LogCategory.APPLICATION, "Could not create file '{0}': {1}", dir, ex.Message);
+                return false;
+            }
+        }
+        return false;
+    }
+
     protected void AddApplet(SDLApplet applet)
     {
         window?.AddApplet(applet);
