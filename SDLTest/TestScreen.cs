@@ -3,6 +3,7 @@
     using SDLC;
     using SDLC.Applets;
     using SDLC.GUI;
+    using SDLTest.Blocks;
     using System;
     using System.Collections.Generic;
     using System.Drawing;
@@ -47,6 +48,7 @@
             base.Show(window);
             AddResourceManager(Properties.Resources.ResourceManager);
             GetApplet<BackgroundImage>().Image = LoadTexture(nameof(Properties.Resources.ice_palace));
+            GetApplet<BackgroundImage>().Enabled = true;
             GetApplet<MusicPlayer>().PlayNow(nameof(Properties.Resources.bach), "Bach 1");
             var boxes = GetApplet<RainingBoxesApp>();
             var lines = GetApplet<LinesApp>();
@@ -68,12 +70,9 @@
                 closing: false,
                 depth: false,
                 backdrop: true);
-            Gadget gad1 = gui.AddGadget(window1, leftEdge: 10, topEdge: 10, width: -20, height: 40, text: "GUI Test", clickAction: GoToGUITest);
-            gad1.TooltipText = "Go To GUI Test Screen";
-            Gadget gad2 = gui.AddGadget(window1, leftEdge: 10, topEdge: 60, width: -20, height: 40, text: "Gadget 2");
-            gad2.TooltipText = "Does nothing";
-            Gadget gad3 = gui.AddGadget(window1, leftEdge: 10, topEdge: 110, width: -20, height: 40, text: "Gadget 3");
-            gad3.TooltipText = "Nothing here yet...";
+            Gadget gad1 = gui.AddGadget(window1, leftEdge: 10, topEdge: 10, width: -20, height: 40, text: "GUI Test", tooltip: "Go To GUI Test Screen", clickAction: GoToGUITest);
+            Gadget gad2 = gui.AddGadget(window1, leftEdge: 10, topEdge: 60, width: -20, height: 40, text: "Blocks", tooltip: "Go To Blocks Game", clickAction: GoToBlocks);
+            Gadget gad3 = gui.AddGadget(window1, leftEdge: 10, topEdge: 110, width: -20, height: 40, text: "Gadget 3", tooltip: "Nothing here yet...");
 
             img2 = LoadTexture(nameof(Properties.Resources.badlands));
             text1 = $"{Width}x{Height}";
@@ -90,6 +89,11 @@
         private void GoToGUITest()
         {
             ChangeScreen(new GUITest());
+        }
+
+        private void GoToBlocks()
+        {
+            ChangeScreen(new BlocksScreen());
         }
 
         public override void Update(IRenderer renderer, double totalTime, double elapsedTime)

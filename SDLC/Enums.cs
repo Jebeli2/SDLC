@@ -16,6 +16,7 @@ public enum MouseButton
 
 public enum KeyButtonState
 {
+    Invalid = -1,
     Released = 0,
     Pressed = 1
 }

@@ -124,6 +124,9 @@
   <data name="badlands" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\badlands.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="Blur" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Blur.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="box" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\box.jpg;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
@@ -133,6 +136,9 @@
   <data name="fire_temple" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\fire_temple.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="fog" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\fog.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="ice_palace" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ice_palace.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
@@ -141,6 +147,9 @@
   </data>
   <data name="jesu-joy" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\jesu-joy.mid;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="Korobeiniki" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Korobeiniki.ogg;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="loss-of-me" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\loss-of-me.mid;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
@@ -156,5 +165,14 @@
   </data>
   <data name="loss-of-me-minstral-remix-" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\loss-of-me-minstral-remix-.mid;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="Rubik-Regular" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Rubik-Regular.ttf;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="space" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\space.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="Tetris Theme Variations on Piano" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Tetris Theme Variations on Piano.ogg;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
 </root>

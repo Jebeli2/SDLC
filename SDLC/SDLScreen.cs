@@ -125,6 +125,7 @@ public class SDLScreen : IScreen
     }
 
     #region Convenience Methods for inheritors
+
     protected int Width => width;
     protected int Height => height;
 
@@ -188,6 +189,16 @@ public class SDLScreen : IScreen
     protected SDLMusic? LoadMusic(string name, byte[]? data)
     {
         return SDLAudio.LoadMusic(name, data);
+    }
+
+    protected SDLFont? LoadFont(string name, int ySize)
+    {
+        byte[]? data = contentManager?.FindContent(name);
+        if (data != null)
+        {
+            return SDLFont.LoadFont(data, name, ySize);
+        }
+        return null;
     }
 
     protected void AddApplet(SDLApplet applet)

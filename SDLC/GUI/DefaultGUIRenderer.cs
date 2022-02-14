@@ -227,7 +227,7 @@ public class DefaultGUIRenderer : IGUIRenderer
     {
         if (gadget == null) return;
         if (string.IsNullOrEmpty(gadget.TooltipText)) return;
-        offsetX -= 32;
+        offsetX -= 12;
         offsetY += 21;
         Size tsize = gfx.MeasureText(null, gadget.TooltipText);
         Rectangle rect = new Rectangle(offsetX, offsetY, tsize.Width, tsize.Height);

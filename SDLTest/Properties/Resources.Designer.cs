@@ -83,6 +83,16 @@ namespace SDLTest.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] Blur {
+            get {
+                object obj = ResourceManager.GetObject("Blur", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] box {
             get {
                 object obj = ResourceManager.GetObject("box", resourceCulture);
@@ -113,6 +123,16 @@ namespace SDLTest.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] fog {
+            get {
+                object obj = ResourceManager.GetObject("fog", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] ice_palace {
             get {
                 object obj = ResourceManager.GetObject("ice_palace", resourceCulture);
@@ -136,6 +156,16 @@ namespace SDLTest.Properties {
         internal static byte[] jesu_joy {
             get {
                 object obj = ResourceManager.GetObject("jesu-joy", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Korobeiniki {
+            get {
+                object obj = ResourceManager.GetObject("Korobeiniki", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -186,6 +216,36 @@ namespace SDLTest.Properties {
         internal static byte[] loss_of_me_minstral_remix_ {
             get {
                 object obj = ResourceManager.GetObject("loss-of-me-minstral-remix-", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Rubik_Regular {
+            get {
+                object obj = ResourceManager.GetObject("Rubik-Regular", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] space {
+            get {
+                object obj = ResourceManager.GetObject("space", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Tetris_Theme_Variations_on_Piano {
+            get {
+                object obj = ResourceManager.GetObject("Tetris Theme Variations on Piano", resourceCulture);
                 return ((byte[])(obj));
             }
         }

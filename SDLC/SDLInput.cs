@@ -89,6 +89,15 @@ public static class SDLInput
                     break;
             }
         }
+        CheckControllerButtonRepeats();
+    }
+
+    private static void CheckControllerButtonRepeats()
+    {
+        foreach(SDLController c in controllers)
+        {
+            c.HandleButtonRepeats(SDL_GetTicks());
+        }
     }
 
     private static void HandleWindowEvent(SDLWindow? window, ref SDL_WindowEvent evt)
@@ -175,13 +184,16 @@ public static class SDLInput
     {
         if (controller == null) return;
         if (controller.Window == null) return;
-        controller.Window.RaiseControllerButtonDown(controller, (ControllerButton)evt.button, (KeyButtonState)evt.state);
+        controller.HandleButtonEvent(evt.button, evt.state, evt.timestamp);
+        //controller.Window.RaiseControllerButtonDown(controller, (ControllerButton)evt.button, (KeyButtonState)evt.state);
     }
     private static void HandleControllerButtonUpEvent(SDLController? controller, ref SDL_ControllerButtonEvent evt)
     {
         if (controller == null) return;
         if (controller.Window == null) return;
-        controller.Window.RaiseControllerButtonUp(controller, (ControllerButton)evt.button, (KeyButtonState)evt.state);
+        controller.HandleButtonEvent(evt.button, evt.state, evt.timestamp);
+
+        //controller.Window.RaiseControllerButtonUp(controller, (ControllerButton)evt.button, (KeyButtonState)evt.state);
     }
 
     private static void HandleControllerAxisEvent(SDLController? controller, ref SDL_ControllerAxisEvent evt)
@@ -623,5 +635,7 @@ public static class SDLInput
     private static extern short SDL_GameControllerGetAxis(IntPtr gamecontroller, ControllerAxis axis);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr SDL_GameControllerName(IntPtr gamecontroller);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern uint SDL_GetTicks();
 
 }

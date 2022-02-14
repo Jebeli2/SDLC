@@ -402,6 +402,13 @@ public class GUISystem : SDLApplet, IGUISystem
             screen = null;
         }
     }
+    private static void CheckAndClear(ref Window? window, Screen test)
+    {
+        if (window != null && window.Screen == test)
+        {
+            window = null;
+        }
+    }
 
     private static void CheckAndClear(ref Window? window, Window test)
     {
@@ -414,6 +421,13 @@ public class GUISystem : SDLApplet, IGUISystem
     private static void CheckAndClear(ref Gadget? gadget, Window test)
     {
         if (gadget != null && gadget.Window == test)
+        {
+            gadget = null;
+        }
+    }
+    private static void CheckAndClear(ref Gadget? gadget, Screen test)
+    {
+        if (gadget != null && gadget.Window.Screen == test)
         {
             gadget = null;
         }
@@ -500,10 +514,11 @@ public class GUISystem : SDLApplet, IGUISystem
             upGadget = mouseGadget;
             if (upGadget != null && upGadget == downGadget)
             {
-                result |= upGadget.HandleMouseUp(e.X, e.Y);
-                if (upGadget.IsEndGadget && upGadget.IsReqGadget && upGadget.Requester != null)
+                Gadget useGadget = upGadget;
+                result |= useGadget.HandleMouseUp(e.X, e.Y);
+                if (useGadget.IsEndGadget && useGadget.IsReqGadget && useGadget.Requester != null)
                 {
-                    EndRequest(upGadget.Requester, upGadget.Window);
+                    EndRequest(useGadget.Requester, useGadget.Window);
                 }
             }
             SetSelectedGadget(null);
@@ -587,15 +602,16 @@ public class GUISystem : SDLApplet, IGUISystem
         ActionResult result = ActionResult.None;
         if (activeGadget != null)
         {
-            result |= activeGadget.HandleKeyDown(e);
+            Gadget useGadget = activeGadget;
+            result |= useGadget.HandleKeyDown(e);
             if (result == ActionResult.NavigateNext)
             {
-                Gadget? next = activeGadget.FindNextGadget();
+                Gadget? next = useGadget.FindNextGadget();
                 if (next != null) { ActivateGadget(next); }
             }
             else if (result == ActionResult.NavigatePrevious)
             {
-                Gadget? prev = activeGadget.FindPrevGadget();
+                Gadget? prev = useGadget.FindPrevGadget();
                 if (prev != null) { ActivateGadget(prev); }
             }
             else if (result == ActionResult.GadgetUp)
@@ -610,7 +626,22 @@ public class GUISystem : SDLApplet, IGUISystem
         ActionResult result = ActionResult.None;
         if (activeGadget != null)
         {
-            result |= activeGadget.HandleKeyUp(e);
+            Gadget useGadget = activeGadget;
+            result |= useGadget.HandleKeyUp(e);
+            if (result == ActionResult.NavigateNext)
+            {
+                Gadget? next = useGadget.FindNextGadget();
+                if (next != null) { ActivateGadget(next); }
+            }
+            else if (result == ActionResult.NavigatePrevious)
+            {
+                Gadget? prev = useGadget.FindPrevGadget();
+                if (prev != null) { ActivateGadget(prev); }
+            }
+            else if (result == ActionResult.GadgetUp)
+            {
+
+            }
         }
         return result != ActionResult.None;
     }
@@ -738,6 +769,14 @@ public class GUISystem : SDLApplet, IGUISystem
         {
             CheckAndClear(ref activeScreen, s);
             CheckAndClear(ref mouseScreen, s);
+            CheckAndClear(ref activeWindow, s);
+            CheckAndClear(ref mouseWindow, s);
+            CheckAndClear(ref activeGadget, s);
+            CheckAndClear(ref mouseGadget, s);
+            CheckAndClear(ref downGadget, s);
+            CheckAndClear(ref upGadget, s);
+            CheckAndClear(ref selectedGadget, s);
+            CheckAndClear(ref tooltipGadget, s);
             s.Close();
         }
     }
@@ -831,6 +870,7 @@ public class GUISystem : SDLApplet, IGUISystem
         CheckAndClear(ref downGadget, window);
         CheckAndClear(ref upGadget, window);
         CheckAndClear(ref selectedGadget, window);
+        CheckAndClear(ref tooltipGadget, window);
         window.Close();
         if (next != null) { ActivateWindow(next); }
     }

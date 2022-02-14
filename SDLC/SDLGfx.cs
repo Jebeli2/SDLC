@@ -157,6 +157,33 @@ public static class SDLGfx
         renderer.DrawPoint(x, y);
     }
 
+    public static void DrawTextureFill(this IRenderer renderer, SDLTexture? texture, int offsetX = 0, int offsetY = 0)
+    {
+        if (texture == null) return;
+        int tw = texture.Width;
+        int th = texture.Height;
+        int width = renderer.Width;
+        int height = renderer.Height;
+        if (offsetX > 0) { offsetX = 0 - tw + offsetX; }
+        if (offsetY > 0) { offsetY = 0 - th + offsetY; }
+        int startX = Math.Max(offsetX, 1 - tw);
+        int startY = Math.Max(offsetY, 1 - th);
+        Rectangle dst = new Rectangle(0, 0, tw, th);
+        int y = startY;
+        while (y < height)
+        {
+            dst.Y = y;
+            int x = startX;
+            while (x < width)
+            {
+                dst.X = x;
+                renderer.DrawTexture(texture, dst);
+                x += tw;
+            }
+            y += th;
+        }
+    }
+
     public static void DrawTexture(this IRenderer renderer, SDLTexture? texture, int x, int y, int width, int height, double angle, RendererFlip flip = RendererFlip.None)
     {
         renderer.DrawTexture(texture, new Rectangle(x, y, width, height), angle, flip);
