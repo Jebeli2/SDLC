@@ -189,6 +189,9 @@ public class BlockGame
         ghostPiece = null;
         currentTime = 0;
         gameOver = false;
+        dropped = false;
+        rotatedLeft = false;
+        rotatedRight = false;
         totalRowsCleared = 0;
         currentLevel = 1;
         levelRowsCleared = 0;

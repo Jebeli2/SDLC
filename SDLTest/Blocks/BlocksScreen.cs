@@ -90,7 +90,11 @@ public class BlocksScreen : SDLScreen
     private int maxFogX;
     private int maxFogY;
 
+    private Screen? gameScreen;
     private Screen? pauseScreen;
+    private Screen? enterNameScreen;
+    private Gadget? nameGadget;
+
     public BlocksScreen() : base("Blocks")
     {
         blockGfx = new BlockGfx(this);
@@ -126,9 +130,7 @@ public class BlocksScreen : SDLScreen
         GetApplet<MusicPlayer>().PlayNow(nameof(Properties.Resources.Korobeiniki));
         InitGfx();
         InitCommands(GetApplet<KeyCommandManager>());
-        IGUISystem gui = GUI;
-        _ = gui.OpenScreen();
-
+        gameScreen = MakeGameScreen();
         bsize = CalcBlockSize(Width, Height);
     }
     public override void Resized(IWindow window, int width, int height)
@@ -196,6 +198,30 @@ public class BlocksScreen : SDLScreen
         _ = GadTools.CreateGadget(GadgetKind.Button, leftEdge: 10, topEdge: 210, width: -20, height: 40, text: "Exit Game", clickAction: ExitGame);
         return scr;
     }
+
+    private Screen MakeEnterNameScreen()
+    {
+        IGUISystem gui = GUI;
+        Screen scr = gui.OpenScreen();
+        int midX = Width / 2;
+        int midY = Height / 2;
+        int halfW = 400 / 2;
+        int halfH = 400 / 2;
+        Window win = gui.OpenWindow(scr, leftEdge: midX - halfW, topEdge: midY - halfH, width: 400, height: 260,
+            closing: false, sizing: false, zooming: false, depth: false, dragging: false);
+        GadTools.CreateContext(gui, win);
+        _ = GadTools.CreateGadget(GadgetKind.Text, leftEdge: 10, topEdge: 10, width: -20, height: 40, text: "Enter Your Name:");
+        nameGadget = GadTools.CreateGadget(GadgetKind.String, leftEdge: 10, topEdge: 60, width: -20, height: 40, text: blockGame.CurrentName, clickAction: OkName);
+        gui.ActivateGadget(nameGadget);
+        return scr;
+    }
+
+    private Screen MakeGameScreen()
+    {
+        IGUISystem gui = GUI;
+        Screen scr = gui.OpenScreen();
+        return scr;
+    }
     private void GoToPause()
     {
         paused = true;
@@ -209,7 +235,7 @@ public class BlocksScreen : SDLScreen
         paused = false;
         inSettingsMenu = false;
         enteringName = false;
-        if (pauseScreen != null) { GUI.CloseScreen(pauseScreen); }
+        gameScreen = MakeGameScreen();
     }
 
     private void GoToSettings()
@@ -225,7 +251,7 @@ public class BlocksScreen : SDLScreen
         paused = true;
         inSettingsMenu = false;
         enteringName = true;
-        if (pauseScreen != null) { GUI.CloseScreen(pauseScreen); }
+        enterNameScreen = MakeEnterNameScreen();
     }
 
     private void InitGfx()
@@ -338,6 +364,8 @@ public class BlocksScreen : SDLScreen
 
         kcm.AddKeyCommand(ScanCode.SCANCODE_ESCAPE, KeyButtonState.Released, Pause);
         kcm.AddKeyCommand(ControllerButton.Options, KeyButtonState.Released, Pause);
+
+        kcm.AddKeyCommand(ScanCode.SCANCODE_RETURN, KeyButtonState.Pressed, RestartGame);
     }
 
     private void Pause()
@@ -356,6 +384,19 @@ public class BlocksScreen : SDLScreen
         }
     }
 
+    private void RestartGame()
+    {
+        if (paused) return;
+        if (enteringName)
+        {
+            OkName();
+            return;
+        }
+        if (!blockGame.GameOver) return;
+        NewGame();
+    }
+
+
     private void ResumeGame()
     {
         GoToGame();
@@ -370,6 +411,18 @@ public class BlocksScreen : SDLScreen
     private void ExitGame()
     {
         ChangeScreen(new TestScreen());
+    }
+
+    private void OkName()
+    {
+        nameEntered = true;
+        if (nameGadget != null)
+        {
+            string name = GadTools.GetStrBuffer(nameGadget) ?? "";
+            blockGame.SetCurrentName(name);
+            blockGame.ResetHighScores();
+            ResumeGame();
+        }
     }
     private void Drop()
     {
@@ -460,6 +513,7 @@ public class BlocksScreen : SDLScreen
 
     private void Reset()
     {
+        nameEntered = false;
         blockGame.Reset();
         lineClearColors = BuildLineClearColors(Color.Black, blockGame.LineClearDelay);
     }
@@ -562,7 +616,7 @@ public class BlocksScreen : SDLScreen
     {
         if (blockGame.GameOver && !nameEntered)
         {
-            //GoToEnterName();
+            GoToEnterName();
         }
     }
 

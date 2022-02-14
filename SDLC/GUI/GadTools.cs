@@ -85,6 +85,15 @@ public static class GadTools
             case GadgetKind.Number: SetNumberAttrs(gadget, intValue); break;
         }
     }
+
+    public static string? GetStrBuffer(Gadget gadget)
+    {
+        switch (GetGadgetKind(gadget))
+        {
+            case GadgetKind.String: return GetStringBuffer(gadget);
+        }
+        return null;
+    }
     private static GadgetKind GetGadgetKind(Gadget? gadget)
     {
         return gadget?.GadInfo?.Kind ?? GadgetKind.None;
@@ -116,17 +125,25 @@ public static class GadTools
         }
     }
 
+    private static string GetStringBuffer(Gadget gadget)
+    {
+        if (IsValid(gadget, GadgetKind.String, out GadToolsInfo? info))
+        {
+            return gadget.StrInfo?.Buffer ?? "";
+        }
+        return "";
+    }
     private static Gadget CreateButton(IGUISystem gui, Window window, Requester? req, int leftEdge, int topEdge, int width, int height,
-        string? text,
-        Icons icon,
-        Color? bgColor,
-        string? tooltip,
-        bool disabled,
-        bool selected,
-        bool toggleSelect,
-        bool endGadget,
-        Action? clickAction,
-        int gadgetId)
+    string? text,
+    Icons icon,
+    Color? bgColor,
+    string? tooltip,
+    bool disabled,
+    bool selected,
+    bool toggleSelect,
+    bool endGadget,
+    Action? clickAction,
+    int gadgetId)
     {
         Gadget gad = gui.AddGadget(window, req, leftEdge, topEdge, width, height, text: text, icon: icon, type: GadgetType.BoolGadget | GadgetType.GadToolsGadget,
             bgColor: bgColor,
