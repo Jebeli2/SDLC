@@ -106,7 +106,6 @@
                         (level) =>
                         {
                             GadTools.SetAttrs(nu, intValue: level);
-                            SDLLog.Info(LogCategory.APPLICATION, "Slider Level changed to {0}", level);
                         });
                     Gadget prop3 = gui.AddGadget(winPropTest, leftEdge: 10, topEdge: 70, width: -20, height: 100, type: GadgetType.PropGadget);
                     gui.ModifyProp(prop3, PropFlags.FreeHoriz | PropFlags.FreeVert, 0x5000, 0x5000, 0x2000, 0x4000);

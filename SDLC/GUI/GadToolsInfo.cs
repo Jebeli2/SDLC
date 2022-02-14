@@ -26,6 +26,7 @@ internal class GadToolsInfo
     internal int ScrollerVisible { get; set; }
     internal int ScrollerTop { get; set; }
     internal bool CheckboxChecked { get; set; }
+    internal int SelectedIndex { get; set; } = -1;
     internal string? Format { get; set; }
     internal Gadget? LinkedGadget { get; set; }
     internal Gadget? TextGadget { get; set; }

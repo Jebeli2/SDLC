@@ -416,13 +416,12 @@ public class BlocksScreen : SDLScreen
     private void OkName()
     {
         nameEntered = true;
-        if (nameGadget != null)
+        if (nameGadget.GetBuffer(out string name))
         {
-            string name = GadTools.GetStrBuffer(nameGadget) ?? "";
             blockGame.SetCurrentName(name);
             blockGame.ResetHighScores();
-            ResumeGame();
         }
+        ResumeGame();
     }
     private void Drop()
     {

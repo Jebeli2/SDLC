@@ -85,15 +85,6 @@ public static class GadTools
             case GadgetKind.Number: SetNumberAttrs(gadget, intValue); break;
         }
     }
-
-    public static string? GetStrBuffer(Gadget gadget)
-    {
-        switch (GetGadgetKind(gadget))
-        {
-            case GadgetKind.String: return GetStringBuffer(gadget);
-        }
-        return null;
-    }
     private static GadgetKind GetGadgetKind(Gadget? gadget)
     {
         return gadget?.GadInfo?.Kind ?? GadgetKind.None;
@@ -123,15 +114,6 @@ public static class GadTools
                 gadget.Text = string.Format(format, intValue.Value);
             }
         }
-    }
-
-    private static string GetStringBuffer(Gadget gadget)
-    {
-        if (IsValid(gadget, GadgetKind.String, out GadToolsInfo? info))
-        {
-            return gadget.StrInfo?.Buffer ?? "";
-        }
-        return "";
     }
     private static Gadget CreateButton(IGUISystem gui, Window window, Requester? req, int leftEdge, int topEdge, int width, int height,
     string? text,
@@ -228,6 +210,7 @@ public static class GadTools
                 {
                     gad.GadInfo.Kind = GadgetKind.Mx;
                     gad.GadInfo.MxGadgets = mxButtons;
+                    gad.GadInfo.SelectedIndex = selectedIndex;
                     gad.GadInfo.ValueChangedAction = valueChangedAction;
                     Gadget textGad = CreateText(gui, window, req, leftEdge + boxWidth, y, width - boxWidth, boxHeight, text,
                         tooltip, HorizontalAlignment.Left, VerticalAlignment.Center, false, gadgetId);
@@ -478,6 +461,7 @@ public static class GadTools
                         }
                     }
                 }
+                gadget.GadInfo.SelectedIndex = index;
                 gadget.GadInfo.ValueChangedAction?.Invoke(index);
             }
         }
