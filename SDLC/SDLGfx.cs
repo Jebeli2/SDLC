@@ -225,25 +225,25 @@ public static class SDLGfx
             renderer.DrawTexture(texture, src, dst);
         }
     }
-    public static void DrawShadowedText(this IRenderer renderer, SDLFont? font, string? text, float x, float y, float shadowOffset = 0.75f)
+    public static void DrawShadowedText(this IRenderer renderer, SDLFont? font, ReadOnlySpan<char> text, float x, float y, float shadowOffset = 0.75f)
     {
         renderer.DrawText(font, text, x + shadowOffset, y + shadowOffset, 0, 0, defaultShadowColor, HorizontalAlignment.Left, VerticalAlignment.Top);
         renderer.DrawText(font, text, x - shadowOffset, y - shadowOffset, 0, 0, defaultShadowColor, HorizontalAlignment.Left, VerticalAlignment.Top);
         renderer.DrawText(font, text, x, y, 0, 0, defaultTextColor, HorizontalAlignment.Left, VerticalAlignment.Top);
     }
 
-    public static void DrawShadowedText(this IRenderer renderer, SDLFont? font, string? text, float x, float y, Color color, Color shadowColor, float shadowOffset = 0.75f)
+    public static void DrawShadowedText(this IRenderer renderer, SDLFont? font, ReadOnlySpan<char> text, float x, float y, Color color, Color shadowColor, float shadowOffset = 0.75f)
     {
         renderer.DrawText(font, text, x + shadowOffset, y + shadowOffset, 0, 0, shadowColor, HorizontalAlignment.Left, VerticalAlignment.Top);
         renderer.DrawText(font, text, x - shadowOffset, y - shadowOffset, 0, 0, shadowColor, HorizontalAlignment.Left, VerticalAlignment.Top);
         renderer.DrawText(font, text, x, y, 0, 0, color, HorizontalAlignment.Left, VerticalAlignment.Top);
     }
 
-    public static void DrawText(this IRenderer renderer, SDLFont? font, string? text, float x, float y, Color color)
+    public static void DrawText(this IRenderer renderer, SDLFont? font, ReadOnlySpan<char> text, float x, float y, Color color)
     {
         renderer.DrawText(font, text, x, y, 0, 0, color, HorizontalAlignment.Left, VerticalAlignment.Top);
     }
-    public static void DrawText(this IRenderer renderer, SDLFont? font, string? text, float x, float y)
+    public static void DrawText(this IRenderer renderer, SDLFont? font, ReadOnlySpan<char> text, float x, float y)
     {
         renderer.DrawText(font, text, x, y, 0, 0, renderer.Color, HorizontalAlignment.Left, VerticalAlignment.Top);
     }

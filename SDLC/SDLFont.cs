@@ -6,9 +6,11 @@ namespace SDLC;
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Text;
 
 public class SDLFont : SDLObject
 {
+    private static readonly StringBuilder stringBuffer = new StringBuilder(512);
     private static int nextFontId;
     private readonly int fontId;
     private readonly IntPtr mem;
@@ -68,13 +70,15 @@ public class SDLFont : SDLObject
     public int LineSkip => fontLineSkip;
     public int Kerning => fontKerning;
 
-    public Size MeasureText(string? text)
+    public Size MeasureText(ReadOnlySpan<char> text)
     {
         int w = 0;
         int h = 0;
-        if (!string.IsNullOrEmpty(text))
+        if (text != null && text.Length > 0)
         {
-            _ = TTF_SizeUTF8(handle, text, out w, out h);
+            stringBuffer.Clear();
+            stringBuffer.Append(text);
+            _ = TTF_SizeUTF8(handle, stringBuffer, out w, out h);
         }
         return new Size(w, h);
     }
@@ -203,9 +207,15 @@ public class SDLFont : SDLObject
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     internal static extern IntPtr TTF_RenderUTF8_Blended(IntPtr font, [In()][MarshalAs(UnmanagedType.LPUTF8Str)] string text, int fg);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr TTF_RenderUTF8_Blended(IntPtr font, [In()][MarshalAs(UnmanagedType.LPUTF8Str)] StringBuilder text, int fg);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     internal static extern int TTF_MeasureUTF8(IntPtr font, [In()][MarshalAs(UnmanagedType.LPUTF8Str)] string text, int measure_width, out int extent, out int count);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int TTF_MeasureUTF8(IntPtr font, [In()][MarshalAs(UnmanagedType.LPUTF8Str)] StringBuilder text, int measure_width, out int extent, out int count);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     internal static extern int TTF_SizeUTF8(IntPtr font, [In()][MarshalAs(UnmanagedType.LPUTF8Str)] string text, out int w, out int h);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int TTF_SizeUTF8(IntPtr font, [In()][MarshalAs(UnmanagedType.LPUTF8Str)] StringBuilder text, out int w, out int h);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     internal static extern IntPtr TTF_RenderGlyph_Blended(IntPtr font, ushort ch, int fg);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]

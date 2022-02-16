@@ -8,6 +8,7 @@ public class DefaultGUIRenderer : IGUIRenderer
 {
     private bool showDebugBounds;
     private Color debugColor = Color.FromArgb(128, Color.Red);
+    private static readonly string spaceText = " ";
     public DefaultGUIRenderer()
     {
         TextColor = Color.FromArgb(238, 238, 238);
@@ -377,11 +378,18 @@ public class DefaultGUIRenderer : IGUIRenderer
             for (int i = dispPos; i < last + 1; i++)
             {
                 char c = ' ';
-                if (i < last) { c = buffer[i]; }
+                ReadOnlySpan<char> txt;
+                if (i < last) 
+                { 
+                    c = buffer[i];
+                    txt = buffer.AsSpan(i, 1);
+                }
+                else
+                {
+                    txt = spaceText;
+                }
                 bool selected = (i >= strInfo.BufferSelStart && i < strInfo.BufferSelEnd);
                 font.GetGlyphMetrics(c, out minx, out maxx, out miny, out maxy, out advance);
-                string txt = "" + c;
-                //Size size = gfx.MeasureText(null, "" + c);
                 if (selected)
                 {
                     gfx.FillRect(x, y, advance, inner.Height, Color.LightBlue);

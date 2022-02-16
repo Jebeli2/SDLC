@@ -3,6 +3,7 @@
 namespace SDLC;
 
 using System;
+using System.Text;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.CompilerServices;
@@ -11,6 +12,7 @@ using System.Runtime.InteropServices;
 internal sealed class SDLRenderer : IRenderer, IDisposable
 {
     private readonly SDLWindow window;
+    private readonly StringBuilder stringBuffer = new StringBuilder(512);
     private readonly uint format;
     private IntPtr handle;
     private IntPtr backBuffer;
@@ -435,17 +437,18 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         DrawIconCache(GetIconCache(font, icon, color), x, y, width, height, hAlign, vAlign, offsetX, offsetY);
     }
 
-    public void DrawText(SDLFont? font, string? text, float x, float y, float width, float height, Color color, HorizontalAlignment horizontalAlignment = HorizontalAlignment.Center, VerticalAlignment verticalAlignment = VerticalAlignment.Center, float offsetX = 0, float offsetY = 0)
+    public void DrawText(SDLFont? font, ReadOnlySpan<char> text, float x, float y, float width, float height, Color color, HorizontalAlignment horizontalAlignment = HorizontalAlignment.Center, VerticalAlignment verticalAlignment = VerticalAlignment.Center, float offsetX = 0, float offsetY = 0)
     {
-        if (string.IsNullOrEmpty(text)) return;
+        if (text == null) return;
+        if (text.Length == 0) return;
         if (font == null) { font = SDLApplication.DefaultFont; }
         if (font == null) return;
         DrawTextCache(GetTextCache(font, text, color), x, y, width, height, horizontalAlignment, verticalAlignment, offsetX, offsetY);
     }
 
-    public Size MeasureText(SDLFont? font, string? text)
+    public Size MeasureText(SDLFont? font, ReadOnlySpan<char> text)
     {
-        if (!string.IsNullOrEmpty(text))
+        if (text != null && text.Length > 0)
         {
             if (font == null) { font = SDLApplication.DefaultFont; }
             if (font != null)
@@ -676,13 +679,14 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         SDLApplication.LogSDLError(SDL_RenderCopyF(handle, iconCache.Handle, IntPtr.Zero, ref dstRect));
     }
 
-    private TextCache? GetTextCache(SDLFont font, string text, Color color)
+    private TextCache? GetTextCache(SDLFont font, ReadOnlySpan<char> text, Color color)
     {
-        int key = MakeTextCacheKey(font, text, color);
+        int hash = string.GetHashCode(text);
+        int key = MakeTextCacheKey(font, hash, color);
         CheckTextCache();
         if (textCache.TryGetValue(key, out var tc))
         {
-            if (tc.Matches(font, text, color)) return tc;
+            if (tc.Matches(font, hash, color)) return tc;
         }
         tc = CreateTextCache(font, text, color);
         if (tc != null)
@@ -710,16 +714,18 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         }
         return ic;
     }
-
-    private TextCache? CreateTextCache(SDLFont? font, string? text, Color color)
+    private TextCache? CreateTextCache(SDLFont? font, ReadOnlySpan<char> text, Color color)
     {
         TextCache? textCache = null;
-        if (font != null && !string.IsNullOrEmpty(text))
+        if (font != null && text.Length > 0)
         {
             IntPtr fontHandle = font.Handle;
             if (fontHandle != IntPtr.Zero)
             {
-                IntPtr surface = SDLFont.TTF_RenderUTF8_Blended(fontHandle, text, color.ToArgb());
+                stringBuffer.Clear();
+                stringBuffer.Append(text);
+                int hash = string.GetHashCode(text);
+                IntPtr surface = SDLFont.TTF_RenderUTF8_Blended(fontHandle, stringBuffer, color.ToArgb());
                 if (surface != IntPtr.Zero)
                 {
                     IntPtr texHandle = SDL_CreateTextureFromSurface(handle, surface);
@@ -727,7 +733,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
                     {
                         SDLApplication.LogSDLError(SDL_QueryTexture(texHandle, out _, out _, out int w, out int h));
                         SDLApplication.LogSDLError(SDL_SetTextureAlphaMod(texHandle, color.A));
-                        textCache = new TextCache(font, text, color, w, h, texHandle);
+                        textCache = new TextCache(font, hash, color, w, h, texHandle);
                     }
                     SDL_FreeSurface(surface);
                 }
@@ -842,17 +848,18 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         return HashCode.Combine(icon.GetHashCode(), color.GetHashCode());
     }
     //TODO: Make reasonable hashes for icon and text caches...
-    private static int MakeTextCacheKey(SDLFont font, string text, Color color)
+    private static int MakeTextCacheKey(SDLFont font, int textHash, Color color)
     {
-        return HashCode.Combine(font.FontId, text.GetHashCode(), color.GetHashCode());
+
+        return HashCode.Combine(font.FontId, textHash, color.GetHashCode());
     }
 
     private class TextCache
     {
-        internal TextCache(SDLFont font, string text, Color color, int width, int height, IntPtr handle)
+        internal TextCache(SDLFont font, int textHash, Color color, int width, int height, IntPtr handle)
         {
             Font = font;
-            Text = text;
+            TextHash = textHash;
             Color = color;
             Width = width;
             Height = height;
@@ -860,15 +867,15 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         }
 
         public SDLFont Font;
-        public string Text;
+        public int TextHash;
         public Color Color;
         public int Width;
         public int Height;
         public IntPtr Handle;
 
-        public bool Matches(SDLFont font, string text, Color color)
+        public bool Matches(SDLFont font, int textHash, Color color)
         {
-            return (text == Text) && (font == Font) && (color == Color);
+            return (textHash == TextHash) && (font == Font) && (color == Color);
         }
     }
 

@@ -976,6 +976,7 @@ public class GUISystem : SDLApplet, IGUISystem
         if (buffer != null && gadget.IsStrGadget && gadget.StrInfo != null)
         {
             gadget.StrInfo.Buffer = buffer;
+            gadget.StrInfo.EndBuffer();
         }
         return gadget;
     }

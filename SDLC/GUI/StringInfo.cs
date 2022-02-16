@@ -47,8 +47,14 @@ internal class StringInfo
             {
                 longInt = value;
                 Buffer = value.ToString();
+                EndBuffer();
             }
         }
+    }
+
+    public void EndBuffer()
+    {
+        BufferPos = buffer.Length;
     }
 
     public int BufferPos
