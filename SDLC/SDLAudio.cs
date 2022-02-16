@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 
 public static class SDLAudio
 {
-    public const string GLOBAL_VIRTUAL_CHANNEL = "_global_";
+    public const string GlobalChannel = "_global_";
     private static readonly MixFuncDelegate postMix = MixPostMix;
     private static readonly MusicFinishedDelegate musicFinished = MixMusicFinished;
     private static readonly EventHandlerList eventHandlerList = new();
@@ -18,6 +18,7 @@ public static class SDLAudio
     private static readonly object audioMusicDoneKey = new();
     private static readonly object audioMusicStartKey = new();
     private static short[] musicData = Array.Empty<short>();
+    private static int numChannels = 128;
     private static int musicVolume = MIX_MAX_VOLUME;
     private static int soundVolume = MIX_MAX_VOLUME;
     private static string? driverName;
@@ -52,6 +53,36 @@ public static class SDLAudio
 
     }
 
+    public static int MusicVolume
+    {
+        get => musicVolume;
+        set
+        {
+            if (value > MIX_MAX_VOLUME) { value = MIX_MAX_VOLUME; }
+            if (value < 0) { value = 0; }
+            if (musicVolume != value)
+            {
+                musicVolume = value;
+                _ = Mix_VolumeMusic(musicVolume);
+            }
+        }
+    }
+
+    public static int SoundVolume
+    {
+        get => soundVolume;
+        set
+        {
+            if (value > MIX_MAX_VOLUME) { value = MIX_MAX_VOLUME; }
+            if (value < 0) { value = 0; }
+            if (soundVolume != value)
+            {
+                soundVolume = value;
+                SetSoundVolume(soundVolume);
+            }
+        }
+    }
+
     public static bool IsPlaying
     {
         get { return Mix_PlayingMusic() == 1; }
@@ -70,7 +101,7 @@ public static class SDLAudio
         }
         else
         {
-            _ = Mix_AllocateChannels(128);
+            _ = Mix_AllocateChannels(numChannels);
             driverName = Marshal.PtrToStringUTF8(SDL_GetCurrentAudioDriver());
             SDLLog.Info(LogCategory.AUDIO, "Audio opened: {0}", driverName);
             Mix_HookMusicFinished(musicFinished);
@@ -170,7 +201,7 @@ public static class SDLAudio
     {
         if (sound != null)
         {
-            Play(new Playback(sound, channel ?? GLOBAL_VIRTUAL_CHANNEL, pos, loop));
+            Play(new Playback(sound, channel ?? GlobalChannel, pos, loop));
         }
     }
 
@@ -411,17 +442,17 @@ public static class SDLAudio
                 play.Finished = true;
             }
         }
-        Mix_SetPosition(channel, 0, 0);
+        _ = Mix_SetPosition(channel, 0, 0);
     }
 
     private static void Play(Playback pb)
     {
         bool setChannel = false;
-        if (!string.Equals(GLOBAL_VIRTUAL_CHANNEL, pb.Channel))
+        if (!string.Equals(GlobalChannel, pb.Channel))
         {
             if (channels.TryGetValue(pb.Channel, out int vc))
             {
-                Mix_HaltChannel(vc);
+                _ = Mix_HaltChannel(vc);
                 channels.Remove(pb.Channel);
             }
             setChannel = true;
@@ -433,8 +464,9 @@ public static class SDLAudio
         }
         else
         {
+            _ = Mix_Volume(channel, soundVolume);
             Mix_ChannelFinished(channelFinished);
-            SDLLog.Debug(LogCategory.AUDIO, "Playing sound '{0}' on channel {1} ({2})", pb.Sound, channel, pb.Channel);
+            SDLLog.Verbose(LogCategory.AUDIO, "Playing sound '{0}' on channel {1} ({2})", pb.Sound, channel, pb.Channel);
         }
         byte dist;
         if (!pb.Location.IsEmpty)
@@ -447,9 +479,18 @@ public static class SDLAudio
         {
             dist = 0;
         }
-        Mix_SetPosition(channel, 0, dist);
+        _ = Mix_SetPosition(channel, 0, dist);
         if (setChannel) { channels[pb.Channel] = channel; }
         playback[channel] = pb;
+    }
+
+    private static void SetSoundVolume(int volume)
+    {
+        _ = Mix_Volume(0, volume);
+        foreach (int channel in channels.Values)
+        {
+            _ = Mix_Volume(channel, volume);
+        }
     }
     private static float Distance(PointF x, PointF y)
     {
@@ -542,11 +583,11 @@ public static class SDLAudio
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr Mix_QuickLoad_WAV([In()][MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.U1)] byte[] mem);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern IntPtr Mix_QuickLoad_RAW([In()][MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.U1, SizeParamIndex = 1)] byte[] mem, uint len);
+    private static extern IntPtr Mix_QuickLoad_RAW([In()][MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.U1, SizeParamIndex = 1)] byte[] mem, uint len);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void Mix_FreeChunk(IntPtr chunk);
+    internal static extern void Mix_FreeChunk(IntPtr chunk);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void Mix_FreeMusic(IntPtr music);
+    internal static extern void Mix_FreeMusic(IntPtr music);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern int Mix_PlayMusic(IntPtr music, int loops);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
@@ -602,7 +643,11 @@ public static class SDLAudio
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern void Mix_Resume(int channel);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int Mix_Volume(int channel, int volume);
 
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int Mix_VolumeChunk(IntPtr chunk, int volume);
 
 
     [DllImport("SDL2", CallingConvention = CallingConvention.Cdecl)]

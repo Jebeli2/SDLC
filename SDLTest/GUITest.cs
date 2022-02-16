@@ -97,9 +97,10 @@
                     winPropTest.WindowClose += WinPropTest_WindowClose;
                     GadTools.CreateContext(gui, winPropTest);
                     var nu = GadTools.CreateGadget(GadgetKind.Number, leftEdge: 10, topEdge: 332, width: 200, height: 30, text: "Level {0}", intValue: 1);
-                    _ = GadTools.CreateGadget(GadgetKind.Slider, leftEdge: 10, topEdge: 10, width: -20, height: 20, min: 1, max: 3, level: 2, valueChangedAction:
+                    _ = GadTools.CreateGadget(GadgetKind.Slider, leftEdge: 10, topEdge: 10, width: -20, height: 20, min: 0, max: 128, level: 128, valueChangedAction:
                         (level) =>
                         {
+                            SDLAudio.MusicVolume = level;
                             SDLLog.Info(LogCategory.APPLICATION, "Slider Level changed to {0}", level);
                         });
                     _ = GadTools.CreateGadget(GadgetKind.Slider, leftEdge: 10, topEdge: 40, width: -20, height: 20, min: 1, max: 16, valueChangedAction:
