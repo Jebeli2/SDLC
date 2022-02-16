@@ -100,6 +100,7 @@ public class BlocksScreen : SDLScreen
     private Screen? gameScreen;
     private Screen? pauseScreen;
     private Screen? enterNameScreen;
+    private Screen? settingsScreen;
     private Gadget? nameGadget;
 
     public BlocksScreen() : base("Blocks")
@@ -217,7 +218,7 @@ public class BlocksScreen : SDLScreen
         Window win = gui.OpenWindow(scr, leftEdge: midX - halfW, topEdge: midY - halfH, width: 400, height: 260,
             closing: false, sizing: false, zooming: false, depth: false, dragging: false);
         GadTools.CreateContext(gui, win);
-        _ = GadTools.CreateGadget(GadgetKind.Text, leftEdge: 10, topEdge: 10, width: -20, height: 40, text: "Pause");
+        _ = GadTools.CreateGadget(GadgetKind.Text, leftEdge: 10, topEdge: 5, width: -20, height: 40, text: "Pause");
         _ = GadTools.CreateGadget(GadgetKind.Button, leftEdge: 10, topEdge: 60, width: -20, height: 40, text: "Resume Game", clickAction: ResumeGame);
         _ = GadTools.CreateGadget(GadgetKind.Button, leftEdge: 10, topEdge: 110, width: -20, height: 40, text: "New Game", clickAction: NewGame);
         _ = GadTools.CreateGadget(GadgetKind.Button, leftEdge: 10, topEdge: 160, width: -20, height: 40, text: "Settings", clickAction: GoToSettings);
@@ -249,6 +250,44 @@ public class BlocksScreen : SDLScreen
         Screen scr = gui.OpenScreen();
         return scr;
     }
+
+    private Screen MakeSettingsScreen()
+    {
+        IGUISystem gui = GUI;
+        Screen scr = gui.OpenScreen();
+        scr.Font = blockGfx.MsgFont;
+        int midX = Width / 2;
+        int midY = Height / 2;
+        int halfW = 400 / 2;
+        int halfH = 400 / 2;
+        Window win = gui.OpenWindow(scr, leftEdge: midX - halfW, topEdge: midY - halfH, width: 400, height: 410,
+            closing: false, sizing: false, zooming: false, depth: false, dragging: false);
+        GadTools.CreateContext(gui, win);
+        Gadget? useOutline = null;
+        _ = GadTools.CreateGadget(GadgetKind.Text, leftEdge: 10, topEdge: 5, width: -20, height: 40, text: "Settings");
+        Gadget useGrid = GadTools.CreateGadget(GadgetKind.Checkbox, leftEdge: 10, topEdge: 60, width: -20, height: 40, _checked: settings.UseGrid, text: "Show Grid");
+        Gadget useGhost = GadTools.CreateGadget(GadgetKind.Checkbox, leftEdge: 10, topEdge: 110, width: -20, height: 40, _checked: settings.UseGhostPiece, text: "Show Ghost Piece",
+            checkedStateChangedAction: (b) => { useOutline!.Enabled = b; });
+        useOutline = GadTools.CreateGadget(GadgetKind.Checkbox, leftEdge: 10, topEdge: 160, width: -20, height: 40, _checked: settings.UseGhostOutline, disabled: !settings.UseGhostPiece, text: "Ghost Outline");
+        Gadget useBg = GadTools.CreateGadget(GadgetKind.Checkbox, leftEdge: 10, topEdge: 210, width: -20, height: 40, _checked: settings.UseBackground, text: "Show Background");
+        Gadget usePart = GadTools.CreateGadget(GadgetKind.Checkbox, leftEdge: 10, topEdge: 260, width: -20, height: 40, _checked: settings.UseParticles, text: "Show Particles");
+        Gadget useFS = GadTools.CreateGadget(GadgetKind.Checkbox, leftEdge: 10, topEdge: 310, width: -20, height: 40, _checked: settings.Fullscreen, text: "Fullscreen");
+        _ = GadTools.CreateGadget(GadgetKind.Button, leftEdge: 10, topEdge: -50, width: 170, height: 40, text: "OK", clickAction: () =>
+        {
+            bool flag;
+            if (useGrid.GetChecked(out flag)) { settings.UseGrid = flag; }
+            if (useGhost.GetChecked(out flag)) { settings.UseGhostPiece = flag; }
+            if (useOutline.GetChecked(out flag)) { settings.UseGhostOutline = flag; }
+            if (useBg.GetChecked(out flag)) { settings.UseBackground = flag; }
+            if (usePart.GetChecked(out flag)) { settings.UseParticles = flag; }
+            if (useFS.GetChecked(out flag)) { settings.Fullscreen = flag; }
+            IsFullScreen = settings.Fullscreen;
+            OkSettings();
+        });
+        _ = GadTools.CreateGadget(GadgetKind.Button, leftEdge: 210, topEdge: -50, width: 170, height: 40, text: "Cancel", clickAction: CancelSettings);
+
+        return scr;
+    }
     private void GoToPause()
     {
         paused = true;
@@ -270,7 +309,7 @@ public class BlocksScreen : SDLScreen
         paused = true;
         inSettingsMenu = true;
         enteringName = false;
-        if (pauseScreen != null) { GUI.CloseScreen(pauseScreen); }
+        settingsScreen = MakeSettingsScreen();
     }
 
     private void GoToEnterName()
@@ -459,6 +498,16 @@ public class BlocksScreen : SDLScreen
             blockGame.ResetHighScores();
         }
         ResumeGame();
+    }
+
+    private void OkSettings()
+    {
+        GoToPause();
+    }
+
+    private void CancelSettings()
+    {
+        GoToPause();
     }
     private void Drop()
     {

@@ -817,6 +817,7 @@ internal sealed class SDLWindow : IWindow, IDisposable
                 GoMultiMonitorFullScreen();
                 break;
         }
+        DetectWindowResized();
     }
 
     private void GoWindowed()
@@ -826,6 +827,7 @@ internal sealed class SDLWindow : IWindow, IDisposable
         {
             if (SDL_SetWindowFullscreen(Handle, 0) == 0)
             {
+                DetectWindowResized();
             }
         }
         else
@@ -836,6 +838,7 @@ internal sealed class SDLWindow : IWindow, IDisposable
             SDL_SetWindowResizable(handle, resizeable);
             if (title != null) { SDL_SetWindowTitle(handle, title); }
             SDL_SetWindowAlwaysOnTop(handle, alwaysOnTop);
+            DetectWindowResized();
         }
     }
 
