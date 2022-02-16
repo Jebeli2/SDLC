@@ -150,7 +150,6 @@ public class DefaultGUIRenderer : IGUIRenderer
         bounds.Offset(offsetX, offsetY);
         inner.Offset(offsetX, offsetY);
         bool active = window.Active;
-        bool hover = window.MouseHover;
         Color bg = WindowFillUnFocused;
         Color bt = WindowHeaderGradientTop;
         Color bb = WindowHeaderGradientBot;
@@ -323,8 +322,7 @@ public class DefaultGUIRenderer : IGUIRenderer
     private void DrawPropGadget(IRenderer gfx, Gadget gadget, PropInfo prop, int offsetX, int offsetY)
     {
         Rectangle bounds = gadget.GetBounds();
-        Rectangle inner = gadget.GetInnerBounds();
-        bool active = gadget.Active;
+        Rectangle inner = gadget.GetInnerBounds();        
         bool hover = gadget.MouseHover;
         bool selected = gadget.Selected;
         bool knobHit = prop.KnobHit;
@@ -366,11 +364,6 @@ public class DefaultGUIRenderer : IGUIRenderer
         int y = inner.Y;
         int last = buffer.Length;
         int dispPos = strInfo.DispPos;
-        int minx;
-        int maxx;
-        int miny;
-        int maxy;
-        int advance;
         SDLFont? font = gadget.Font ?? SDLApplication.DefaultFont;
         if (font != null)
         {
@@ -389,7 +382,7 @@ public class DefaultGUIRenderer : IGUIRenderer
                     txt = spaceText;
                 }
                 bool selected = (i >= strInfo.BufferSelStart && i < strInfo.BufferSelEnd);
-                font.GetGlyphMetrics(c, out minx, out maxx, out miny, out maxy, out advance);
+                font.GetGlyphMetrics(c, out _, out _, out _, out _, out int advance);
                 if (selected)
                 {
                     gfx.FillRect(x, y, advance, inner.Height, Color.LightBlue);

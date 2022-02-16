@@ -362,7 +362,6 @@ RetryTick:
             uint ums = (uint)ms;
             if (ums > 0)
             {
-                //SDLLog.Info($"Delay {ums} ms");
                 SDL_Delay(ums);
             }
         }
@@ -585,7 +584,7 @@ RetryTick:
     private static extern int SDL_Init(InitFlags flags);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern void SDL_Quit();
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool SDL_SetHint([In()][MarshalAs(UnmanagedType.LPUTF8Str)] string name, [In()][MarshalAs(UnmanagedType.LPUTF8Str)] string value);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]

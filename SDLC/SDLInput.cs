@@ -271,7 +271,7 @@ public static class SDLInput
             IntPtr handle = SDL_GameControllerOpen(which);
             if (handle != IntPtr.Zero)
             {
-                SDLController controller = new SDLController(which, handle);
+                SDLController controller = new(which, handle);
                 controller.Window = SDLApplication.MainWindow;
                 controller.Name = Marshal.PtrToStringUTF8(SDL_GameControllerName(handle));
                 //_= SDL_GameControllerAddMapping(PS4Mapping2);
@@ -307,7 +307,7 @@ public static class SDLInput
         IntPtr handle = SDL_JoystickOpen(which);
         if (handle != IntPtr.Zero)
         {
-            SDLJoystick joystick = new SDLJoystick(which, handle);
+            SDLJoystick joystick = new(which, handle);
             joystick.Window = SDLApplication.MainWindow;
             joystick.Name = Marshal.PtrToStringUTF8(SDL_JoystickName(handle));
             joysticks.Add(joystick);
@@ -786,7 +786,7 @@ public static class SDLInput
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool SDL_IsGameController(int joystick_index);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void SDL_GameControllerClose(IntPtr gamecontroller);
+    private static extern void SDL_GameControllerClose(IntPtr gamecontroller);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr SDL_GameControllerOpen(int joystick_index);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
@@ -795,7 +795,7 @@ public static class SDLInput
     private static extern IntPtr SDL_GameControllerName(IntPtr gamecontroller);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern uint SDL_GetTicks();
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     internal static extern int SDL_GameControllerAddMapping([MarshalAs(UnmanagedType.LPUTF8Str)] string mappingString);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern int SDL_GameControllerNumMappings();
@@ -803,7 +803,7 @@ public static class SDLInput
     private static extern IntPtr INTERNAL_SDL_GameControllerMappingForIndex(int mapping_index);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern int SDL_GameControllerAddMappingsFromRW(IntPtr rw, int freerw);
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     private static extern int SDL_GameControllerAddMappingsFromFile([MarshalAs(UnmanagedType.LPUTF8Str)] string filename);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr SDL_GameControllerMappingForGUID(Guid guid);

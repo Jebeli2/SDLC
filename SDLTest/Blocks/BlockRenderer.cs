@@ -55,9 +55,9 @@ public class BlockRenderer
     private int nextBestHeight;
 
     private Color[] lineClearColors;
-    private const int tetTitleHeight = 40;
-    private const int tetHeight = 22;
-    private const int tetWidth = 10;
+    private const int TetTitleHeight = 40;
+    private const int TetHeight = 22;
+    private const int TetWidth = 10;
 
     private float spaceOffsetX;
     private float spaceOffsetY;
@@ -258,7 +258,7 @@ public class BlockRenderer
     private void RenderLevel(IRenderer gfx)
     {
         var font = blockGfx.SmallFont;
-        DrawTetrion(gfx, levelX, levelY, levelWidth, levelHeight, tetTitleHeight, 3, 3, 3, "LEVEL");
+        DrawTetrion(gfx, levelX, levelY, levelWidth, levelHeight, TetTitleHeight, 3, 3, 3, "LEVEL");
         gfx.DrawText(blockGfx.BigFont, currentLevelText, levelX + 10, levelY + 10, textColor);
         gfx.DrawText(font, "LINES TO CLEAR", levelX + 3, levelY + levelHeight - 22 * 2, lightTextColor);
         var ltcSize = gfx.MeasureText(font, linesToClearText);
@@ -267,13 +267,13 @@ public class BlockRenderer
 
     private void RenderScore(IRenderer gfx)
     {
-        DrawTetrion(gfx, scoreX, scoreY, scoreWidth, scoreHeight, tetTitleHeight, 3, 3, 3, "SCORE");
+        DrawTetrion(gfx, scoreX, scoreY, scoreWidth, scoreHeight, TetTitleHeight, 3, 3, 3, "SCORE");
         gfx.DrawText(blockGfx.BigFont, pointsText, scoreX + 10, scoreY + 10, textColor);
     }
 
     private void RenderNextBest(IRenderer gfx)
     {
-        DrawTetrion(gfx, nextBestX, nextBestY, nextBestWidth, nextBestHeight, tetTitleHeight, 3, 3, 3, "NEXT BEST");
+        DrawTetrion(gfx, nextBestX, nextBestY, nextBestWidth, nextBestHeight, TetTitleHeight, 3, 3, 3, "NEXT BEST");
         BlockScore nextBest = blockGame.NextBest;
         if (nextBest != null)
         {
@@ -350,7 +350,7 @@ public class BlockRenderer
             }
             py += bsize;
         }
-        DrawTetrion(gfx, boardX, boardY, boardWidth, boardHeight, tetTitleHeight, tetHeight, tetWidth, tetWidth);
+        DrawTetrion(gfx, boardX, boardY, boardWidth, boardHeight, TetTitleHeight, TetHeight, TetWidth, TetWidth);
     }
 
     private void RenderPiece(IRenderer gfx, BlockPiece? piece)
@@ -437,7 +437,7 @@ public class BlockRenderer
                 RenderBlock(gfx, block, px, py, bsize);
             }
         }
-        DrawTetrion(gfx, x, y, width, height, tetTitleHeight, 3, 3, 3, title);
+        DrawTetrion(gfx, x, y, width, height, TetTitleHeight, 3, 3, 3, title);
     }
 
 
@@ -508,7 +508,7 @@ public class BlockRenderer
     {
         bwidth = blockGame.BoardWidth;
         bheight = blockGame.BoardHeight - BOARDOFFSET;
-        bsize = (sheight - tetHeight * 2) / (bheight + 2);
+        bsize = (sheight - TetHeight * 2) / (bheight + 2);
         xstart = swidth / 2 - bwidth * bsize / 2;
         ystart = sheight / 2 - bheight * bsize / 2;
         boardX = xstart;
@@ -529,17 +529,17 @@ public class BlockRenderer
         levelX = holdX;
         levelWidth = holdWidth;
         levelHeight = 6 * bsize;
-        levelY = ystart + boardHeight - levelHeight + tetHeight - 3;
+        levelY = ystart + boardHeight - levelHeight + TetHeight - 3;
 
         scoreX = nextX;
         scoreWidth = nextWidth;
         scoreHeight = 2 * bsize;
-        scoreY = ystart + boardHeight - levelHeight + tetHeight - 3;
+        scoreY = ystart + boardHeight - levelHeight + TetHeight - 3;
 
         nextBestX = scoreX;
         nextBestWidth = scoreWidth;
         nextBestHeight = 2 * bsize;
-        nextBestY = ystart + boardHeight - nextBestHeight + tetHeight - 3; ;
+        nextBestY = ystart + boardHeight - nextBestHeight + TetHeight - 3; ;
         return bsize;
     }
 

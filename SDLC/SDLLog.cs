@@ -295,25 +295,25 @@ public static class SDLLog
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate void SDL_LogOutputFunction(IntPtr userdata, int category, LogPriority priority, IntPtr message);
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     private static extern void SDL_Log([MarshalAs(UnmanagedType.LPUTF8Str)] string msg);
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     private static extern void SDL_LogVerbose(int category, [MarshalAs(UnmanagedType.LPUTF8Str)] string msg);
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     private static extern void SDL_LogDebug(int category, [MarshalAs(UnmanagedType.LPUTF8Str)] string msg);
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     private static extern void SDL_LogInfo(int category, [MarshalAs(UnmanagedType.LPUTF8Str)] string msg);
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     private static extern void SDL_LogWarn(int category, [MarshalAs(UnmanagedType.LPUTF8Str)] string msg);
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     private static extern void SDL_LogError(int category, [MarshalAs(UnmanagedType.LPUTF8Str)] string msg);
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     private static extern void SDL_LogCritical(int category, [MarshalAs(UnmanagedType.LPUTF8Str)] string msg);
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     private static extern void SDL_LogMessage(int category, LogPriority priority, [MarshalAs(UnmanagedType.LPUTF8Str)] string msg);
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     private static extern void SDL_LogMessageV(int category, LogPriority priority, [MarshalAs(UnmanagedType.LPUTF8Str)] string msg);
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     private static extern LogPriority SDL_LogGetPriority(int category);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern void SDL_LogSetPriority(int category, LogPriority priority);

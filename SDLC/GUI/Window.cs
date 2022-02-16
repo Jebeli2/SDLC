@@ -547,7 +547,7 @@ public class Window : GUIObject
         StringBuilder sb = new();
         sb.Append("_GUI_Window_");
         sb.Append(WindowId);
-        sb.Append("_");
+        sb.Append('_');
         return sb.ToString();
     }
     public override string ToString()

@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 public static class SDLAudio
 {
     public const string GlobalChannel = "_global_";
+    private const int NumChannels = 128;
     private static readonly MixFuncDelegate postMix = MixPostMix;
     private static readonly MusicFinishedDelegate musicFinished = MixMusicFinished;
     private static readonly EventHandlerList eventHandlerList = new();
@@ -18,7 +19,6 @@ public static class SDLAudio
     private static readonly object audioMusicDoneKey = new();
     private static readonly object audioMusicStartKey = new();
     private static short[] musicData = Array.Empty<short>();
-    private static int numChannels = 128;
     private static int musicVolume = MIX_MAX_VOLUME;
     private static int soundVolume = MIX_MAX_VOLUME;
     private static string? driverName;
@@ -101,7 +101,7 @@ public static class SDLAudio
         }
         else
         {
-            _ = Mix_AllocateChannels(numChannels);
+            _ = Mix_AllocateChannels(NumChannels);
             driverName = Marshal.PtrToStringUTF8(SDL_GetCurrentAudioDriver());
             SDLLog.Info(LogCategory.AUDIO, "Audio opened: {0}", driverName);
             Mix_HookMusicFinished(musicFinished);
@@ -266,10 +266,7 @@ public static class SDLAudio
             if (playback.TryGetValue(channel, out Playback? play))
             {
                 playback.Remove(channel);
-                if (channels.TryGetValue(play.Channel, out int vcit))
-                {
-                    channels.Remove(play.Channel);
-                }
+                channels.Remove(play.Channel);
             }
         }
     }
@@ -575,8 +572,8 @@ public static class SDLAudio
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern int Mix_AllocateChannels(int numchans);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern IntPtr Mix_LoadWAV_RW(IntPtr src, int freesrc);
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr Mix_LoadWAV_RW(IntPtr src, int freesrc);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     private static extern IntPtr Mix_LoadMUS([In()][MarshalAs(UnmanagedType.LPUTF8Str)] string file);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr Mix_LoadMUS_RW(IntPtr rwops, int freesrc);

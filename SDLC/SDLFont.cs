@@ -10,7 +10,7 @@ using System.Text;
 
 public class SDLFont : SDLObject
 {
-    private static readonly StringBuilder stringBuffer = new StringBuilder(512);
+    private static readonly StringBuilder stringBuffer = new(512);
     private static int nextFontId;
     private readonly int fontId;
     private readonly IntPtr mem;
@@ -153,7 +153,7 @@ public class SDLFont : SDLObject
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     internal static extern int TTF_WasInit();
 
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     internal static extern IntPtr TTF_OpenFont([In()][MarshalAs(UnmanagedType.LPUTF8Str)] string file, int ptsize);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
@@ -200,21 +200,21 @@ public class SDLFont : SDLObject
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern int TTF_SetFontSize(IntPtr font, int ptsize);
 
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     internal static extern IntPtr TTF_RenderUTF8_Solid(IntPtr font, [In()][MarshalAs(UnmanagedType.LPUTF8Str)] string text, int fg);
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     internal static extern IntPtr TTF_RenderUTF8_Shaded(IntPtr font, [In()][MarshalAs(UnmanagedType.LPUTF8Str)] string text, int fg, int bg);
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     internal static extern IntPtr TTF_RenderUTF8_Blended(IntPtr font, [In()][MarshalAs(UnmanagedType.LPUTF8Str)] string text, int fg);
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     internal static extern IntPtr TTF_RenderUTF8_Blended(IntPtr font, [In()][MarshalAs(UnmanagedType.LPUTF8Str)] StringBuilder text, int fg);
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     internal static extern int TTF_MeasureUTF8(IntPtr font, [In()][MarshalAs(UnmanagedType.LPUTF8Str)] string text, int measure_width, out int extent, out int count);
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     internal static extern int TTF_MeasureUTF8(IntPtr font, [In()][MarshalAs(UnmanagedType.LPUTF8Str)] StringBuilder text, int measure_width, out int extent, out int count);
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     internal static extern int TTF_SizeUTF8(IntPtr font, [In()][MarshalAs(UnmanagedType.LPUTF8Str)] string text, out int w, out int h);
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     internal static extern int TTF_SizeUTF8(IntPtr font, [In()][MarshalAs(UnmanagedType.LPUTF8Str)] StringBuilder text, out int w, out int h);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     internal static extern IntPtr TTF_RenderGlyph_Blended(IntPtr font, ushort ch, int fg);

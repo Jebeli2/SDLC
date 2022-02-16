@@ -40,7 +40,7 @@ internal static class FileUtils
     {
         if (name == null) return null;
         int index = name.LastIndexOf('.');
-        if (index >= 0) { return name.Substring(index + 1); }
+        if (index >= 0) { return name[(index + 1)..]; }
         return string.Empty;
     }
 
@@ -48,7 +48,7 @@ internal static class FileUtils
     {
         if (name == null) return string.Empty;
         int index = name.LastIndexOf('.');
-        if (index >= 0) { return name.Substring(0, index); }
+        if (index >= 0) { return name[..index]; }
         return name;
     }
 

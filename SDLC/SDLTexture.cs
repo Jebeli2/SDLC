@@ -28,10 +28,7 @@ public class SDLTexture : SDLObject
         SDLApplication.LogSDLError(SDLRenderer.SDL_QueryTexture(this.handle, out format, out access, out width, out height));
         SDLApplication.LogSDLError(SDLRenderer.SDL_GetTextureScaleMode(this.handle, out textureFilter));
         SDLApplication.LogSDLError(SDLRenderer.SDL_GetTextureAlphaMod(this.handle, out alphaMod));
-        byte r = 0;
-        byte g = 0;
-        byte b = 0;
-        SDLApplication.LogSDLError(SDLRenderer.SDL_GetTextureColorMod(this.handle, out r, out g, out b));
+        SDLApplication.LogSDLError(SDLRenderer.SDL_GetTextureColorMod(this.handle, out byte r, out byte g, out byte b));
         colorMod = Color.FromArgb(r, g, b);
         SDLApplication.LogSDLError(SDLRenderer.SDL_GetTextureBlendMode(this.handle, out blendMode));
         this.renderer.Track(this);
@@ -123,7 +120,7 @@ public class SDLTexture : SDLObject
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     internal static extern void IMG_Quit();
 
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     internal static extern IntPtr IMG_LoadTexture(IntPtr renderer, [In()][MarshalAs(UnmanagedType.LPUTF8Str)] string fileName);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     internal static extern IntPtr IMG_LoadTexture_RW(IntPtr renderer, IntPtr src, int freesrc);

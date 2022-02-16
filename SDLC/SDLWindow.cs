@@ -153,11 +153,6 @@ internal sealed class SDLWindow : IWindow, IDisposable
         SDLApplication.MaxFramesPerSecond = config.MaxFramesPerSecond;
     }
 
-    private void ApplyConfiguration(Configuration config)
-    {
-
-    }
-
     public bool EnableEventHandlers
     {
         get => enableEventHandlers;
@@ -1296,7 +1291,7 @@ internal sealed class SDLWindow : IWindow, IDisposable
     };
 
 
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     private static extern IntPtr SDL_CreateWindow([In()][MarshalAs(UnmanagedType.LPUTF8Str)] string title, int x, int y, int w, int h, SDL_WindowFlags flags);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr SDL_CreateWindow(IntPtr title, int x, int y, int w, int h, SDL_WindowFlags flags);
@@ -1308,7 +1303,7 @@ internal sealed class SDLWindow : IWindow, IDisposable
     private static extern void SDL_SetWindowResizable(IntPtr window, [In()][MarshalAs(UnmanagedType.Bool)] bool resizable);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern void SDL_SetWindowAlwaysOnTop(IntPtr window, [In()][MarshalAs(UnmanagedType.Bool)] bool onTop);
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     private static extern void SDL_SetWindowTitle(IntPtr window, [In][MarshalAs(UnmanagedType.LPUTF8Str)] string title);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern void SDL_SetWindowTitle(IntPtr window, IntPtr title);

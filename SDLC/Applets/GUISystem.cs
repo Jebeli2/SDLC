@@ -24,8 +24,8 @@ public class GUISystem : SDLApplet, IGUISystem
     private readonly Queue<Gadget> activationGadgets = new();
     private readonly List<Window> fadingInWindows = new();
     private readonly List<Window> fadingOutWindows = new();
-    private const int fadeOutSpeed = 22;
-    private const int fadeInSpeed = 27;
+    private const int FadeOutSpeed = 22;
+    private const int FadeInSpeed = 27;
     private bool useFadeOut = true;
     private bool useFadeIn = true;
     private bool moveWindowToFrontOnActivate = true;
@@ -432,14 +432,6 @@ public class GUISystem : SDLApplet, IGUISystem
             gadget = null;
         }
     }
-
-    private static void CheckAndClear(ref Gadget? gadget, Gadget test)
-    {
-        if (gadget != null && gadget == test)
-        {
-            gadget = null;
-        }
-    }
     private bool CheckWindowDragging(SDLMouseEventArgs e)
     {
         if (activeScreen != null &&
@@ -828,7 +820,7 @@ public class GUISystem : SDLApplet, IGUISystem
         {
             flags |= WindowFlags.BackDrop;
         }
-        Window window = new Window(this, s, flags, title);
+        Window window = new(this, s, flags, title);
         window.LeftEdge = leftEdge;
         window.TopEdge = topEdge;
         window.Width = width;
@@ -887,7 +879,7 @@ public class GUISystem : SDLApplet, IGUISystem
     {
         foreach (Window window in fadingOutWindows)
         {
-            window.DecreaseAlpha(fadeOutSpeed);
+            window.DecreaseAlpha(FadeOutSpeed);
         }
         int i = 0;
         while (i < fadingOutWindows.Count)
@@ -909,7 +901,7 @@ public class GUISystem : SDLApplet, IGUISystem
     {
         foreach (Window window in fadingInWindows)
         {
-            window.IncreaseAlpha(fadeInSpeed);
+            window.IncreaseAlpha(FadeInSpeed);
         }
         int i = 0;
         while (i < fadingInWindows.Count)
