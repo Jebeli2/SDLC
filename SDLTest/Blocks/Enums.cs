@@ -26,3 +26,11 @@ public enum Rotation
     R180,
     R270
 }
+
+public enum GameState
+{
+    Game,
+    Pause,
+    Settings,
+    EnterName
+}

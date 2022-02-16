@@ -18,6 +18,9 @@ public static class SDLInput
     private static float controllerDeadZone = 8000.0f;
     private static float controllerMaxValue = 30000.0f;
     private static bool useController = true;
+    //internal static string PS4Mapping1 = "030000004c050000c405000000016800,*,a:b0,b:b1,back:b4,dpdown:b12,dpleft:b13,dpright:b14,dpup:b11,guide:b5,leftshoulder:b9,leftstick:b7,lefttrigger:a4,leftx:a0,lefty:a1,rightshoulder:b10,rightstick:b8,righttrigger:a5,rightx:a2,righty:a3,start:b6,x:b2,y:b3,touchpad:b15,platform:Windows";
+    //internal static string PS4Mapping2 = "030000004c050000c405000000000000,PS4 Controller,a:b1,b:b2,back:b8,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,guide:b12,leftshoulder:b4,leftstick:b10,lefttrigger:a3,leftx:a0,lefty:a1,rightshoulder:b5,rightstick:b11,righttrigger:a4,rightx:a2,righty:a5,start:b9,x:b0,y:b3,platform:Windows";
+    //internal static string PS4Mapping2 = "030000004c050000c405000000016800,PS4 Controller,a:b1,b:b2,back:b8,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,guide:b12,leftshoulder:b4,leftstick:b10,lefttrigger:a3,leftx:a0,lefty:a1,rightshoulder:b5,rightstick:b11,righttrigger:a4,rightx:a2,righty:a5,start:b9,x:b0,y:b3,platform:Windows";
 
     internal static void Initialize()
     {
@@ -208,13 +211,13 @@ public static class SDLInput
     {
         if (joystick == null) return;
         if (joystick.Window == null) return;
-        SDLLog.Debug(LogCategory.INPUT, "Joy Button {0} down", evt.button);
+        //SDLLog.Debug(LogCategory.INPUT, "Joy Button {0} down", evt.button);
     }
     private static void HandleJoystickButtonUpEvent(SDLJoystick? joystick, ref SDL_JoyButtonEvent evt)
     {
         if (joystick == null) return;
         if (joystick.Window == null) return;
-        SDLLog.Debug(LogCategory.INPUT, "Joy Button {0} up", evt.button);
+        //SDLLog.Debug(LogCategory.INPUT, "Joy Button {0} up", evt.button);
     }
 
     private static void HandleControllerButtonDownEvent(SDLController? controller, ref SDL_ControllerButtonEvent evt)
@@ -271,7 +274,9 @@ public static class SDLInput
                 SDLController controller = new SDLController(which, handle);
                 controller.Window = SDLApplication.MainWindow;
                 controller.Name = Marshal.PtrToStringUTF8(SDL_GameControllerName(handle));
-                controller.Mapping = Marshal.PtrToStringUTF8(SDL_GameControllerMapping(handle));
+                //_= SDL_GameControllerAddMapping(PS4Mapping2);
+                controller.Mapping = SDLApplication.UTF8_ToManaged(SDL_GameControllerMapping(handle), true);
+
                 controllers.Add(controller);
                 SDLLog.Info(LogCategory.INPUT, "SDLController {0} ({1}) added", which, controller.Name);
             }
@@ -791,7 +796,7 @@ public static class SDLInput
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern uint SDL_GetTicks();
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    private static extern int SDL_GameControllerAddMapping([MarshalAs(UnmanagedType.LPUTF8Str)] string mappingString);
+    internal static extern int SDL_GameControllerAddMapping([MarshalAs(UnmanagedType.LPUTF8Str)] string mappingString);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern int SDL_GameControllerNumMappings();
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]

@@ -20,11 +20,6 @@ public class BlocksScreen : SDLScreen
     private readonly BlockGfx blockGfx;
     private readonly BlockRenderer blockRenderer;
 
-    private bool inSettingsMenu;
-    //private bool paused;
-    private bool enteringName;
-    private bool nameEntered;
-
     private int leftMoveDelay;
     private int rightMoveDelay;
     private int highScoresX = 10;
@@ -33,11 +28,7 @@ public class BlocksScreen : SDLScreen
     private float scoreDir = 1.0f;
     private float scoreSpeed = 0.02f;
     private bool showScore;
-
-    //private Screen? gameScreen;
-    //private Screen? pauseScreen;
-    //private Screen? enterNameScreen;
-    //private Screen? settingsScreen;
+    private bool nameEntered;
     private Gadget? nameGadget;
 
     public BlocksScreen() : base("Blocks")
@@ -66,9 +57,10 @@ public class BlocksScreen : SDLScreen
         GetApplet<MusicPlayer>().PlayNow(nameof(Properties.Resources.Korobeiniki));
         InitGfx();
         InitCommands(GetApplet<KeyCommandManager>());
-        _ = MakeGameScreen();
         blockRenderer.Resize(Width, Height);
         LoadHighScores();
+        _ = MakeGameScreen();
+        SDLApplication.ShowCursor = false;
     }
     public override void Resized(IWindow window, int width, int height)
     {
@@ -102,6 +94,7 @@ public class BlocksScreen : SDLScreen
         base.Hide(window);
         SaveHighScores();
         DisposeGfx();
+        SDLApplication.ShowCursor = true;
     }
     private void LoadHighScores()
     {
@@ -127,7 +120,7 @@ public class BlocksScreen : SDLScreen
             closing: false, sizing: false, zooming: false, depth: false, dragging: false);
         GadTools.CreateContext(gui, win);
         _ = GadTools.CreateGadget(GadgetKind.Text, leftEdge: 10, topEdge: 5, width: -20, height: 40, text: "Pause");
-        _ = GadTools.CreateGadget(GadgetKind.Button, leftEdge: 10, topEdge: 60, width: -20, height: 40, text: "Resume Game", clickAction: ResumeGame);
+        _ = GadTools.CreateGadget(GadgetKind.Button, leftEdge: 10, topEdge: 60, width: -20, height: 40, text: "Resume Game", clickAction: GoToGame);
         _ = GadTools.CreateGadget(GadgetKind.Button, leftEdge: 10, topEdge: 110, width: -20, height: 40, text: "New Game", clickAction: NewGame);
         _ = GadTools.CreateGadget(GadgetKind.Button, leftEdge: 10, topEdge: 160, width: -20, height: 40, text: "Settings", clickAction: GoToSettings);
         _ = GadTools.CreateGadget(GadgetKind.Button, leftEdge: 10, topEdge: 210, width: -20, height: 40, text: "Exit Game", clickAction: ExitGame);
@@ -196,36 +189,51 @@ public class BlocksScreen : SDLScreen
 
         return scr;
     }
+
+    private void ChangeGameState(GameState state)
+    {
+        if (state != blockGame.GameState)
+        {
+            blockGame.GameState = state;
+            switch (state)
+            {
+                case GameState.Game:
+                    _ = MakeGameScreen();
+                    SDLApplication.ShowCursor = false;
+                    break;
+                case GameState.Pause:
+                    _ = MakePauseScreen();
+                    SDLApplication.ShowCursor = true;
+                    break;
+                case GameState.Settings:
+                    _ = MakeSettingsScreen();
+                    SDLApplication.ShowCursor = true;
+                    break;
+                case GameState.EnterName:
+                    _ = MakeEnterNameScreen();
+                    SDLApplication.ShowCursor = true;
+                    break;
+            }
+        }
+    }
     private void GoToPause()
     {
-        blockGame.Paused = true;
-        inSettingsMenu = false;
-        enteringName = false;
-        _ = MakePauseScreen();
+        ChangeGameState(GameState.Pause);
     }
 
     private void GoToGame()
     {
-        blockGame.Paused = false;
-        inSettingsMenu = false;
-        enteringName = false;
-        _ = MakeGameScreen();
+        ChangeGameState(GameState.Game);
     }
 
     private void GoToSettings()
     {
-        blockGame.Paused = true;
-        inSettingsMenu = true;
-        enteringName = false;
-        _ = MakeSettingsScreen();
+        ChangeGameState(GameState.Settings);
     }
 
     private void GoToEnterName()
     {
-        blockGame.Paused = true;
-        inSettingsMenu = false;
-        enteringName = true;
-        _ = MakeEnterNameScreen();
+        ChangeGameState(GameState.EnterName);
     }
 
     private void InitGfx()
@@ -331,50 +339,38 @@ public class BlocksScreen : SDLScreen
         kcm.AddKeyCommand(ControllerButton.LeftShoulder, KeyButtonState.Released, Hold);
         kcm.AddKeyCommand(ControllerButton.RightShoulder, KeyButtonState.Released, Hold);
 
-        kcm.AddKeyCommand(ScanCode.SCANCODE_ESCAPE, KeyButtonState.Released, Pause);
-        kcm.AddKeyCommand(ControllerButton.Options, KeyButtonState.Released, Pause);
+        kcm.AddKeyCommand(ScanCode.SCANCODE_ESCAPE, KeyButtonState.Released, PauseButton);
+        kcm.AddKeyCommand(ControllerButton.Options, KeyButtonState.Released, PauseButton);
 
-        kcm.AddKeyCommand(ScanCode.SCANCODE_RETURN, KeyButtonState.Pressed, RestartGame);
+        kcm.AddKeyCommand(ScanCode.SCANCODE_RETURN, KeyButtonState.Pressed, RestartButton);
     }
 
-    private void Pause()
+    private void PauseButton()
     {
-        if (inSettingsMenu)
+        switch (blockGame.GameState)
         {
-            GoToPause();
-        }
-        else if (blockGame.Paused)
-        {
-            GoToGame();
-        }
-        else
-        {
-            GoToPause();
+            case GameState.Settings: GoToPause(); break;
+            case GameState.Pause: GoToGame(); break;
+            case GameState.Game: GoToPause(); break;
+            case GameState.EnterName: GoToGame(); break;
         }
     }
 
-    private void RestartGame()
+    private void RestartButton()
     {
-        if (blockGame.Paused) return;
-        if (enteringName)
+        switch (blockGame.GameState)
         {
-            OkName();
-            return;
+            case GameState.Settings: break;
+            case GameState.Pause: break;
+            case GameState.Game: if (blockGame.GameOver) { NewGame(); }; break;
+            case GameState.EnterName: OkName(); break;
         }
-        if (!blockGame.GameOver) return;
-        NewGame();
-    }
-
-
-    private void ResumeGame()
-    {
-        GoToGame();
     }
 
     private void NewGame()
     {
         Reset();
-        ResumeGame();
+        GoToGame();
     }
 
     private void ExitGame()
@@ -388,9 +384,8 @@ public class BlocksScreen : SDLScreen
         if (nameGadget.GetBuffer(out string name))
         {
             blockGame.SetCurrentName(name);
-            //blockGame.ResetHighScores();
         }
-        ResumeGame();
+        GoToGame();
     }
 
     private void OkSettings()
@@ -491,11 +486,7 @@ public class BlocksScreen : SDLScreen
     {
         if (blockGame.SoundEffect >= 0 && blockGame.SoundEffect < blockGfx.Sounds.Count)
         {
-            SDLSound? snd = blockGfx.Sounds[blockGame.SoundEffect];
-            if (snd != null)
-            {
-                SDLAudio.PlaySound(snd);
-            }
+            SDLAudio.PlaySound(blockGfx.Sounds[blockGame.SoundEffect]);
             blockGame.ClearSoundEffect();
         }
     }

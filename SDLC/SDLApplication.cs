@@ -39,6 +39,7 @@ public static class SDLApplication
     private static SDLWindow? mainWindow;
     private static readonly SDLObjectTracker<SDLFont> fontTracker = new(LogCategory.FONT, "Font");
     private static string appName = "SDLC";
+    private static bool showCursor;
 
     public static void Run(IScreen screen, LogPriority logPriority = LogPriority.Info)
     {
@@ -147,6 +148,19 @@ public static class SDLApplication
     {
         get => quitRequested;
         set => quitRequested = value;
+    }
+
+    public static bool ShowCursor
+    {
+        get => showCursor;
+        set
+        {
+            if (showCursor != value)
+            {
+                showCursor = value;
+                _ = SDL_ShowCursor(showCursor ? SDL_ENABLE : SDL_DISABLE);
+            }
+        }
     }
 
     public static SDLFont? DefaultFont => defaultFont;
@@ -315,6 +329,7 @@ RetryTick:
             _ = SDLFont.TTF_Init();
             defaultFont = SDLFont.LoadFont(Properties.Resources.Roboto_Regular, nameof(Properties.Resources.Roboto_Regular), 16);
             iconFont = SDLFont.LoadFont(Properties.Resources.entypo, nameof(Properties.Resources.entypo), 16);
+            if (SDL_ShowCursor(SDL_QUERY) == SDL_ENABLE) { showCursor = true; }
             SDLLog.Info(LogCategory.APPLICATION, "SDL Initialization Done...");
             return true;
         }
@@ -526,6 +541,13 @@ RetryTick:
 
 
     private const string LibName = "SDL2";
+    internal static string? UTF8_ToManaged(IntPtr utf8, bool freePtr = false)
+    {
+        if (utf8 == IntPtr.Zero) return null;
+        string? result = Marshal.PtrToStringUTF8(utf8);
+        if (freePtr) { SDL_free(utf8); }
+        return result;
+    }
 
     [Flags]
     private enum InitFlags : uint
@@ -540,6 +562,11 @@ RetryTick:
         Sensor = 0x8000,
         Everything = Timer | Audio | Video | Haptic | GameController | Events | Sensor
     };
+
+    private const int SDL_QUERY = -1;
+    private const int SDL_DISABLE = 0;
+    private const int SDL_ENABLE = 1;
+
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     internal static extern IntPtr SDL_malloc(IntPtr size);
@@ -571,6 +598,9 @@ RetryTick:
     private static extern int SDL_GetNumRenderDrivers();
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr SDL_GetPixelFormatName(uint format);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int SDL_ShowCursor(int toggle);
+
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr SDL_GetError();
     internal static string? GetError()

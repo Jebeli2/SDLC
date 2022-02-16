@@ -14,8 +14,8 @@ public class SDLController
     private KeyButtonState[] buttonStates = new KeyButtonState[(int)ControllerButton.Max];
     private uint[] buttonRepeatDownTime = new uint[(int)ControllerButton.Max];
     private uint[] buttonRateDownTime = new uint[(int)ControllerButton.Max];
-    private uint repeatDelay = 64;
-    private uint repeatRate = 31;
+    private uint repeatDelay = 100;
+    private uint repeatRate = 50;
 
     internal SDLController(int which, IntPtr handle)
     {

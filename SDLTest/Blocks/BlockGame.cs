@@ -51,18 +51,26 @@ public class BlockGame
     private BlockScore currentScore = new();
     private string currentName = "";
     private BlockScore nextBestScore = new();
-    private bool paused;
+    private GameState gameState;
 
     public BlockGame()
     {
         Reset();
     }
 
-    public bool Paused
+    public GameState GameState
     {
-        get => paused;
-        set=> paused = value;
+        get => gameState;
+        set
+        {
+            if (gameState != value)
+            {
+                gameState = value;
+            }
+        }
     }
+
+    public bool Paused => gameState != GameState.Game;
 
     public int BoardWidth => board.Width;
     public int BoardHeight => board.Height;
@@ -232,7 +240,7 @@ public class BlockGame
 
     public bool MoveLeft()
     {
-        if (!paused && currentPiece != null && !dropped)
+        if (!Paused && currentPiece != null && !dropped)
         {
             if (currentPiece.MoveLeft(board))
             {
@@ -245,7 +253,7 @@ public class BlockGame
 
     public bool MoveRight()
     {
-        if (!paused && currentPiece != null && !dropped)
+        if (!Paused && currentPiece != null && !dropped)
         {
             if (currentPiece.MoveRight(board))
             {
@@ -258,7 +266,7 @@ public class BlockGame
 
     public bool MoveDown()
     {
-        if (!paused && currentPiece != null && !dropped)
+        if (!Paused && currentPiece != null && !dropped)
         {
             if (currentPiece.MoveDown(board))
             {
@@ -272,7 +280,7 @@ public class BlockGame
 
     public bool Drop()
     {        
-        if (!paused && currentPiece != null && !dropped)
+        if (!Paused && currentPiece != null && !dropped)
         {
             currentPiece.Drop(board);
             CheckPieceLanding(true);
@@ -290,7 +298,7 @@ public class BlockGame
 
     public bool RotateLeft()
     {
-        if (!paused && currentPiece != null && !dropped && !rotatedLeft)
+        if (!Paused && currentPiece != null && !dropped && !rotatedLeft)
         {
             if (currentPiece.RotateLeft(board))
             {
@@ -309,7 +317,7 @@ public class BlockGame
 
     public bool RotateRight()
     {
-        if (!paused && currentPiece != null && !dropped && !rotatedRight)
+        if (!Paused && currentPiece != null && !dropped && !rotatedRight)
         {
             if (currentPiece.RotateRight(board))
             {
@@ -328,7 +336,7 @@ public class BlockGame
     public bool Hold()
     {
         bool ok = false;
-        if (!paused && currentPiece != null)
+        if (!Paused && currentPiece != null)
         {
             if (holdPiece == null || !holdPiece.Hold)
             {
