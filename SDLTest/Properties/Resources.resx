@@ -130,6 +130,12 @@
   <data name="box" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\box.jpg;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="collided" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\collided.wav;System.IO.MemoryStream, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="deleteLine" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\deleteLine.wav;System.IO.MemoryStream, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="find-your-way" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\find-your-way.mid;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
@@ -139,6 +145,9 @@
   <data name="fog" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\fog.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="glassbell" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\glassbell.wav;System.IO.MemoryStream, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="ice_palace" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ice_palace.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
@@ -147,6 +156,9 @@
   </data>
   <data name="jesu-joy" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\jesu-joy.mid;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="KL Peach Game Over III" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\KL Peach Game Over III.wav;System.IO.MemoryStream, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="Korobeiniki" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Korobeiniki.ogg;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
@@ -171,6 +183,12 @@
   </data>
   <data name="space" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\space.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="swish-11" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\swish-11.wav;System.IO.MemoryStream, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="swish-9" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\swish-9.wav;System.IO.MemoryStream, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="Tetris Theme Variations on Piano" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Tetris Theme Variations on Piano.ogg;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>

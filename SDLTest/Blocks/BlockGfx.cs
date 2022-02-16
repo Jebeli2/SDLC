@@ -13,7 +13,7 @@ using SDLC;
 public class BlockGfx
 {
     private readonly BlocksScreen screen;
-
+    private readonly List<SDLSound?> sounds = new();
     public BlockGfx(BlocksScreen screen)
     {
         this.screen = screen;
@@ -28,6 +28,7 @@ public class BlockGfx
         //soundEffects.Add(cm.GetSound("KL Peach Game Over III"));
     }
 
+    public IList<SDLSound?> Sounds => sounds;
     public SDLFont? BigFont { get; set; }
     public SDLFont? MsgFont { get; set; }
     public SDLFont? SmallFont { get; set; }
@@ -36,18 +37,6 @@ public class BlockGfx
     public SDLTexture? Fog { get; set; }
     public SDLTexture? Blur { get; set; }
 
-    public void Update(double totalTime, double elapsedTime)
-    {
-        //if (game.Settings.UseBackground)
-        //{
-        //    spaceP.Update(gameTime);
-        //    fogP.Update(gameTime);
-        //}
-        //if (game.ShowScore)
-        //{
-        //    UpdateHighScore(gameTime);
-        //}
-    }
 
 
 }

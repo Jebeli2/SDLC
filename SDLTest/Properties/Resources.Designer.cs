@@ -101,6 +101,24 @@ namespace SDLTest.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream collided {
+            get {
+                return ResourceManager.GetStream("collided", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream deleteLine {
+            get {
+                return ResourceManager.GetStream("deleteLine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
         internal static byte[] find_your_way {
@@ -131,6 +149,15 @@ namespace SDLTest.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream glassbell {
+            get {
+                return ResourceManager.GetStream("glassbell", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
         internal static byte[] ice_palace {
@@ -157,6 +184,15 @@ namespace SDLTest.Properties {
             get {
                 object obj = ResourceManager.GetObject("jesu-joy", resourceCulture);
                 return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream KL_Peach_Game_Over_III {
+            get {
+                return ResourceManager.GetStream("KL Peach Game Over III", resourceCulture);
             }
         }
         
@@ -237,6 +273,24 @@ namespace SDLTest.Properties {
             get {
                 object obj = ResourceManager.GetObject("space", resourceCulture);
                 return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream swish_11 {
+            get {
+                return ResourceManager.GetStream("swish-11", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream swish_9 {
+            get {
+                return ResourceManager.GetStream("swish-9", resourceCulture);
             }
         }
         

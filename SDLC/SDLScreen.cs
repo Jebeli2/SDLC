@@ -191,6 +191,16 @@ public class SDLScreen : IScreen
         return SDLAudio.LoadMusic(name, data);
     }
 
+    protected SDLSound? LoadSound(string name)
+    {
+        byte[]? data = contentManager?.FindContent(name);
+        return SDLAudio.LoadSound(name, data);
+    }
+    protected SDLSound? LoadSound(string name, byte[]? data)
+    {
+        return SDLAudio.LoadSound(name, data);
+    }
+
     protected SDLFont? LoadFont(string name, int ySize)
     {
         byte[]? data = contentManager?.FindContent(name);

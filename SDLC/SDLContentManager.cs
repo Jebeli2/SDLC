@@ -62,16 +62,19 @@ internal class SDLContentManager : IContentManager
                 {
                     return Encoding.UTF8.GetBytes(str);
                 }
-            }
-            else
-            {
-                UnmanagedMemoryStream? ums = rm.GetStream(name);
-                if (ums != null)
+                else if (obj is UnmanagedMemoryStream ums1)
                 {
-                    byte[] umsData = new byte[ums.Length];
-                    ums.Read(umsData, 0, umsData.Length);
+                    byte[] umsData = new byte[ums1.Length];
+                    ums1.Read(umsData, 0, umsData.Length);
                     return umsData;
                 }
+            }
+            UnmanagedMemoryStream? ums = rm.GetStream(name);
+            if (ums != null)
+            {
+                byte[] umsData = new byte[ums.Length];
+                ums.Read(umsData, 0, umsData.Length);
+                return umsData;
             }
         }
         return null;

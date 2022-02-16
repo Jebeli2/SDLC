@@ -283,6 +283,11 @@ public class BlocksScreen : SDLScreen
 
     private void InitGfx()
     {
+        blockGfx.Sounds.Add(LoadSound("collided"));
+        blockGfx.Sounds.Add(LoadSound("deleteLine"));
+        blockGfx.Sounds.Add(LoadSound("glassbell"));
+        blockGfx.Sounds.Add(LoadSound("swish-11"));
+        blockGfx.Sounds.Add(LoadSound("KL Peach Game Over III"));
         blockGfx.BigFont = LoadFont("Rubik-Regular", 32);
         blockGfx.MsgFont = LoadFont("Rubik-Regular", 38);
         blockGfx.SmallFont = LoadFont("Rubik-Regular", 16);
@@ -310,6 +315,11 @@ public class BlocksScreen : SDLScreen
 
     private void DisposeGfx()
     {
+        foreach (SDLSound? sound in blockGfx.Sounds)
+        {
+            sound?.Dispose();
+        }
+        blockGfx.Sounds.Clear();
         blockGfx.Blur?.Dispose();
         blockGfx.Fog?.Dispose();
         blockGfx.Space?.Dispose();
@@ -606,10 +616,13 @@ public class BlocksScreen : SDLScreen
     }
     private void UpdateSoundEffects()
     {
-        if (blockGame.SoundEffect >= 0)
+        if (blockGame.SoundEffect >= 0 && blockGame.SoundEffect < blockGfx.Sounds.Count)
         {
-            //ISound? snd = blockGfx.SoundEffects[blockGame.SoundEffect];
-            //app.Context.Audio.PlaySound(snd);
+            SDLSound? snd = blockGfx.Sounds[blockGame.SoundEffect];
+            if (snd != null)
+            {
+                SDLAudio.PlaySound(snd);
+            }
             blockGame.ClearSoundEffect();
         }
     }

@@ -92,6 +92,17 @@ public class SDLApplet : IDisposable
         return SDLAudio.LoadMusic(name, data);
     }
 
+    protected SDLSound? LoadSound(string name)
+    {
+        byte[]? data = contentManager?.FindContent(name);
+        return SDLAudio.LoadSound(name, data);
+    }
+
+    protected SDLSound? LoadSound(string name, byte[]? data)
+    {
+        return SDLAudio.LoadSound(name, data);
+    }
+
     protected SDLTexture? LoadTexture(string name)
     {
         byte[]? data = contentManager?.FindContent(name);
