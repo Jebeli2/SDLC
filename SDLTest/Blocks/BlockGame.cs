@@ -51,11 +51,17 @@ public class BlockGame
     private BlockScore currentScore = new();
     private string currentName = "";
     private BlockScore nextBestScore = new();
-
+    private bool paused;
 
     public BlockGame()
     {
         Reset();
+    }
+
+    public bool Paused
+    {
+        get => paused;
+        set=> paused = value;
     }
 
     public int BoardWidth => board.Width;
@@ -63,9 +69,12 @@ public class BlockGame
     public int KeyDAS => keyDAS;
     public int LineClearDelay => lineClearDelay;
     public int CurrentLineClear => currentLineClear;
-    public string PointsStr => points.ToString();
-    public string LevelStr => currentLevel.ToString();
-    public string LinesToClearStr => (rowsPerLevel - levelRowsCleared).ToString();
+    public int Points => points;
+    //public string PointsStr => points.ToString();
+    public int CurrentLevel => currentLevel;
+    //public string LevelStr => currentLevel.ToString();
+    public int LinesToClear => rowsPerLevel - levelRowsCleared;
+    //public string LinesToClearStr => (rowsPerLevel - levelRowsCleared).ToString();
     public int SoundEffect => soundEffect;
     public bool GameOver => gameOver;
     public BlockBoard Board => board;
@@ -223,7 +232,7 @@ public class BlockGame
 
     public bool MoveLeft()
     {
-        if (currentPiece != null && !dropped)
+        if (!paused && currentPiece != null && !dropped)
         {
             if (currentPiece.MoveLeft(board))
             {
@@ -236,7 +245,7 @@ public class BlockGame
 
     public bool MoveRight()
     {
-        if (currentPiece != null && !dropped)
+        if (!paused && currentPiece != null && !dropped)
         {
             if (currentPiece.MoveRight(board))
             {
@@ -249,7 +258,7 @@ public class BlockGame
 
     public bool MoveDown()
     {
-        if (currentPiece != null && !dropped)
+        if (!paused && currentPiece != null && !dropped)
         {
             if (currentPiece.MoveDown(board))
             {
@@ -262,8 +271,8 @@ public class BlockGame
     }
 
     public bool Drop()
-    {
-        if (currentPiece != null && !dropped)
+    {        
+        if (!paused && currentPiece != null && !dropped)
         {
             currentPiece.Drop(board);
             CheckPieceLanding(true);
@@ -281,7 +290,7 @@ public class BlockGame
 
     public bool RotateLeft()
     {
-        if (currentPiece != null && !dropped && !rotatedLeft)
+        if (!paused && currentPiece != null && !dropped && !rotatedLeft)
         {
             if (currentPiece.RotateLeft(board))
             {
@@ -300,7 +309,7 @@ public class BlockGame
 
     public bool RotateRight()
     {
-        if (currentPiece != null && !dropped && !rotatedRight)
+        if (!paused && currentPiece != null && !dropped && !rotatedRight)
         {
             if (currentPiece.RotateRight(board))
             {
@@ -319,7 +328,7 @@ public class BlockGame
     public bool Hold()
     {
         bool ok = false;
-        if (currentPiece != null)
+        if (!paused && currentPiece != null)
         {
             if (holdPiece == null || !holdPiece.Hold)
             {
