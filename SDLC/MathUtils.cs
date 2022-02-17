@@ -46,4 +46,17 @@ public static class MathUtils
         return a;
     }
 
+    public static float Deg2Rad(float deg)
+    {
+        return MathF.PI * deg / 180.0f;
+    }
+    public static float CosDeg(float angle)
+    {
+        return MathF.Cos(Deg2Rad(angle));
+    }
+
+    public static float SinDeg(float angle)
+    {
+        return MathF.Sin(Deg2Rad(angle));
+    }
 }

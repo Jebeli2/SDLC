@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SDLC.Graphics;
 
 public class ParticleEmitter
 {
@@ -49,6 +50,8 @@ public class ParticleEmitter
     private int maxParticleCount = 4;
     private float x;
     private float y;
+    private List<TextureRegion> sprites = new();
+    private SpriteMode spriteMode = SpriteMode.Single;
     private Particle[] particles = new Particle[4];
     private bool[] active = new bool[4];
     private int activeCount;
@@ -278,6 +281,10 @@ public class ParticleEmitter
         //if (tin)
         //if
     }
+    protected virtual Particle NewParticle(TextureRegion sprite)
+    {
+        return new Particle(sprite);
+    }
 
     private bool UpdateParticle(Particle particle, float delta, int deltaMillis)
     {
@@ -286,6 +293,90 @@ public class ParticleEmitter
 
     private void ActivateParticle(int index)
     {
+        TextureRegion sprite;
+        switch (spriteMode)
+        {
+            case SpriteMode.Random:
+                sprite = sprites[rng.Next(sprites.Count - 1)];
+                break;
+            case SpriteMode.Single:
+            case SpriteMode.Animation:
+            default:
+                sprite = sprites[0];
+                break;
+        }
+        Particle particle = particles[index];
+        if (particle == null)
+        {
+            particle = NewParticle(sprite);
+            particles[index] = particle;
+        }
+        else
+        {
+            particle.Set(sprite);
+        }
+        float percent = durationTimer / duration;
+        UpdateFlags updateFlags = this.updateFlags;
+        if (lifeValue.Independent) { GenerateLifeValues(); }
+        if (lifeOffsetValue.Independent) { GenerateLifeOffsetValues(); }
+        particle.currentLife = particle.life = life + (int)(lifeDiff * lifeValue.GetScale(percent));
+        if (velocityValue.Active)
+        {
+            particle.velocity = velocityValue.NewLowValue();
+            particle.velocityDiff = velocityValue.NewHighValue();
+            if (!velocityValue.Relative) { particle.velocityDiff -= particle.velocity; }
+        }
+        particle.angle = angleValue.NewLowValue();
+        particle.angleDiff = angleValue.NewHighValue();
+        if (!angleValue.Relative) { particle.angleDiff -= particle.angle; }
+        float angle = 0;
+        if ((updateFlags & UpdateFlags.Angle) == 0)
+        {
+            angle = particle.angle + particle.angleDiff * angleValue.GetScale(0);
+            particle.angle = angle;
+            particle.angleCos = MathUtils.CosDeg(angle);
+            particle.angleSin = MathUtils.SinDeg(angle);
+        }
+        float spriteWidth = sprite.Width;
+        float spriteHeight = sprite.Height;
+        particle.xScale = xScaleValue.NewLowValue() / spriteWidth;
+        particle.xScaleDiff = xScaleValue.NewHighValue() / spriteWidth;
+        if (!xScaleValue.Relative) { particle.xScaleDiff -= particle.xScale; }
+
+        if (yScaleValue.Active)
+        {
+            particle.yScale = yScaleValue.NewLowValue() / spriteHeight;
+            particle.yScaleDiff = yScaleValue.NewHighValue() / spriteHeight;
+            if (!yScaleValue.Relative) { particle.yScaleDiff -= particle.yScale; }
+            //particle.SetScale()
+        }
+        else
+        {
+            //particle.SetScale();
+        }
+        if (rotationValue.Active)
+        {
+            particle.rotation = rotationValue.NewLowValue();
+            particle.rotationDiff = rotationValue.NewHighValue();
+            if (!rotationValue.Relative) { particle.rotationDiff -= particle.rotation; }
+
+        }
+
+        if (windValue.Active)
+        {
+            particle.wind = windValue.NewLowValue();
+            particle.windDiff = windValue.NewHighValue();
+            if (!windValue.Relative) { particle.windDiff -= particle.wind; }
+        }
+        if (gravityValue.Active)
+        {
+            particle.gravity = gravityValue.NewLowValue();
+            particle.gravityDiff = gravityValue.NewHighValue();
+            if (!gravityValue.Relative) { particle.gravityDiff -= particle.gravity; }
+        }
+
+        particle.transparency = transparenyValue.NewLowValue();
+        particle.transparencyDiff = transparenyValue.NewHighValue() - particle.transparency;
 
     }
     private void GenerateLifeValues()
@@ -497,16 +588,41 @@ public class ParticleEmitter
         }
     }
 
-    private class Particle
+    public class Particle : TextureRegion
     {
+        public int life;
+        public int currentLife;
+        public float xScale;
+        public float xScaleDiff;
+        public float yScale;
+        public float yScaleDiff;
+        public float rotation;
+        public float rotationDiff;
+        public float velocity;
+        public float velocityDiff;
+        public float angle;
+        public float angleDiff;
+        public float angleCos;
+        public float angleSin;
+        public float transparency;
+        public float transparencyDiff;
+        public float wind;
+        public float windDiff;
+        public float gravity;
+        public float gravityDiff;
+
+        public int frame;
+        public Particle(TextureRegion sprite)
+            : base(sprite)
+        {
+
+        }
         internal void Draw(IRenderer renderer)
         {
-            throw new NotImplementedException();
         }
 
         internal void Translate(float xAmount, float yAmount)
         {
-            throw new NotImplementedException();
         }
     }
 }

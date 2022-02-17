@@ -26,6 +26,15 @@ public class TextureRegion
         height = this.texture.Height;
     }
 
+    public TextureRegion(TextureRegion textureRegion)
+    {
+        texture = textureRegion.texture;
+        x = textureRegion.x;
+        y = textureRegion.y;
+        width = textureRegion.width;
+        height = textureRegion.height;
+    }
+
     public SDLTexture Texture
     {
         get { return texture; }
@@ -57,6 +66,15 @@ public class TextureRegion
     }
 
     public Rectangle Bounds => new(x, y, width, height);
+
+    public void Set(TextureRegion textureRegion)
+    {
+        texture = textureRegion.texture;
+        x = textureRegion.x;
+        y = textureRegion.y;
+        width = textureRegion.width;
+        height = textureRegion.height;
+    }
 
     public void Render(IRenderer renderer, Rectangle dst)
     {
