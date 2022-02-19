@@ -129,8 +129,8 @@ public class SDLScreen : IScreen
 
     public virtual void Shutdown(IWindow window)
     {
-        SDLLog.Info(LogCategory.APPLICATION, "Shutdown Screen {0}", name);
         SetWindow(window);
+        SDLLog.Info(LogCategory.APPLICATION, "Shutdown Screen {0}", name);
     }
 
     public virtual void Update(IRenderer renderer, double totalTime, double elapsedTime)
@@ -185,7 +185,9 @@ public class SDLScreen : IScreen
         {
             return window.GetApplet<T>();
         }
-        return new T();
+        T applet = new T();
+        appletsToAdd.Add(applet);
+        return applet;
     }
     protected void ChangeScreen(IScreen screen)
     {

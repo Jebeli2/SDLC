@@ -1250,6 +1250,7 @@ internal sealed class SDLWindow : IWindow, IDisposable
         }
     }
 
+    // TODO: Refcator the whole init/show/hide/shutdown thing...
     private class ScreenForwarder : SDLApplet
     {
         private readonly SDLWindow window;
@@ -1260,7 +1261,17 @@ internal sealed class SDLWindow : IWindow, IDisposable
 
         protected override void OnWindowLoad(SDLWindowLoadEventArgs e)
         {
-            window.screen.Initialize(window);
+            //window.screen.Initialize(window);
+        }
+
+        protected internal override void OnWindowShown(EventArgs e)
+        {
+            //window.screen.Show(window);
+        }
+
+        protected internal override void OnWindowHidden(EventArgs e)
+        {
+            //window.screen.Hide(window);
         }
         protected override void OnWindowUpdate(SDLWindowUpdateEventArgs e)
         {
@@ -1276,6 +1287,10 @@ internal sealed class SDLWindow : IWindow, IDisposable
             window.screen.Resized(window, e.Width, e.Height);
         }
 
+        protected internal override void OnWindowClose(EventArgs e)
+        {
+            //window.screen.Shutdown(window);
+        }
     }
 
 

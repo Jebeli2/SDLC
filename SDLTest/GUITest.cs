@@ -75,7 +75,7 @@
         public override void Hide(IWindow window)
         {
             base.Hide(window);
-            SDLAudio.MusicStarted += SDLAudio_MusicStarted;
+            SDLAudio.MusicStarted -= SDLAudio_MusicStarted;
         }
         private void SDLAudio_MusicStarted(object? sender, SDLMusicEventArgs e)
         {
