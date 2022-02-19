@@ -4,14 +4,19 @@
 namespace SDLC;
 public class SDLMusicDataEventArgs : SDLMusicEventArgs
 {
-    private readonly short[] data;
+    private short[] data;
+    public SDLMusicDataEventArgs(SDLMusic music)
+        : this(music, Array.Empty<short>())
+    {
+
+    }
     public SDLMusicDataEventArgs(SDLMusic music, short[] data)
         : base(music)
     {
         this.data = data;
     }
 
-    public short[] Data => data;
+    public short[] Data { get => data; set => data = value; }
 }
 
 public delegate void SDLMusicDataEventHandler(object? sender, SDLMusicDataEventArgs e);

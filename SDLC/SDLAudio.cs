@@ -29,6 +29,7 @@ public static class SDLAudio
     private static readonly Dictionary<int, Playback> playback = new();
     private static readonly Dictionary<string, int> channels = new();
     private static PointF lastPos;
+    private static SDLMusicDataEventArgs? musicDataEventArgs;
 
     public static bool UseTmpFilesForMusic { get; set; } = true;
     public static bool AttemptToDeleteOldTmpFiles { get; set; } = true;
@@ -158,6 +159,7 @@ public static class SDLAudio
             SDLLog.Verbose(LogCategory.AUDIO, "Music '{0}' started", music.Name);
             OnMusicStarted(e);
             currentMusic = music;
+            musicDataEventArgs = new SDLMusicDataEventArgs(currentMusic);
         }
     }
     public static void PauseMusic()
@@ -369,14 +371,15 @@ public static class SDLAudio
 
     private static void MixPostMix(IntPtr udata, IntPtr stream, int len)
     {
-        if (currentMusic != null && HasMusicDataHandler)
+        if (currentMusic != null && HasMusicDataHandler && musicDataEventArgs != null)
         {
             if (musicData.Length != len / 2)
             {
                 musicData = new short[len / 2];
             }
             Marshal.Copy(stream, musicData, 0, musicData.Length);
-            OnMusicDataReceived(new SDLMusicDataEventArgs(currentMusic, musicData));
+            musicDataEventArgs.Data = musicData;
+            OnMusicDataReceived(musicDataEventArgs);
         }
     }
 
