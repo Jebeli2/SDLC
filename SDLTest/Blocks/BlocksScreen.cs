@@ -62,7 +62,7 @@ public class BlocksScreen : SDLScreen
         _ = MakeGameScreen();
         SDLApplication.ShowCursor = false;
         ParticleSystem.Clear();
-        ParticleSystem.AddParticleEffect(SDLC.Particles.Style.Snow, Width / 2, 0);
+        ParticleSystem.AddParticleEffect(SDLC.Particles.Style.Blocks, Width / 2, Height / 2);
     }
     public override void Resized(IWindow window, int width, int height)
     {

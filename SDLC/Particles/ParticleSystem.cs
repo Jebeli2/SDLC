@@ -443,6 +443,41 @@ public class ParticleSystem : SDLApplet, IParticleSystem
                 spe.Active = true;
                 effects.Add(spe);
                 break;
+            case Style.Blocks:
+                spe = new SimpleParticleEffect();
+                spe.Texture = texture;
+                spe.X = x;
+                spe.Y = y;
+                spe.TotalParticleCount = 1000;
+                spe.Duration = -1;
+                spe.EmitterMode = Mode.Gravity;
+                spe.Gravity = new PointF(20, 0);
+                spe.Speed = 0;
+                spe.SpeedVar = 50;
+                spe.RadialAccel = -10;
+                spe.RadialAccelVar = 0;
+                spe.TangentialAccel = 20;
+                spe.TangentialAccelVar = 0;
+                spe.Angle = -90;
+                spe.AngleVar = 5;
+                spe.Life = 2.5f;
+                spe.LifeVar = 0;
+                spe.StartSize = 8.0f;
+                spe.StartSizeVar = 7.0f;
+                spe.EndSize = -1;
+                spe.EmissionRate = spe.TotalParticleCount / spe.Life;
+                spe.StartColor = new Graphics.ColorF(1.0f, 1.0f, 1.0f, 0.5f);
+                spe.StartColorVar = new Graphics.ColorF(0.25f, 0.25f, 0.25f, 0.1f);
+                spe.EndColor = new Graphics.ColorF(1.0f, 1.0f, 1.0f, 0.0f);
+                spe.EndColorVar = new Graphics.ColorF(0.0f, 0.0f, 0.0f, 0.0f);
+                spe.PosVar = new PointF(1.0f * x, 1.0f * y);
+                spe.StartSpin = 0;
+                spe.StartSpinVar = 360;
+                spe.EndSpin = 0;
+                spe.EndSpinVar = 360;
+                spe.Active = true;
+                effects.Add(spe);
+                break;
         }
     }
 }

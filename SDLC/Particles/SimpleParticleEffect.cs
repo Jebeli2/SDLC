@@ -127,10 +127,13 @@ internal class SimpleParticleEffect : IParticleEffect
     public void Render(IRenderer renderer)
     {
         if (texture == null) return;
-        //RenderSimple(renderer, texture);
-        RenderGeo(renderer, texture);
+        RenderSimple(renderer, texture);
+        //RenderGeo(renderer, texture);
     }
 
+    // TODO: Rotation?
+    // BUT: It seems, SDL queues the RenderCopyEx calls as RenderGeometry commands anyway (at least for direct3d11),
+    // so there's nothing to be gained by doing this 'by hand'.
     private void RenderGeo(IRenderer renderer, SDLTexture tex)
     {
         List<RectangleF> rects = new();

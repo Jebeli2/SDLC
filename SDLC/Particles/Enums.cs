@@ -51,5 +51,6 @@ public enum Style
     Smoke,
     Snow,
     Rain,
+    Blocks,
     Max
 }
