@@ -15,3 +15,41 @@ public enum SpriteMode
     Animation,
     Random
 }
+
+public enum SpawnShape
+{
+    Point,
+    Line,
+    Square,
+    Ellipse
+}
+
+public enum SpawnEllipseSide
+{
+    Both,
+    Top,
+    Bottom,
+}
+
+public enum Mode
+{
+    Gravity,
+    Radius
+}
+
+public enum Style
+{
+    None,
+    Fire,
+    FireWork,
+    Sun,
+    Galaxy,
+    Flower,
+    Meteor,
+    Spiral,
+    Explosion,
+    Smoke,
+    Snow,
+    Rain,
+    Max
+}

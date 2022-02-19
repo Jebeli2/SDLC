@@ -18,6 +18,7 @@ public class SDLScreen : IScreen
     private IRenderer? renderer;
     private IContentManager? contentManager;
     private IGUISystem? gui;
+    private IParticleSystem? particleSystem;
 
     public SDLScreen(string name = "SDLScreen")
     {
@@ -49,6 +50,33 @@ public class SDLScreen : IScreen
                 if (window != null)
                 {
                     window.GUI = value;
+                }
+            }
+        }
+    }
+
+    public IParticleSystem ParticleSystem
+    {
+        get
+        {
+            if (particleSystem == null)
+            {
+                particleSystem = window?.ParticleSystem;
+                if (particleSystem == null)
+                {
+                    particleSystem = GetApplet<Particles.ParticleSystem>();
+                }
+            }
+            return particleSystem;
+        }
+        set
+        {
+            if (particleSystem != value)
+            {
+                particleSystem = value;
+                if (window != null)
+                {
+                    window.ParticleSystem = value;
                 }
             }
         }

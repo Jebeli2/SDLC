@@ -39,6 +39,9 @@ public interface IRenderer
     void DrawTexture(SDLTexture? texture, Rectangle src, Rectangle dst, double angle, RendererFlip flip = RendererFlip.None);
     void DrawTexture(SDLTexture? texture, Rectangle dst, double angle, Point center, RendererFlip flip = RendererFlip.None);
     void DrawTexture(SDLTexture? texture, Rectangle dst, double angle, RendererFlip flip = RendererFlip.None);
+    void DrawTexture(SDLTexture? texture, RectangleF dst, double angle, RendererFlip flip = RendererFlip.None);
+
+    void DrawTextureRects(SDLTexture? texture, IList<RectangleF> rects, IList<Color> colors);
 
     void DrawIcon(Icons icon, float x, float y, float width, float height, Color color, HorizontalAlignment hAlign = HorizontalAlignment.Center, VerticalAlignment vAlign = VerticalAlignment.Center, float offsetX = 0, float offsetY = 0);
     void DrawText(SDLFont? font, ReadOnlySpan<char> text, float x, float y, float width, float height, Color color, HorizontalAlignment horizontalAlignment = HorizontalAlignment.Center, VerticalAlignment verticalAlignment = VerticalAlignment.Center, float offsetX = 0, float offsetY = 0);

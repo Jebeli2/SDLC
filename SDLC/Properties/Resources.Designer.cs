@@ -73,6 +73,16 @@ namespace SDLC.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] fire {
+            get {
+                object obj = ResourceManager.GetObject("fire", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] Roboto_Regular {
             get {
                 object obj = ResourceManager.GetObject("Roboto-Regular", resourceCulture);

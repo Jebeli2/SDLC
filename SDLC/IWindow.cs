@@ -14,6 +14,7 @@ public interface IWindow
     IRenderer Renderer { get; }
     IContentManager ContentManager { get; }
     IGUISystem GUI { get; set; }
+    IParticleSystem ParticleSystem { get; set; }
     IScreen Screen { get; set; }
     int Width { get; }
     int Height { get; }

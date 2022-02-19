@@ -26,7 +26,7 @@ public class ParticleEmitter
     }
 
     private static readonly Random rng = new();
-
+    private string name = "";
     private RangedNumericValue delayValue = new();
     private IndependentScaledNumericValue lifeOffsetValue = new();
     private RangedNumericValue durationValue = new();
@@ -40,10 +40,12 @@ public class ParticleEmitter
     private ScaledNumericValue windValue = new();
     private ScaledNumericValue gravityValue = new();
     private ScaledNumericValue transparenyValue = new();
+    private ColorGradientValue tintValue = new();
     private RangedNumericValue xOffsetValue = new();
     private RangedNumericValue yOffsetValue = new();
     private ScaledNumericValue spawnWidthValue = new();
     private ScaledNumericValue spawnHeightValue = new();
+    private SpawnShapeValue spawnShapeValue = new();
 
     private float accumulator;
     private int minParticleCount = 4;
@@ -63,6 +65,7 @@ public class ParticleEmitter
 
     private bool attached;
     private bool continuous;
+    private bool aligned;
     private bool behind;
     private bool allowCompletion;
     private UpdateFlags updateFlags;
@@ -82,6 +85,8 @@ public class ParticleEmitter
     private bool additive = true;
     private bool cleansUpBlendFunction = true;
 
+    private readonly List<string> imagePaths = new List<string>();
+
     public ParticleEmitter()
     {
         durationValue.AlwaysActive = true;
@@ -89,8 +94,103 @@ public class ParticleEmitter
         lifeValue.AlwaysActive = true;
         xScaleValue.AlwaysActive = true;
         transparenyValue.AlwaysActive = true;
+        spawnShapeValue.AlwaysActive = true;
         spawnWidthValue.AlwaysActive = true;
         spawnHeightValue.AlwaysActive = true;
+    }
+
+    public ParticleEmitter(TextReader reader)
+    {
+        durationValue.AlwaysActive = true;
+        emissionValue.AlwaysActive = true;
+        lifeValue.AlwaysActive = true;
+        xScaleValue.AlwaysActive = true;
+        transparenyValue.AlwaysActive = true;
+        spawnShapeValue.AlwaysActive = true;
+        spawnWidthValue.AlwaysActive = true;
+        spawnHeightValue.AlwaysActive = true;
+        Load(reader);
+    }
+
+    public IList<string> ImagePaths => imagePaths;
+    public IList<TextureRegion> Sprites
+    {
+        get => sprites;
+        set
+        {
+            sprites.Clear();
+            sprites.AddRange(value);
+        }
+    }
+
+    private void Load(TextReader reader)
+    {
+        name = reader.ReadString("name");
+        _ = reader.ReadLine();
+        delayValue.Load(reader);
+        _ = reader.ReadLine();
+        durationValue.Load(reader);
+        _ = reader.ReadLine();
+        MinParticleCount = reader.ReadInt("minParticleCount");
+        MaxParticleCount = reader.ReadInt("maxParticleCount");
+        _ = reader.ReadLine();
+        emissionValue.Load(reader);
+        _ = reader.ReadLine();
+        lifeValue.Load(reader);
+        _ = reader.ReadLine();
+        lifeOffsetValue.Load(reader);
+        _ = reader.ReadLine();
+        xOffsetValue.Load(reader);
+        _ = reader.ReadLine();
+        yOffsetValue.Load(reader);
+        _ = reader.ReadLine();
+        spawnShapeValue.Load(reader);
+        _ = reader.ReadLine();
+        spawnWidthValue.Load(reader);
+        _ = reader.ReadLine();
+        spawnHeightValue.Load(reader);
+        string? line = reader.ReadLine();
+        if (line != null && line.Trim().Equals("- Scale -", StringComparison.OrdinalIgnoreCase))
+        {
+            xScaleValue.Load(reader);
+            yScaleValue.Active = false;
+        }
+        else
+        {
+            xScaleValue.Load(reader);
+            _ = reader.ReadLine();
+            yScaleValue.Load(reader);
+        }
+        _ = reader.ReadLine();
+        velocityValue.Load(reader);
+        _ = reader.ReadLine();
+        angleValue.Load(reader);
+        _ = reader.ReadLine();
+        rotationValue.Load(reader);
+        _ = reader.ReadLine();
+        windValue.Load(reader);
+        _ = reader.ReadLine();
+        gravityValue.Load(reader);
+        _ = reader.ReadLine();
+        tintValue.Load(reader);
+        _ = reader.ReadLine();
+        transparenyValue.Load(reader);
+        _ = reader.ReadLine();
+        attached = reader.ReadBoolean("attached");
+        continuous = reader.ReadBoolean("continuous");
+        aligned = reader.ReadBoolean("aligned");
+        additive = reader.ReadBoolean("additive");
+        behind = reader.ReadBoolean("behind");
+        premultipliedAlpha = reader.ReadBoolean("premultipliedAlpha");
+        spriteMode = Enum.Parse<SpriteMode>(reader.ReadString("spriteMode"), ignoreCase: true);
+        _ = reader.ReadLine();
+        List<string> images = new List<string>();
+        while ((line = reader.ReadLine()) != null && !string.IsNullOrEmpty(line))
+        {
+            images.Add(line);
+        }
+        imagePaths.Clear();
+        imagePaths.AddRange(images);
     }
 
     public int MaxParticleCount
@@ -288,6 +388,12 @@ public class ParticleEmitter
 
     private bool UpdateParticle(Particle particle, float delta, int deltaMillis)
     {
+        int life = particle.currentLife - deltaMillis;
+        if (life <= 0) { return false; }
+        particle.currentLife = life;
+        float percent = 1-particle.currentLife / (float)particle.life;
+        UpdateFlags updateFlags = this.updateFlags;
+
         return true;
     }
 
@@ -474,8 +580,8 @@ public class ParticleEmitter
     public float Y => y;
     private class ParticleValue
     {
-        private bool active;
-        private bool alwaysActive;
+        protected bool active;
+        protected bool alwaysActive;
 
         public bool AlwaysActive
         {
@@ -488,6 +594,19 @@ public class ParticleEmitter
             get => alwaysActive || active;
             set { active = value; }
         }
+
+        public virtual void Load(TextReader reader)
+        {
+            if (!alwaysActive)
+            {
+                active = reader.ReadBoolean("active");
+            }
+            else
+            {
+                active = true;
+            }
+        }
+
     }
 
     private class NumericValue : ParticleValue
@@ -498,6 +617,13 @@ public class ParticleEmitter
         {
             get => value;
             set => this.value = value;
+        }
+
+        public override void Load(TextReader reader)
+        {
+            base.Load(reader);
+            if (!active) return;
+            value = reader.ReadFloat("value");
         }
     }
 
@@ -520,6 +646,14 @@ public class ParticleEmitter
         {
             get => lowMax;
             set => lowMax = value;
+        }
+
+        public override void Load(TextReader reader)
+        {
+            base.Load(reader);
+            if (!active) return;
+            lowMin = reader.ReadFloat("lowMin");
+            lowMax = reader.ReadFloat("lowMax");
         }
     }
 
@@ -575,6 +709,25 @@ public class ParticleEmitter
             float startTime = timeline[startIndex];
             return startValue + (scaling[endIndex] - startValue) * ((percent - startTime) / (timeline[endIndex] - startTime));
         }
+
+        public override void Load(TextReader reader)
+        {
+            base.Load(reader);
+            if (!active) return;
+            highMin = reader.ReadFloat("highMin");
+            highMax = reader.ReadFloat("highMax");
+            relative = reader.ReadBoolean("relative");
+            scaling = new float[reader.ReadInt("scalingCount")];
+            for (int i = 0; i < scaling.Length; i++)
+            {
+                scaling[i] = reader.ReadFloat("scaling" + i);
+            }
+            timeline = new float[reader.ReadInt("timelineCount")];
+            for (int i = 0; i < timeline.Length; i++)
+            {
+                timeline[i] = reader.ReadFloat("timeline" + i);
+            }
+        }
     }
 
     private class IndependentScaledNumericValue : ScaledNumericValue
@@ -585,6 +738,59 @@ public class ParticleEmitter
         {
             get => independent;
             set => independent = value;
+        }
+
+        public override void Load(TextReader reader)
+        {
+            base.Load(reader);
+            //if (!active) return;
+            independent = reader.ReadBoolean("independent");
+        }
+    }
+
+    private class ColorGradientValue : ParticleValue
+    {
+        internal float[] colors = new float[] { 1.0f, 1.0f, 1.0f };
+        internal float[] timeline = new float[] { 0.0f };
+
+        public ColorGradientValue()
+        {
+            alwaysActive = true;
+        }
+
+        public override void Load(TextReader reader)
+        {
+            base.Load(reader);
+            if (!active) return;
+            colors = new float[reader.ReadInt("colorsCount")];
+            for (int i = 0; i < colors.Length; i++)
+            {
+                colors[i] = reader.ReadFloat("color" + i);
+            }
+            timeline = new float[reader.ReadInt("timelineCount")];
+            for (int i = 0; i < timeline.Length; i++)
+            {
+                timeline[i] = reader.ReadFloat("timeline" + i);
+            }
+        }
+    }
+
+    private class SpawnShapeValue : ParticleValue
+    {
+        internal SpawnShape shape;
+        internal bool edges;
+        internal SpawnEllipseSide side;
+
+        public override void Load(TextReader reader)
+        {
+            base.Load(reader);
+            if (!active) return;
+            shape = Enum.Parse<SpawnShape>(reader.ReadString("shape"), ignoreCase: true);
+            if (shape == SpawnShape.Ellipse)
+            {
+                edges = reader.ReadBoolean("edges");
+                side = Enum.Parse<SpawnEllipseSide>(reader.ReadString("side"), ignoreCase: true);
+            }
         }
     }
 
@@ -612,6 +818,9 @@ public class ParticleEmitter
         public float gravityDiff;
 
         public int frame;
+
+        public float xpos;
+        public float ypos;
         public Particle(TextureRegion sprite)
             : base(sprite)
         {
@@ -619,6 +828,7 @@ public class ParticleEmitter
         }
         internal void Draw(IRenderer renderer)
         {
+            Render(renderer, xpos, ypos);
         }
 
         internal void Translate(float xAmount, float yAmount)

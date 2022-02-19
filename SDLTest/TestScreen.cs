@@ -3,6 +3,7 @@
     using SDLC;
     using SDLC.Applets;
     using SDLC.GUI;
+    using SDLC.Particles;
     using SDLTest.Blocks;
     using System;
     using System.Collections.Generic;
@@ -13,6 +14,7 @@
 
     internal class TestScreen : SDLScreen
     {
+        private const string PE_NAME = @"D:\Users\jebel\Documents\ParticlePark\app\Particle Park_data\welder\Particle Park Sparks\Particle Park Sparks.p";
         private SDLTexture? img2;
         private double angle;
         private double diff;
@@ -28,7 +30,7 @@
         private float scrollX = 0;
         private float scrollSpeed = 0.1f;
         private double lastScrollTime;
-
+        private int particleStyle;
         public TestScreen()
             : base("Test Screen")
         {
@@ -72,11 +74,15 @@
                 backdrop: true);
             Gadget gad1 = gui.AddGadget(window1, leftEdge: 10, topEdge: 10, width: -20, height: 40, text: "GUI Test", tooltip: "Go To GUI Test Screen", clickAction: GoToGUITest);
             Gadget gad2 = gui.AddGadget(window1, leftEdge: 10, topEdge: 60, width: -20, height: 40, text: "Blocks", tooltip: "Go To Blocks Game", clickAction: GoToBlocks);
-            Gadget gad3 = gui.AddGadget(window1, leftEdge: 10, topEdge: 110, width: -20, height: 40, text: "Gadget 3", tooltip: "Nothing here yet...");
+            Gadget gad3 = gui.AddGadget(window1, leftEdge: 10, topEdge: 110, width: -20, height: 40, text: "Particles", tooltip: "Switch Particle Effect", clickAction: NextParticle);
 
             img2 = LoadTexture(nameof(Properties.Resources.badlands));
             text1 = $"{Width}x{Height}";
             text2 = "Test Scroll Text";
+
+            //IParticleSystem parts = ParticleSystem;
+            //parts.UseFixedDelta = false;
+            //parts.AddParticleEffect(Style.Fire, Width / 4, Height / 2);
         }
 
         public override void Hide(IWindow window)
@@ -94,6 +100,19 @@
         private void GoToBlocks()
         {
             ChangeScreen(new BlocksScreen());
+        }
+
+        private void NextParticle()
+        {
+            particleStyle++;
+            if (particleStyle >= (int)Style.Max)
+            {
+                particleStyle = 0;
+            }
+            ParticleSystem.UseFixedDelta = false;
+            ParticleSystem.Clear();
+            ParticleSystem.AddParticleEffect((Style)particleStyle, Width / 4, Height / 2);
+            text2 = "Current Particle Effect: " + (Style)particleStyle;
         }
 
         public override void Update(IRenderer renderer, double totalTime, double elapsedTime)

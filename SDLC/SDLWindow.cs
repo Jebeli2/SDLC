@@ -22,6 +22,7 @@ internal sealed class SDLWindow : IWindow, IDisposable
     private readonly SDLRenderer renderer;
     private readonly SDLContentManager contentManager;
     private IGUISystem? gui;
+    private IParticleSystem? particleSystem;
     private bool disposedValue;
     private int windowId;
     private string? title;
@@ -181,6 +182,25 @@ internal sealed class SDLWindow : IWindow, IDisposable
             if (gui != value)
             {
                 gui = value;
+            }
+        }
+    }
+
+    public IParticleSystem ParticleSystem
+    {
+        get
+        {
+            if (particleSystem == null)
+            {
+                particleSystem = GetApplet<Particles.ParticleSystem>();
+            }
+            return particleSystem;
+        }
+        set
+        {
+            if (particleSystem != value)
+            {
+                particleSystem = value;
             }
         }
     }

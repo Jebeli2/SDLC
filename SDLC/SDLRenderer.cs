@@ -429,6 +429,57 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
             SDLApplication.LogSDLError(SDL_RenderCopyEx(handle, th, IntPtr.Zero, ref dst, angle, IntPtr.Zero, flip));
         }
     }
+    public void DrawTexture(SDLTexture? texture, RectangleF dst, double angle, RendererFlip flip = RendererFlip.None)
+    {
+        if (texture.GetTextureHandle(out IntPtr th))
+        {
+            SDLApplication.LogSDLError(SDL_RenderCopyExF(handle, th, IntPtr.Zero, ref dst, angle, IntPtr.Zero, flip));
+        }
+    }
+    public void DrawTextureRects(SDLTexture? texture, IList<RectangleF> rects, IList<Color> colors)
+    {
+        if (texture.GetTextureHandle(out IntPtr th))
+        {
+            SDL_Vertex[] vertices = new SDL_Vertex[rects.Count * 4];
+            int[] indices = new int[rects.Count * 6];
+            int index = 0;
+            int j = 0;
+            for (int i = 0; i < rects.Count; i++)
+            {
+                RectangleF rect = rects[i];
+                var c = ToSDLColor(colors[i]);
+                vertices[index + 0].color = c;
+                vertices[index + 0].position.X = rect.X;
+                vertices[index + 0].position.Y = rect.Y;
+                vertices[index + 0].tex_coord.X = 0;
+                vertices[index + 0].tex_coord.Y = 0;
+                vertices[index + 1].color = c;
+                vertices[index + 1].position.X = rect.Right;
+                vertices[index + 1].position.Y = rect.Y;
+                vertices[index + 1].tex_coord.X = 1;
+                vertices[index + 1].tex_coord.Y = 0;
+                vertices[index + 2].color = c;
+                vertices[index + 2].position.X = rect.X;
+                vertices[index + 2].position.Y = rect.Bottom;
+                vertices[index + 2].tex_coord.X = 0;
+                vertices[index + 2].tex_coord.Y = 1;
+                vertices[index + 3].color = c;
+                vertices[index + 3].position.X = rect.Right;
+                vertices[index + 3].position.Y = rect.Bottom;
+                vertices[index + 3].tex_coord.X = 1;
+                vertices[index + 3].tex_coord.Y = 1;
+                indices[j + 0] = index + 2;
+                indices[j + 1] = index;
+                indices[j + 2] = index + 1;
+                indices[j + 3] = index + 1;
+                indices[j + 4] = index + 3;
+                indices[j + 5] = index + 2;
+                index += 4;
+                j += 6;
+            }
+            SDLApplication.LogSDLError(SDL_RenderGeometry(handle, th, vertices, vertices.Length, indices, indices.Length));
+        }
+    }
     public void DrawIcon(Icons icon, float x, float y, float width, float height, Color color, HorizontalAlignment hAlign = HorizontalAlignment.Center, VerticalAlignment vAlign = VerticalAlignment.Center, float offsetX = 0, float offsetY = 0)
     {
         if (icon == Icons.NONE) return;

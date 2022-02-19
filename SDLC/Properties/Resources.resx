@@ -121,6 +121,9 @@
   <data name="entypo" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\entypo.ttf;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="fire" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\fire.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="Roboto-Regular" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Roboto-Regular.ttf;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>

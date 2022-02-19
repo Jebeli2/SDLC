@@ -59,4 +59,28 @@ internal static class FileUtils
         return name + '.' + ext;
     }
 
+    public static bool ReadBoolean(this TextReader reader, string name)
+    {
+        return bool.Parse(ReadString(reader,name));
+    }
+    public static int ReadInt(this TextReader reader, string name)
+    {
+        return int.Parse(ReadString(reader, name));
+    }
+    public static float ReadFloat(this TextReader reader, string name)
+    {
+        return float.Parse(ReadString(reader, name));
+    }
+
+    public static string ReadString(this TextReader reader, string name)
+    {
+        string? line = reader.ReadLine();
+        if (line == null) throw new IOException($"Missing value: {name}");
+        return ReadString(line);
+    }
+
+    public static string ReadString(string line)
+    {
+        return line.Substring(line.IndexOf(':') + 1).Trim();
+    }
 }
