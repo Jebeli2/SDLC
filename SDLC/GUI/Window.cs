@@ -37,7 +37,14 @@ public class Window : GUIObject
         this.screen = screen;
         windowFlags = flags;
         Title = title;
-        SetBorders(4, HasTitleBar ? 28 : 4, 4, 4);
+        if (Borderless)
+        {
+            SetBorders(0, 0, 0, 0);
+        }
+        else
+        {
+            SetBorders(4, HasTitleBar ? 28 : 4, 4, 4);
+        }
         screen.AddWindow(this);
     }
     public string? Title { get => Text; set => Text = value; }
@@ -462,14 +469,14 @@ public class Window : GUIObject
         valid = false;
     }
 
-    private void InvalidateBounds()
+    protected internal override void InvalidateBounds()
     {
         OnInvalidate();
         foreach (Gadget gadget in gadgets)
         {
             gadget.InvalidateBounds();
         }
-        foreach(Requester req in requests)
+        foreach (Requester req in requests)
         {
             req.InvalidateBounds();
         }

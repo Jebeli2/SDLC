@@ -351,7 +351,9 @@ internal sealed class SDLWindow : IWindow, IDisposable
             if (screen != value)
             {
                 screen.Hide(this);
+                screen.Shutdown(this);
                 screen = value;
+                screen.Initialize(this);
                 screen.Show(this);
             }
         }
@@ -1241,6 +1243,7 @@ internal sealed class SDLWindow : IWindow, IDisposable
                 AddApplet(screenForwarder);
                 if (fullScreen) { GoFullScreen(); }
                 RaiseWindowLoad();
+                screen.Initialize(this);
                 screen.Show(this);
             }
         }

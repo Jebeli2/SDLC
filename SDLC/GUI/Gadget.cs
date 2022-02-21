@@ -523,7 +523,8 @@ public class Gadget : GUIObject
         window.InvalidateFromGadget();
     }
 
-    internal void InvalidateBounds()
+
+    protected internal override void InvalidateBounds()
     {
         bounds = null;
         OnInvalidate();

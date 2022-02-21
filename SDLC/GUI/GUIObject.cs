@@ -223,7 +223,10 @@ public class GUIObject : IBox
         rect.Height -= (borderTop + borderBottom);
         return rect;
     }
+    protected internal virtual void InvalidateBounds()
+    {
 
+    }
     protected void SetDimensions(Rectangle rect)
     {
         SetDimensions(rect.X, rect.Y, rect.Width, rect.Height);
@@ -235,6 +238,7 @@ public class GUIObject : IBox
         topEdge = y;
         width = w;
         height = h;
+        InvalidateBounds();
     }
 
     protected virtual void SetBorders(int left, int top, int right, int bottom)
