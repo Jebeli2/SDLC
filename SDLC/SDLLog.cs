@@ -153,6 +153,14 @@ public static class SDLLog
     {
         Log(cat, LogPriority.Debug, format, arg0, arg1, arg2, arg3);
     }
+    public static void Debug<T0, T1, T2, T3, T4>(LogCategory cat, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
+    {
+        Log(cat, LogPriority.Debug, format, arg0, arg1, arg2, arg3, arg4);
+    }
+    public static void Debug<T0, T1, T2, T3, T4, T5>(LogCategory cat, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
+    {
+        Log(cat, LogPriority.Debug, format, arg0, arg1, arg2, arg3, arg4, arg5);
+    }
     public static void Debug(LogCategory cat, string format, params object?[] args)
     {
         Log(cat, LogPriority.Debug, format, args);

@@ -225,7 +225,6 @@ public static class SDLInput
         if (controller == null) return;
         if (controller.Window == null) return;
         controller.HandleButtonEvent(evt.button, evt.state, evt.timestamp);
-        //controller.Window.RaiseControllerButtonDown(controller, (ControllerButton)evt.button, (KeyButtonState)evt.state);
     }
     private static void HandleControllerButtonUpEvent(SDLController? controller, ref SDL_ControllerButtonEvent evt)
     {
@@ -233,7 +232,6 @@ public static class SDLInput
         if (controller.Window == null) return;
         controller.HandleButtonEvent(evt.button, evt.state, evt.timestamp);
 
-        //controller.Window.RaiseControllerButtonUp(controller, (ControllerButton)evt.button, (KeyButtonState)evt.state);
     }
 
     private static void HandleControllerAxisEvent(SDLController? controller, ref SDL_ControllerAxisEvent evt)
@@ -241,8 +239,10 @@ public static class SDLInput
         if (controller == null) return;
         if (controller.Window == null) return;
         Vector2 dir = GetAxisDirection(controller.Handle, ref evt);
-        if (dir == Vector2.Zero) return;
-        controller.Window.RaiseControllerAxisEvent(controller, (ControllerAxis)evt.axis, evt.axisValue, dir);
+        controller.HandleAxisEvent(evt.axis, evt.axisValue, dir, evt.timestamp);
+        //evt.axis
+        //if (dir == Vector2.Zero) return;
+        //controller.Window.RaiseControllerAxisEvent(controller, (ControllerAxis)evt.axis, evt.axisValue, dir);
     }
 
     private static void HandleControllerTouchpadDownEvent(SDLController? controller, ref SDL_ControllerTouchpadEvent evt)

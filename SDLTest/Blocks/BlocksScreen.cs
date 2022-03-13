@@ -56,7 +56,8 @@ public class BlocksScreen : SDLScreen
         GetApplet<BackgroundImage>().Enabled = false;
         GetApplet<MusicPlayer>().PlayNow(nameof(Properties.Resources.Korobeiniki));
         InitGfx();
-        InitCommands(GetApplet<KeyCommandManager>());
+        //InitCommands(GetApplet<KeyCommandManager>());
+        InitCommands(GetApplet<CommandManager>());
         blockRenderer.Resize(Width, Height);
         LoadHighScores();
         _ = MakeGameScreen();
@@ -269,6 +270,26 @@ public class BlocksScreen : SDLScreen
         blockGfx.MsgFont?.Dispose();
         blockGfx.SmallFont?.Dispose();
         blockGfx.SoupFontBig?.Dispose();
+    }
+
+    private void InitCommands(CommandManager cm)
+    {
+        cm.AddCommand(MoveLeft).AddKeyPress(ScanCode.SCANCODE_LEFT, ScanCode.SCANCODE_KP_4).AddControllerButtonPress(ControllerButton.DPadLeft).AddControllerAxisPress(ControllerAxis.LEFTX, -1);
+        cm.AddCommand(StopMoveLeft).AddKeyRelease(ScanCode.SCANCODE_LEFT, ScanCode.SCANCODE_KP_4).AddControllerButtonRelease(ControllerButton.DPadLeft).AddControllerAxisRelease(ControllerAxis.LEFTX, -1);
+        cm.AddCommand(MoveRight).AddKeyPress(ScanCode.SCANCODE_RIGHT, ScanCode.SCANCODE_KP_6).AddControllerButtonPress(ControllerButton.DpadRight).AddControllerAxisPress(ControllerAxis.LEFTX, 1);
+        cm.AddCommand(StopMoveRight).AddKeyRelease(ScanCode.SCANCODE_RIGHT, ScanCode.SCANCODE_KP_6).AddControllerButtonRelease(ControllerButton.DpadRight).AddControllerAxisRelease(ControllerAxis.LEFTX, 1);
+        cm.AddCommand(MoveDown).AddKeyPress(ScanCode.SCANCODE_DOWN, ScanCode.SCANCODE_KP_2).AddControllerButtonPress(ControllerButton.DPadDown).AddControllerAxisPress(ControllerAxis.LEFTY, 1);
+        cm.AddCommand(StopMoveDown).AddKeyRelease(ScanCode.SCANCODE_DOWN, ScanCode.SCANCODE_KP_2).AddControllerButtonRelease(ControllerButton.DPadDown).AddControllerAxisRelease(ControllerAxis.LEFTY, 1);
+        cm.AddCommand(RotateLeft).AddKeyPress(ScanCode.SCANCODE_UP, ScanCode.SCANCODE_KP_1, ScanCode.SCANCODE_KP_5, ScanCode.SCANCODE_KP_9, ScanCode.SCANCODE_X).AddControllerButtonPress(ControllerButton.Circle);
+        cm.AddCommand(StopRotateLeft).AddKeyRelease(ScanCode.SCANCODE_UP, ScanCode.SCANCODE_KP_1, ScanCode.SCANCODE_KP_5, ScanCode.SCANCODE_KP_9, ScanCode.SCANCODE_X).AddControllerButtonRelease(ControllerButton.Circle);
+        cm.AddCommand(RotateRight).AddKeyPress(ScanCode.SCANCODE_KP_3, ScanCode.SCANCODE_KP_7, ScanCode.SCANCODE_Z, ScanCode.SCANCODE_LCTRL, ScanCode.SCANCODE_RCTRL).AddControllerButtonPress(ControllerButton.Cross);
+        cm.AddCommand(StopRotateRight).AddKeyRelease(ScanCode.SCANCODE_KP_3, ScanCode.SCANCODE_KP_7, ScanCode.SCANCODE_Z, ScanCode.SCANCODE_LCTRL, ScanCode.SCANCODE_RCTRL).AddControllerButtonRelease(ControllerButton.Cross);
+        cm.AddCommand(Drop).AddKeyPress(ScanCode.SCANCODE_SPACE, ScanCode.SCANCODE_KP_8).AddControllerButtonPress(ControllerButton.DPadUp, ControllerButton.Triangle);
+        cm.AddCommand(StopDrop).AddKeyRelease(ScanCode.SCANCODE_SPACE, ScanCode.SCANCODE_KP_8).AddControllerButtonRelease(ControllerButton.DPadUp, ControllerButton.Triangle);
+
+        cm.AddCommand(Hold).AddKeyRelease(ScanCode.SCANCODE_KP_0, ScanCode.SCANCODE_C).AddControllerButtonRelease(ControllerButton.LeftShoulder, ControllerButton.RightShoulder);
+        cm.AddCommand(PauseButton).AddKeyRelease(ScanCode.SCANCODE_ESCAPE).AddControllerButtonRelease(ControllerButton.Options);
+        cm.AddCommand(RestartButton).AddKeyPress(ScanCode.SCANCODE_RETURN).AddControllerButtonPress(ControllerButton.Share);
     }
     private void InitCommands(KeyCommandManager kcm)
     {

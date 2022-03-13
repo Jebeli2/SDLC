@@ -35,6 +35,15 @@ public class TextureRegion
         height = textureRegion.height;
     }
 
+    public TextureRegion(SDLTexture texture, int x, int y, int w, int h)
+    {
+        this.texture = texture;
+        this.x = x;
+        this.y = y;
+        width = w;
+        height = h;
+    }
+
     public SDLTexture Texture
     {
         get { return texture; }

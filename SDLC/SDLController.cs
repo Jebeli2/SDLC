@@ -4,6 +4,7 @@
 namespace SDLC;
 
 using System;
+using System.Numerics;
 
 public class SDLController
 {
@@ -12,10 +13,15 @@ public class SDLController
     private SDLWindow? window;
     private string? name;
     private KeyButtonState[] buttonStates = new KeyButtonState[(int)ControllerButton.Max];
+    private KeyButtonState[] axisStates = new KeyButtonState[(int)ControllerAxis.MAX];
+    private int[] axisValues = new int[(int)ControllerAxis.MAX];
     private uint[] buttonRepeatDownTime = new uint[(int)ControllerButton.Max];
     private uint[] buttonRateDownTime = new uint[(int)ControllerButton.Max];
+    private uint[] axisRepeatDownTime = new uint[(int)ControllerAxis.MAX];
+    private uint[] axisRateDownTime = new uint[(int)ControllerAxis.MAX];
     private uint repeatDelay = 100;
     private uint repeatRate = 50;
+    private int controllerSensitivity = 1000;
 
     internal SDLController(int which, IntPtr handle)
     {
@@ -84,6 +90,61 @@ public class SDLController
         }
     }
 
-
+    internal void HandleAxisEvent(byte axis, short axisValue, Vector2 direction, uint timeStamp)
+    {
+        if (axis < axisStates.Length)
+        {
+            KeyButtonState oldState = axisStates[axis];
+            int axisTriggerValue = 0;
+            if (direction == Vector2.Zero && oldState == KeyButtonState.Pressed)
+            {
+                axisStates[axis] = KeyButtonState.Released;
+                axisRepeatDownTime[axis] = 0;
+                axisRateDownTime[axis] = 0;
+                axisTriggerValue = axisValues[axis];
+                window?.RaiseControllerAxisEvent(this, KeyButtonState.Released, (ControllerAxis)axis, axisValue, axisTriggerValue, direction);
+            }
+            else if (direction != Vector2.Zero && oldState == KeyButtonState.Released)
+            {
+                axisStates[axis] = KeyButtonState.Pressed;
+                axisRepeatDownTime[axis] = timeStamp;
+                if (axisValue < -controllerSensitivity)
+                {
+                    axisTriggerValue = -1;
+                }
+                else if (axisValue > controllerSensitivity)
+                {
+                    axisTriggerValue = 1;
+                }
+                else
+                {
+                    axisTriggerValue = 0;
+                }
+                axisValues[axis] = axisTriggerValue;
+                window?.RaiseControllerAxisEvent(this, KeyButtonState.Pressed, (ControllerAxis)axis, axisValue, axisTriggerValue, direction);
+            }
+            else if (direction != Vector2.Zero && oldState == KeyButtonState.Pressed)
+            {
+                uint diffRep = timeStamp - axisRepeatDownTime[axis];
+                if (diffRep > repeatDelay)
+                {
+                    axisRateDownTime[axis] = timeStamp;
+                    axisRepeatDownTime[axis] = 0;
+                    axisTriggerValue = axisValues[axis];
+                    window?.RaiseControllerAxisEvent(this, KeyButtonState.Pressed, (ControllerAxis)axis, axisValue, axisTriggerValue, direction);
+                }
+                else if (axisRateDownTime[axis] > 0)
+                {
+                    uint diffRat = timeStamp - axisRateDownTime[axis];
+                    if (diffRat > repeatRate)
+                    {
+                        axisRateDownTime[axis] = timeStamp;
+                        axisTriggerValue = axisValues[axis];
+                        window?.RaiseControllerAxisEvent(this, KeyButtonState.Pressed, (ControllerAxis)axis, axisValue, axisTriggerValue, direction);
+                    }
+                }
+            }
+        }
+    }
 
 }

@@ -1184,10 +1184,10 @@ internal sealed class SDLWindow : IWindow, IDisposable
         foreach (SDLApplet applet in inputApplets) { applet.OnControllerButtonUp(e); if (e.Handled) break; }
         if (enableEventHandlers && !e.Handled) { ((SDLControllerButtonEventHandler?)eventHandlerList[controllerButtonUpEventKey])?.Invoke(this, e); }
     }
-    internal void RaiseControllerAxisEvent(SDLController controller, ControllerAxis axis, int axisValue, Vector2 direction)
+    internal void RaiseControllerAxisEvent(SDLController controller, KeyButtonState state, ControllerAxis axis, int axisValue, int axisTriggerValue, Vector2 direction)
     {
-        SDLLog.Verbose(LogCategory.INPUT, "Window {0} Controller {1} {2} {3} {4}", windowId, controller.Which, axis, axisValue, direction);
-        SDLControllerAxisEventArgs e = new(controller, axis, axisValue, direction);
+        SDLLog.Debug(LogCategory.INPUT, "Window {0} Controller {1} {2} {3} {4} {5} {6}", windowId, controller.Which, state, axis, axisValue, axisTriggerValue, direction);
+        SDLControllerAxisEventArgs e = new(controller, state, axis, axisValue, axisTriggerValue, direction);
         foreach (SDLApplet applet in inputApplets) { applet.OnControllerAxis(e); if (e.Handled) break; }
         if (enableEventHandlers && !e.Handled) { ((SDLControllerAxisEventHandler?)eventHandlerList[controllerAxisEventKey])?.Invoke(this, e); }
     }
