@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -38,8 +39,12 @@ public static class SDLInput
 
     internal static void MessageLoop()
     {
-        while (SDL_PollEvent(out SDL_Event evt) != 0 && !SDLApplication.QuitRequested)
+        SDL_Event[] events = new SDL_Event[1];
+
+        while (SDL_PollEvent(out events[0]) != 0 && !SDLApplication.QuitRequested)
         {
+            var span = MemoryMarshal.AsBytes<SDL_Event>(events);
+            SDL_Event evt = MemoryMarshal.AsRef<SDL_Event>(span);
             switch (evt.type)
             {
                 case SDL_EventType.QUIT:
@@ -67,8 +72,12 @@ public static class SDLInput
                     HandleKeyUpEvent(SDLApplication.GetWindowFromId(evt.key.windowID), ref evt.key);
                     break;
                 case SDL_EventType.TEXTINPUT:
-                    Marshal.StructureToPtr(evt, evtMem, false);
-                    HandleTextInput(SDLApplication.GetWindowFromId(evt.text.windowID), ref evt.text);
+                    //ReadOnlySpan<SDL_Event> evtS = new ReadOnlySpan<SDL_Event>(new SDL_Event[] { evt });
+                    HandleTextInput(SDLApplication.GetWindowFromId(evt.text.windowID), span);
+                    //var ros = new ReadOnlySpan<SDL_Event>(evt);
+                    //MemoryMarshal.AsBytes<SDL_Event>(evt);
+                    //Marshal.StructureToPtr(evt, evtMem, false);
+                    //HandleTextInput(SDLApplication.GetWindowFromId(evt.text.windowID), ref evt.text);
                     break;
                 case SDL_EventType.CONTROLLERDEVICEADDED:
                     AddController(evt.cdevice.which);
@@ -110,6 +119,11 @@ public static class SDLInput
         }
         CheckControllerButtonRepeats();
     }
+
+    //private  static ReadOnlySpan<byte> GetSpan(ref SDL_Event evt)
+    //{
+    //    
+    //}
 
     private static void CheckControllerButtonRepeats()
     {
@@ -186,6 +200,28 @@ public static class SDLInput
         if (window == null) return;
         window.RaiseKeyUp(evt.keysym.scancode, evt.keysym.sym, evt.keysym.mod, (KeyButtonState)evt.state, evt.repeat != 0);
     }
+
+    private static void HandleTextInput(SDLWindow? window, ReadOnlySpan<byte> data)
+    {
+        if (window == null) return;
+
+        //byte[] data = new byte[64];
+        //Marshal.Copy(evtMem, data, 0, 64);
+        int length = 0;
+        while (data[length + 12] != 0 && length < SDL_TEXTINPUTEVENT_TEXT_SIZE)
+        {
+            length++;
+        }
+        if (length > 0)
+        {
+            string str = Encoding.UTF8.GetString(data.Slice(12, length));
+            if (!string.IsNullOrEmpty(str))
+            {
+                window.RaiseTextInput(str);
+            }
+        }
+    }
+
     private static void HandleTextInput(SDLWindow? window, ref SDL_TextInputEvent evt)
     {
         if (window == null) return;
