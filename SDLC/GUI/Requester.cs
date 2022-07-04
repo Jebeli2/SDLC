@@ -75,9 +75,9 @@ public class Requester : GUIObject
         }
         return null;
     }
-    internal void InvalidateBounds()
+    protected internal override void InvalidateBounds()
     {
-        OnInvalidate();
+        base.InvalidateBounds();
         foreach (Gadget gadget in gadgets)
         {
             gadget.InvalidateBounds();

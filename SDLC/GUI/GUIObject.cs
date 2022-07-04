@@ -225,7 +225,7 @@ public class GUIObject : IBox
     }
     protected internal virtual void InvalidateBounds()
     {
-
+        OnInvalidate();
     }
     protected void SetDimensions(Rectangle rect)
     {

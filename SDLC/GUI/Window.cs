@@ -471,7 +471,7 @@ public class Window : GUIObject
 
     protected internal override void InvalidateBounds()
     {
-        OnInvalidate();
+        base.InvalidateBounds();
         foreach (Gadget gadget in gadgets)
         {
             gadget.InvalidateBounds();

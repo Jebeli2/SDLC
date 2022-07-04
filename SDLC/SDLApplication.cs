@@ -321,6 +321,9 @@ RetryTick:
             _ = SDL_SetHint(SDL_HINT_ALLOW_ALT_TAB_WHILE_GRABBED, "1");
             _ = SDL_SetHint(SDL_BORDERLESS_WINDOWED_STYLE, "1");
             _ = SDL_SetHint(SDL_BORDERLESS_RESIZABLE_STYLE, "1");
+            SDLLog.Info(LogCategory.APPLICATION, "SDL Platform: {0}", GetPlatform());
+            SDL_GetVersion(out SDL_version version);
+            SDLLog.Info(LogCategory.APPLICATION, "SDL Version: {0}.{1}.{2}", version.major, version.minor, version.patch);
             InitTimer();
             GetDriverInfos();
             _ = SDLTexture.IMG_Init(SDLTexture.IMG_InitFlags.IMG_INIT_PNG);
@@ -562,6 +565,15 @@ RetryTick:
         Everything = Timer | Audio | Video | Haptic | GameController | Events | Sensor
     };
 
+    [StructLayout(LayoutKind.Sequential)]
+    private struct SDL_version
+    {
+        public byte major;
+        public byte minor;
+        public byte patch;
+    }
+
+
     private const int SDL_QUERY = -1;
     private const int SDL_DISABLE = 0;
     private const int SDL_ENABLE = 1;
@@ -599,9 +611,18 @@ RetryTick:
     private static extern IntPtr SDL_GetPixelFormatName(uint format);
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern int SDL_ShowCursor(int toggle);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr SDL_GetPlatform();
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr SDL_GetError();
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern void SDL_GetVersion(out SDL_version ver);
+
+    internal static string? GetPlatform()
+    {
+        return IntPtr2String(SDL_GetPlatform());
+    }
     internal static string? GetError()
     {
         return IntPtr2String(SDL_GetError());
