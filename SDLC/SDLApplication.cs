@@ -113,10 +113,7 @@ public static class SDLApplication
     {
         get
         {
-            if (fpsText == null)
-            {
-                fpsText = BuildFPSText();
-            }
+            fpsText ??= BuildFPSText();
             return fpsText;
         }
     }

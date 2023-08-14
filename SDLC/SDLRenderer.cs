@@ -12,7 +12,7 @@ using System.Runtime.InteropServices;
 internal sealed class SDLRenderer : IRenderer, IDisposable
 {
     private readonly SDLWindow window;
-    private readonly StringBuilder stringBuffer = new StringBuilder(512);
+    private readonly StringBuilder stringBuffer = new(512);
     private readonly uint format;
     private IntPtr handle;
     private IntPtr backBuffer;
@@ -127,8 +127,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
         handle = SDL_CreateRenderer(window.Handle, driverIndex, flags);
         if (handle != IntPtr.Zero)
         {
-            SDL_RendererInfo info = new();
-            SDLApplication.LogSDLError(SDL_GetRendererInfo(handle, out info));
+            SDLApplication.LogSDLError(SDL_GetRendererInfo(handle, out SDL_RendererInfo info));
             SDLLog.Info(LogCategory.RENDER, "Renderer {0} created: {1} ({2}x{3} max texture size)", window.WindowId, Marshal.PtrToStringUTF8(info.name), info.max_texture_width, info.max_texture_height);
             backBufferWidth = window.BackBufferWidth;
             backBufferHeight = window.BackBufferHeight;
@@ -492,7 +491,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
     {
         if (text == null) return;
         if (text.Length == 0) return;
-        if (font == null) { font = SDLApplication.DefaultFont; }
+        font ??= SDLApplication.DefaultFont;
         if (font == null) return;
         DrawTextCache(GetTextCache(font, text, color), x, y, width, height, horizontalAlignment, verticalAlignment, offsetX, offsetY);
     }
@@ -501,7 +500,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
     {
         if (text != null && text.Length > 0)
         {
-            if (font == null) { font = SDLApplication.DefaultFont; }
+            font ??= SDLApplication.DefaultFont;
             if (font != null)
             {
                 return font.MeasureText(text);
@@ -512,7 +511,7 @@ internal sealed class SDLRenderer : IRenderer, IDisposable
 
     public void GetGlyphMetrics(SDLFont? font, char c, out int minx, out int maxx, out int miny, out int maxy, out int advance)
     {
-        if (font == null) { font = SDLApplication.DefaultFont; }
+        font ??= SDLApplication.DefaultFont;
         if (font != null)
         {
             font.GetGlyphMetrics(c, out minx, out maxx, out miny, out maxy, out advance);

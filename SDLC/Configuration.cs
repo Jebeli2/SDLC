@@ -6,7 +6,8 @@ public class Configuration
 {
     public Configuration()
     {
-        Driver = "direct3d11";
+        //Driver = "direct3d11";
+        Driver = "opengl";
         WindowTitle = "SDL";
         WindowWidth = 1440;
         WindowHeight = 900;

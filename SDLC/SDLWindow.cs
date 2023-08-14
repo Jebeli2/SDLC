@@ -171,10 +171,7 @@ internal sealed class SDLWindow : IWindow, IDisposable
     {
         get
         {
-            if (gui == null)
-            {
-                gui = GetApplet<Applets.GUISystem>();
-            }
+            gui ??= GetApplet<Applets.GUISystem>();
             return gui;
         }
         set
@@ -190,10 +187,7 @@ internal sealed class SDLWindow : IWindow, IDisposable
     {
         get
         {
-            if (particleSystem == null)
-            {
-                particleSystem = GetApplet<Particles.ParticleSystem>();
-            }
+            particleSystem ??= GetApplet<Particles.ParticleSystem>();
             return particleSystem;
         }
         set

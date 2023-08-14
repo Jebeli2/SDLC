@@ -513,9 +513,9 @@ public static class SDLInput
         public uint timestamp;
         public int windowID;
         public SDL_WindowEventID windowEvent;
-        private byte padding1;
-        private byte padding2;
-        private byte padding3;
+        private readonly byte padding1;
+        private readonly byte padding2;
+        private readonly byte padding3;
         public int data1;
         public int data2;
     }
@@ -528,9 +528,9 @@ public static class SDLInput
         public uint windowID;
         public int which;
         public byte state;
-        private byte padding1;
-        private byte padding2;
-        private byte padding3;
+        private readonly byte padding1;
+        private readonly byte padding2;
+        private readonly byte padding3;
         public int x;
         public int y;
         public int xrel;
@@ -547,7 +547,7 @@ public static class SDLInput
         public byte button;
         public byte state;
         public byte clicks;
-        private byte padding1;
+        private readonly byte padding1;
         public int x;
         public int y;
     }
@@ -583,8 +583,8 @@ public static class SDLInput
         public int windowID;
         public byte state;
         public byte repeat;
-        private byte padding2;
-        private byte padding3;
+        private readonly byte padding2;
+        private readonly byte padding3;
         public SDL_Keysym keysym;
     }
 
@@ -607,11 +607,11 @@ public static class SDLInput
         public uint timestamp;
         public int which;
         public byte axis;
-        private byte padding1;
-        private byte padding2;
-        private byte padding3;
+        private readonly byte padding1;
+        private readonly byte padding2;
+        private readonly byte padding3;
         public short axisValue;
-        private uint padding4;
+        private readonly uint padding4;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -622,8 +622,8 @@ public static class SDLInput
         public int which;
         public byte button;
         public byte state;
-        private byte padding1;
-        private byte padding2;
+        private readonly byte padding1;
+        private readonly byte padding2;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -685,7 +685,7 @@ public static class SDLInput
         public float x;
         public float y;
         public ushort numFingers;
-        public ushort padding;
+        public readonly ushort padding;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -708,9 +708,9 @@ public static class SDLInput
         public uint timestamp;
         public int which;
         public byte axis;
-        private byte padding1;
-        private byte padding2;
-        private byte padding3;
+        private readonly byte padding1;
+        private readonly byte padding2;
+        private readonly byte padding3;
         public short axisValue;
         public ushort padding4;
     }
@@ -722,9 +722,9 @@ public static class SDLInput
         public uint timestamp;
         public int which;
         public byte ball;
-        private byte padding1;
-        private byte padding2;
-        private byte padding3;
+        private readonly byte padding1;
+        private readonly byte padding2;
+        private readonly byte padding3;
         public short xrel;
         public short yrel;
     }
@@ -737,8 +737,8 @@ public static class SDLInput
         public int which;
         public byte hat;
         public byte hatValue;
-        private byte padding1;
-        private byte padding2;
+        private readonly byte padding1;
+        private readonly byte padding2;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -749,8 +749,8 @@ public static class SDLInput
         public int which;
         public byte button;
         public byte state;
-        private byte padding1;
-        private byte padding2;
+        private readonly byte padding1;
+        private readonly byte padding2;
     }
 
     [StructLayout(LayoutKind.Sequential)]
